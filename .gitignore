@@ -30,3 +30,6 @@ src/main/resources/static/
 # Node / frontend
 frontend/node_modules/
 frontend/dist/
+
+# direnv
+.envrc
