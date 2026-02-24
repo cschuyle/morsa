@@ -7,19 +7,19 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 /**
- * Maps collection JSON (id, name, shortName, items with nested item objects)
- * into {@link SearchResult} for search.
+ * Maps collection JSON into {@link SearchResult} for search. Supports:
+ * <ul>
+ *   <li>Items format: {@code { "id", "name", "shortName", "items": [ { "littlePrinceItem": { ... } }, ... ] }}</li>
+ *   <li>Titles format: {@code { "id", "name", "shortName", "titles": [ "Title 1", "Title 2", ... ] }}</li>
+ *   <li>Array of collections (either format): {@code [ { ... }, ... ]}</li>
+ * </ul>
  */
 public final class CollectionToSearchResultMapper {
 
     private CollectionToSearchResultMapper() {}
 
     /**
-     * Map a root node to search results. Supports:
-     * <ul>
-     *   <li>Single collection: {@code { "id", "name", "shortName", "items": [ { "littlePrinceItem": { ... } }, ... ] }}</li>
-     *   <li>Array of collections: {@code [ { "id", "name", "shortName", "items": [...] }, ... ]}</li>
-     * </ul>
+     * Map a root node to search results. Detects format per collection (items vs titles).
      */
     public static List<SearchResult> mapRootToSearchResults(JsonNode root) {
         List<SearchResult> out = new ArrayList<>();
@@ -44,6 +44,13 @@ public final class CollectionToSearchResultMapper {
         if (troveName == null || troveName.isEmpty()) {
             troveName = troveId;
         }
+
+        JsonNode titles = collectionNode.get("titles");
+        if (titles != null && titles.isArray()) {
+            addTitlesCollectionResults(troveId, troveName, titles, out);
+            return;
+        }
+
         JsonNode items = collectionNode.get("items");
         if (items == null || !items.isArray()) {
             return;
@@ -58,6 +65,16 @@ public final class CollectionToSearchResultMapper {
                 out.add(r);
             }
             index++;
+        }
+    }
+
+    /** Map a collection with "titles": [ "Title 1", "Title 2", ... ] to one SearchResult per title. */
+    private static void addTitlesCollectionResults(String troveId, String troveName, JsonNode titlesArray, List<SearchResult> out) {
+        for (int i = 0; i < titlesArray.size(); i++) {
+            JsonNode titleNode = titlesArray.get(i);
+            String title = titleNode != null && titleNode.isTextual() ? titleNode.asText() : (titleNode != null ? titleNode.toString() : "");
+            String id = troveId != null && !troveId.isEmpty() ? troveId + "-" + i : "trove-" + i;
+            out.add(new SearchResult(id, title, title, troveName));
         }
     }
 

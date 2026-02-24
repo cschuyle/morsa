@@ -21,8 +21,9 @@ function App() {
   }, [])
 
   useEffect(() => {
-    fetch('/troves')
-      .then((res) => res.ok ? res.json() : [])
+    fetch('/api/troves')
+      .then((res) => (res.ok ? res.json() : Promise.resolve([])))
+      .then((data) => Array.isArray(data) ? data : [])
       .then(setTroves)
       .catch(() => setTroves([]))
   }, [])
@@ -35,7 +36,7 @@ function App() {
     setSearchResult(null)
     const params = new URLSearchParams({ query: query.trim() })
     if (trove.trim()) params.set('trove', trove.trim())
-    fetch(`/search?${params}`)
+    fetch(`/api/search?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
@@ -61,33 +62,19 @@ function App() {
       <section className="card search-section">
         <h2>Search</h2>
         <form onSubmit={handleSearch}>
-          {troves.length > 0 && (
-            <label>
-              Trove (optional)
-              <select
-                value={trove}
-                onChange={(e) => setTrove(e.target.value)}
-                className="search-trove-select"
-              >
-                <option value="">All troves</option>
-                {troves.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </label>
-          )}
-          {troves.length === 0 && (
-            <label>
-              Trove (optional)
-              <input
-                type="text"
-                value={trove}
-                onChange={(e) => setTrove(e.target.value)}
-                placeholder="e.g. Little Prince"
-                className="search-trove-input"
-              />
-            </label>
-          )}
+          <label>
+            Trove (optional)
+            <select
+              value={trove}
+              onChange={(e) => setTrove(e.target.value)}
+              className="search-trove-select"
+            >
+              <option value="">All troves</option>
+              {troves.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </label>
           <label>
             Query
             <input

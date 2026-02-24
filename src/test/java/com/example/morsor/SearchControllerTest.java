@@ -21,10 +21,24 @@ class SearchControllerTest {
     final RestTemplate restTemplate = new RestTemplate();
 
     @Test
+    void trovesReturnsListOfTroveNames() {
+        ResponseEntity<List<String>> response = restTemplate.exchange(
+                "http://localhost:" + port + "/api/troves",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<String>>() {}
+        );
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody()).as("Backend should return trove names from loaded data").isNotEmpty();
+        assertThat(response.getBody()).contains("Little Prince");
+    }
+
+    @Test
     void searchReturnsDataFromJson() {
         // With no filters we get all loaded results (verifies data is loaded from JSON)
         ResponseEntity<SearchResponse> allResponse = restTemplate.exchange(
-                "http://localhost:" + port + "/search",
+                "http://localhost:" + port + "/api/search",
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<SearchResponse>() {}
@@ -34,7 +48,7 @@ class SearchControllerTest {
         assertThat(allResponse.getBody().results()).as("Data should be loaded from JSON").isNotEmpty();
 
         // Filter by trove and query: should find the Ancient Greek item
-        String url = "http://localhost:" + port + "/search?trove=Prince&query=Greek";
+        String url = "http://localhost:" + port + "/api/search?trove=Prince&query=Greek";
         ResponseEntity<SearchResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,

@@ -16,11 +16,7 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
-      '/troves': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-      },
-      '/search': {
+      '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
