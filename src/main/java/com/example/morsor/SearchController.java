@@ -9,15 +9,22 @@ import java.util.List;
 @RestController
 public class SearchController {
 
+    private final SearchDataService searchDataService;
+
+    public SearchController(SearchDataService searchDataService) {
+        this.searchDataService = searchDataService;
+    }
+
+    @GetMapping("/troves")
+    public List<String> troves() {
+        return searchDataService.getTroveNames();
+    }
+
     @GetMapping("/search")
     public SearchResponse search(
-            @RequestParam String trove,
-            @RequestParam String query) {
-        List<SearchResult> results = List.of(
-                new SearchResult("1", "First result for " + query, "A snippet from the first result in " + trove + ".", trove),
-                new SearchResult("2", "Second result for " + query, "Another snippet in " + trove + " matching your search.", trove),
-                new SearchResult("3", "Third result", "Third canned snippet in " + trove + ".", trove)
-        );
+            @RequestParam(required = false, defaultValue = "") String trove,
+            @RequestParam(required = false, defaultValue = "") String query) {
+        List<SearchResult> results = searchDataService.search(trove, query);
         return new SearchResponse(results.size(), results);
     }
 }

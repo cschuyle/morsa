@@ -4,14 +4,15 @@ import App from './App'
 
 describe('App', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn())
+    vi.stubGlobal('fetch', vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/troves')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP' }) })
+    }))
   })
 
   it('renders Morsor heading', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ status: 'UP' }),
-    })
     render(<App />)
     expect(screen.getByRole('heading', { name: 'Morsor' })).toBeInTheDocument()
     await waitFor(() => {
@@ -20,10 +21,6 @@ describe('App', () => {
   })
 
   it('renders search form with Search button', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ status: 'UP' }),
-    })
     render(<App />)
     await waitFor(() => {
       expect(screen.getByText('Backend is up')).toBeInTheDocument()

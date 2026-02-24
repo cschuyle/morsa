@@ -21,21 +21,36 @@ class SearchControllerTest {
     final RestTemplate restTemplate = new RestTemplate();
 
     @Test
-    void searchReturnsCannedData() {
-        String url = "http://localhost:" + port + "/search?trove=newspaper&query=test";
+    void searchReturnsDataFromJson() {
+        // With no filters we get all loaded results (verifies data is loaded from JSON)
+        ResponseEntity<SearchResponse> allResponse = restTemplate.exchange(
+                "http://localhost:" + port + "/search",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<SearchResponse>() {}
+        );
+        assertThat(allResponse.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(allResponse.getBody()).isNotNull();
+        assertThat(allResponse.getBody().results()).as("Data should be loaded from JSON").isNotEmpty();
+
+        // Filter by trove and query: should find the Ancient Greek item
+        String url = "http://localhost:" + port + "/search?trove=Prince&query=Greek";
         ResponseEntity<SearchResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<>() {}
+                new ParameterizedTypeReference<SearchResponse>() {}
         );
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         SearchResponse body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.count()).isEqualTo(3);
-        assertThat(body.results()).hasSize(3);
-        assertThat(body.results().get(0).id()).isEqualTo("1");
-        assertThat(body.results().get(0).trove()).isEqualTo("newspaper");
-        assertThat(body.results().get(0).title()).isEqualTo("First result for test");
+        assertThat(body.results()).as("Filtered search should return the Ancient Greek item").isNotEmpty();
+        SearchResult greekResult = body.results().stream()
+                .filter(r -> "PP-4277".equals(r.id()))
+                .findFirst()
+                .orElse(null);
+        assertThat(greekResult).isNotNull();
+        assertThat(greekResult.trove()).isEqualTo("Little Prince");
+        assertThat(greekResult.title()).isEqualTo("The Little Prince, in Ancient Greek");
     }
 }

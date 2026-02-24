@@ -50,8 +50,12 @@
   flex-direction: column;
   gap: 0.25rem;
 }
-.search-section input {
+.search-section input,
+.search-section select {
   padding: 0.5rem;
+}
+.search-section select.search-trove-select {
+  min-width: 12rem;
 }
 .search-section button {
   margin-top: 0.5rem;

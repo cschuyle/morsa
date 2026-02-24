@@ -6,6 +6,7 @@ import './App.css'
 
 function App() {
   const [message, setMessage] = useState('')
+  const [troves, setTroves] = useState([])
   const [trove, setTrove] = useState('')
   const [query, setQuery] = useState('')
   const [searchResult, setSearchResult] = useState(null)
@@ -19,13 +20,21 @@ function App() {
       .catch(() => setMessage('Backend unreachable'))
   }, [])
 
+  useEffect(() => {
+    fetch('/troves')
+      .then((res) => res.ok ? res.json() : [])
+      .then(setTroves)
+      .catch(() => setTroves([]))
+  }, [])
+
   function handleSearch(e) {
     e?.preventDefault()
-    if (!trove.trim() || !query.trim()) return
+    if (!query.trim()) return
     setSearching(true)
     setSearchError(null)
     setSearchResult(null)
-    const params = new URLSearchParams({ trove: trove.trim(), query: query.trim() })
+    const params = new URLSearchParams({ query: query.trim() })
+    if (trove.trim()) params.set('trove', trove.trim())
     fetch(`/search?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(res.statusText)
@@ -52,25 +61,43 @@ function App() {
       <section className="card search-section">
         <h2>Search</h2>
         <form onSubmit={handleSearch}>
-          <label>
-            Trove
-            <input
-              type="text"
-              value={trove}
-              onChange={(e) => setTrove(e.target.value)}
-              placeholder="e.g. newspaper"
-            />
-          </label>
+          {troves.length > 0 && (
+            <label>
+              Trove (optional)
+              <select
+                value={trove}
+                onChange={(e) => setTrove(e.target.value)}
+                className="search-trove-select"
+              >
+                <option value="">All troves</option>
+                {troves.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          {troves.length === 0 && (
+            <label>
+              Trove (optional)
+              <input
+                type="text"
+                value={trove}
+                onChange={(e) => setTrove(e.target.value)}
+                placeholder="e.g. Little Prince"
+                className="search-trove-input"
+              />
+            </label>
+          )}
           <label>
             Query
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search terms"
+              placeholder="e.g. Greek, Prince, Albanian"
             />
           </label>
-          <button type="submit" disabled={searching || !trove.trim() || !query.trim()}>
+          <button type="submit" disabled={searching || !query.trim()}>
             {searching ? 'Searching…' : 'Search'}
           </button>
         </form>
