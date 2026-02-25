@@ -7,7 +7,7 @@ import './App.css'
 function App() {
   const [message, setMessage] = useState('')
   const [troves, setTroves] = useState([])
-  const [trove, setTrove] = useState('')
+  const [selectedTroveIds, setSelectedTroveIds] = useState(() => new Set())
   const [query, setQuery] = useState('')
   const [searchResult, setSearchResult] = useState(null)
   const [searchError, setSearchError] = useState(null)
@@ -28,6 +28,23 @@ function App() {
       .catch(() => setTroves([]))
   }, [])
 
+  function toggleTrove(id) {
+    setSelectedTroveIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function selectAllTroves() {
+    setSelectedTroveIds(new Set(troves.map((t) => t.id)))
+  }
+
+  function clearTroves() {
+    setSelectedTroveIds(new Set())
+  }
+
   function handleSearch(e) {
     e?.preventDefault()
     if (!query.trim()) return
@@ -35,7 +52,7 @@ function App() {
     setSearchError(null)
     setSearchResult(null)
     const params = new URLSearchParams({ query: query.trim() })
-    if (trove.trim()) params.set('trove', trove.trim())
+    selectedTroveIds.forEach((id) => params.append('trove', id))
     fetch(`/api/search?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error(res.statusText)
@@ -48,7 +65,7 @@ function App() {
 
   return (
     <>
-      <div>
+      <div className="app-header">
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
@@ -59,47 +76,65 @@ function App() {
       <h1>Morsor</h1>
       {message && <p className="backend-message" data-status={message === 'Backend is up' ? 'up' : 'down'}>{message}</p>}
 
-      <section className="card search-section">
-        <h2>Search</h2>
-        <form onSubmit={handleSearch}>
-          <label>
-            Trove (optional)
-            <select
-              value={trove}
-              onChange={(e) => setTrove(e.target.value)}
-              className="search-trove-select"
-            >
-              <option value="">All troves</option>
-              {troves.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Query
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. Greek, Prince, Albanian"
-            />
-          </label>
-          <button type="submit" disabled={searching || !query.trim()}>
-            {searching ? 'Searching…' : 'Search'}
-          </button>
-        </form>
-        {searchError && <p className="search-error">{searchError}</p>}
-        {searchResult != null && (() => {
-          const results = Array.isArray(searchResult.results) ? searchResult.results : []
-          const count = typeof searchResult.count === 'number' ? searchResult.count : results.length
-          return (
-            <>
-              <p className="search-count">{count} result{count !== 1 ? 's' : ''}</p>
-              <SearchResultsGrid data={results} />
-            </>
-          )
-        })()}
-      </section>
+      <div className="app-layout">
+        <aside className="sidebar">
+          <h2 className="sidebar-title">Troves</h2>
+          <p className="sidebar-hint">Select none = search all</p>
+          <div className="sidebar-actions">
+            <button type="button" className="sidebar-link" onClick={selectAllTroves}>
+              Select all
+            </button>
+            <span className="sidebar-sep">·</span>
+            <button type="button" className="sidebar-link" onClick={clearTroves}>
+              Clear
+            </button>
+          </div>
+          <ul className="trove-list">
+            {troves.map((t) => (
+              <li key={t.id} className="trove-item">
+                <label className="trove-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedTroveIds.has(t.id)}
+                    onChange={() => toggleTrove(t.id)}
+                  />
+                  <span className="trove-name">{t.name}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </aside>
+        <main className="main">
+          <section className="card search-section">
+            <h2>Search</h2>
+            <form onSubmit={handleSearch}>
+              <label>
+                Query
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="e.g. Greek, Prince, Albanian — or * for all"
+                />
+              </label>
+              <button type="submit" disabled={searching || !query.trim()}>
+                {searching ? 'Searching…' : 'Search'}
+              </button>
+            </form>
+            {searchError && <p className="search-error">{searchError}</p>}
+            {searchResult != null && (() => {
+              const results = Array.isArray(searchResult.results) ? searchResult.results : []
+              const count = typeof searchResult.count === 'number' ? searchResult.count : results.length
+              return (
+                <>
+                  <p className="search-count">{count} result{count !== 1 ? 's' : ''}</p>
+                  <SearchResultsGrid data={results} />
+                </>
+              )
+            })()}
+          </section>
+        </main>
+      </div>
     </>
   )
 }

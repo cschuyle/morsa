@@ -178,12 +178,15 @@ public class SearchDataService {
         }
     }
 
-    public List<SearchResult> search(String trove, String query) {
-        String troveParam = trove == null ? null : trove.trim();
+    public List<SearchResult> search(List<String> troveIds, String query) {
+        Set<String> troveIdSet = troveIds == null ? Set.of() : troveIds.stream()
+                .map(t -> t == null ? null : t.trim())
+                .filter(t -> t != null && !t.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
         String queryLower = query == null ? "" : query.trim().toLowerCase();
         Stream<SearchResult> stream = allResults.stream();
-        if (troveParam != null && !troveParam.isEmpty()) {
-            stream = stream.filter(r -> r.troveId() != null && r.troveId().equals(troveParam));
+        if (!troveIdSet.isEmpty()) {
+            stream = stream.filter(r -> r.troveId() != null && troveIdSet.contains(r.troveId()));
         }
         boolean matchAll = "*".equals(query != null ? query.trim() : "");
         if (!queryLower.isEmpty() && !matchAll) {

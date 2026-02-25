@@ -24,7 +24,7 @@ public class SearchController {
 
     @GetMapping("/search")
     public SearchResponse search(
-            @RequestParam(required = false, defaultValue = "") String trove,
+            @RequestParam(required = false) List<String> trove,
             @RequestParam(required = false, defaultValue = "") String query) {
         List<SearchResult> results = searchDataService.search(trove, query);
         return new SearchResponse(results.size(), results);
