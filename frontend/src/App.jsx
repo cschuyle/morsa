@@ -182,12 +182,9 @@ function App() {
               <button
                 type="button"
                 className="search-query-btn"
-                title="Clear"
-                onClick={() => {
-                  clearTroves()
-                  setTroveFilter('')
-                }}
-                aria-label="Clear selection and filter"
+                title="Clear filter"
+                onClick={() => setTroveFilter('')}
+                aria-label="Clear trove filter"
               >
                 ×
               </button>
