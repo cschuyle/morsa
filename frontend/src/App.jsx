@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import { SearchResultsGrid } from './SearchResultsGrid'
@@ -63,6 +63,29 @@ function App() {
       .finally(() => setSearching(false))
   }
 
+  const { withHits, noHits } = useMemo(() => {
+    const hasResults = searchResult?.results != null && Array.isArray(searchResult.results)
+    const withCounts = troves.map((t) => ({
+      ...t,
+      resultCount: hasResults
+        ? searchResult.results.filter((r) => r.troveId === t.id).length
+        : 0,
+    }))
+    if (!hasResults) {
+      const all = [...withCounts].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+      )
+      return { withHits: [], noHits: all }
+    }
+    const withHitsList = withCounts
+      .filter((t) => t.resultCount > 0)
+      .sort((a, b) => b.resultCount - a.resultCount)
+    const noHitsList = withCounts
+      .filter((t) => t.resultCount === 0)
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+    return { withHits: withHitsList, noHits: noHitsList }
+  }, [troves, searchResult])
+
   return (
     <>
       <div className="app-header">
@@ -90,26 +113,34 @@ function App() {
             </button>
           </div>
           <ul className="trove-list">
-            {troves.map((t) => {
-              const resultCount = (() => {
-                if (searchResult?.results == null || !Array.isArray(searchResult.results)) return 0
-                return searchResult.results.filter((r) => r.troveId === t.id).length
-              })()
-              return (
-                <li key={t.id} className={`trove-item${resultCount > 0 ? ' trove-item--has-results' : ''}`}>
-                  <label className="trove-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedTroveIds.has(t.id)}
-                      onChange={() => toggleTrove(t.id)}
-                    />
-                    <span className="trove-name">
-                      {t.name} ({resultCount}/{t.count})
-                    </span>
-                  </label>
-                </li>
-              )
-            })}
+            {withHits.map((t) => (
+              <li key={t.id} className="trove-item trove-item--has-results">
+                <label className="trove-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedTroveIds.has(t.id)}
+                    onChange={() => toggleTrove(t.id)}
+                  />
+                  <span className="trove-name">
+                    {t.name} ({t.resultCount}/{t.count})
+                  </span>
+                </label>
+              </li>
+            ))}
+            {noHits.map((t) => (
+              <li key={t.id} className="trove-item">
+                <label className="trove-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedTroveIds.has(t.id)}
+                    onChange={() => toggleTrove(t.id)}
+                  />
+                  <span className="trove-name">
+                    {t.name} ({t.resultCount}/{t.count})
+                  </span>
+                </label>
+              </li>
+            ))}
           </ul>
         </aside>
         <main className="main">
