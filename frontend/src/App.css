@@ -385,6 +385,12 @@
   gap: 1rem;
 }
 
+.pagination-nums {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.33rem;
+}
+
 .pagination-btn {
   height: 2.25rem;
   padding: 0 0.75rem;
@@ -399,6 +405,37 @@
   color: #666;
   font-size: 0.9rem;
 }
+
+.pagination-num {
+  min-width: 2.25rem;
+  border: none;
+  background: none;
+  color: #646cff;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.pagination-num:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.pagination-num--current {
+  font-weight: 600;
+  color: #213547;
+  cursor: default;
+}
+
+.pagination-num--current:hover {
+  text-decoration: none;
+}
+
+.pagination-ellipsis {
+  color: #666;
+  font-size: 0.9rem;
+  padding: 0 0.15rem;
+  user-select: none;
+}
+
 .search-result {
   margin-top: 1rem;
   padding: 1rem;
