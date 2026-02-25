@@ -173,6 +173,7 @@ public class SearchDataService {
             if (troveEntries.isEmpty()) {
                 log.warn("Troves manifest is empty; no data will be loaded");
             }
+            List<TroveS3Key> toLoad = new ArrayList<>();
             for (JsonNode entry : troveEntries) {
                 String troveId = textOrNull(entry, "id");
                 if (troveId == null || troveId.isEmpty()) {
@@ -193,19 +194,26 @@ public class SearchDataService {
                     continue;
                 }
                 String key = bucketPrefix.isEmpty() ? troveId + ".json" : bucketPrefix + "/" + troveId + ".json";
-                log.info("Fetching trove from S3: key={}", key);
-                try (InputStream in = s3.getObject(GetObjectRequest.builder()
-                                .bucket(bucketName)
-                                .key(key)
-                                .build())) {
-                    JsonNode root2 = objectMapper.readTree(in);
-                    List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root2);
-                    log.info("Loaded trove \"{}\": {} records", troveId, results.size());
-                    combined.addAll(results);
-                } catch (Exception e) {
-                    log.error("Failed to load trove \"{}\" from S3 (key={}): {}", troveId, key, e.getMessage(), e);
-                }
+                toLoad.add(new TroveS3Key(troveId, key));
             }
+            List<SearchResult> loaded = toLoad.parallelStream()
+                    .flatMap(tk -> {
+                        log.info("Fetching trove from S3: key={}", tk.key);
+                        try (InputStream in = s3.getObject(GetObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(tk.key)
+                                .build())) {
+                            JsonNode root2 = objectMapper.readTree(in);
+                            List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root2);
+                            log.info("Loaded trove \"{}\": {} records", tk.troveId, results.size());
+                            return results.stream();
+                        } catch (Exception e) {
+                            log.error("Failed to load trove \"{}\" from S3 (key={}): {}", tk.troveId, tk.key, e.getMessage(), e);
+                            return Stream.<SearchResult>empty();
+                        }
+                    })
+                    .toList();
+            combined.addAll(loaded);
             log.info("Trove load from S3 complete: {} total records", combined.size());
         } catch (Exception e) {
             log.error("Failed to load troves list from S3 (bucket={}): {}", bucketName, e.getMessage(), e);
@@ -326,4 +334,6 @@ public class SearchDataService {
         JsonNode v = node.get(field);
         return (v != null && v.isTextual()) ? v.asText() : null;
     }
+
+    private record TroveS3Key(String troveId, String key) {}
 }
