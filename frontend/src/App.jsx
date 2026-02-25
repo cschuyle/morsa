@@ -349,30 +349,30 @@ function App() {
                         ))}
                       </select>
                     </label>
+                    {totalPages > 1 && (
+                      <nav className="pagination" aria-label="Search results pages">
+                        <button
+                          type="button"
+                          className="pagination-btn"
+                          disabled={pageNum <= 0 || searching}
+                          onClick={() => goToPage(pageNum - 1)}
+                        >
+                          Previous
+                        </button>
+                        <span className="pagination-info">
+                          Page {pageNum + 1} of {totalPages}
+                        </span>
+                        <button
+                          type="button"
+                          className="pagination-btn"
+                          disabled={pageNum >= totalPages - 1 || searching}
+                          onClick={() => goToPage(pageNum + 1)}
+                        >
+                          Next
+                        </button>
+                      </nav>
+                    )}
                   </div>
-                  {totalPages > 1 && (
-                    <nav className="pagination" aria-label="Search results pages">
-                      <button
-                        type="button"
-                        className="pagination-btn"
-                        disabled={pageNum <= 0 || searching}
-                        onClick={() => goToPage(pageNum - 1)}
-                      >
-                        Previous
-                      </button>
-                      <span className="pagination-info">
-                        Page {pageNum + 1} of {totalPages}
-                      </span>
-                      <button
-                        type="button"
-                        className="pagination-btn"
-                        disabled={pageNum >= totalPages - 1 || searching}
-                        onClick={() => goToPage(pageNum + 1)}
-                      >
-                        Next
-                      </button>
-                    </nav>
-                  )}
                   <SearchResultsGrid data={results} />
                 </>
               )

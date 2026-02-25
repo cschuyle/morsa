@@ -325,24 +325,15 @@
   color: #666;
   font-size: 0.95rem;
 }
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-.pagination-btn {
-  padding: 0.4rem 0.75rem;
-  font-size: 0.9rem;
-}
-.pagination-info {
-  color: #666;
-  font-size: 0.9rem;
-}
 .search-results-options {
   margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
+
 .page-size-label {
   display: inline-flex;
   align-items: center;
@@ -350,8 +341,34 @@
   font-size: 0.9rem;
   color: #666;
 }
+
 .page-size-select {
-  padding: 0.35rem 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-btn {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-info {
+  color: #666;
   font-size: 0.9rem;
 }
 .search-result {
