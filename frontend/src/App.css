@@ -136,6 +136,31 @@
   text-decoration: underline;
 }
 
+.sidebar-show-wrap {
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-show-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.sidebar-show-select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.sidebar-show-select:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
 .sidebar-trove-filter-wrap {
   display: flex;
   align-items: stretch;

@@ -13,6 +13,7 @@ function App() {
   const [searching, setSearching] = useState(false)
   const [pageSize, setPageSize] = useState(500)
   const [troveFilter, setTroveFilter] = useState('')
+  const [showFilter, setShowFilter] = useState('all')
   const queryRef = useRef(query)
   const skipCheckboxSearchRef = useRef(true)
   const abortControllerRef = useRef(null)
@@ -142,6 +143,11 @@ function App() {
           (t.id && t.id.toLowerCase().includes(filterLower))
         all = all.filter(matches)
       }
+      if (showFilter === 'selected') {
+        all = all.filter((t) => selectedTroveIds.has(t.id))
+      } else if (showFilter === 'notSelected') {
+        all = all.filter((t) => !selectedTroveIds.has(t.id))
+      }
       return { withHits: [], noHits: all }
     }
     let withHitsList = withCounts
@@ -158,8 +164,15 @@ function App() {
       withHitsList = withHitsList.filter(matches)
       noHitsList = noHitsList.filter(matches)
     }
+    if (showFilter === 'selected') {
+      withHitsList = withHitsList.filter((t) => selectedTroveIds.has(t.id))
+      noHitsList = noHitsList.filter((t) => selectedTroveIds.has(t.id))
+    } else if (showFilter === 'notSelected') {
+      withHitsList = withHitsList.filter((t) => !selectedTroveIds.has(t.id))
+      noHitsList = noHitsList.filter((t) => !selectedTroveIds.has(t.id))
+    }
     return { withHits: withHitsList, noHits: noHitsList }
-  }, [troves, searchResult, troveFilter])
+  }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds])
 
   return (
     <>
@@ -169,6 +182,21 @@ function App() {
       <div className="app-layout">
         <aside className="sidebar">
           <h2 className="sidebar-title">Troves <span className="sidebar-title-note">(<button type="button" className="sidebar-title-link" onClick={clearTroves}>Select none</button> to search all)</span></h2>
+          <div className="sidebar-show-wrap">
+            <label className="sidebar-show-label">
+              Show
+              <select
+                value={showFilter}
+                onChange={(e) => setShowFilter(e.target.value)}
+                className="sidebar-show-select"
+                aria-label="Show troves: all, selected, or not selected"
+              >
+                <option value="all">All</option>
+                <option value="selected">Selected</option>
+                <option value="notSelected">Not Selected</option>
+              </select>
+            </label>
+          </div>
           <div className="sidebar-trove-filter-wrap">
             <input
               type="text"
