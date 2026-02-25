@@ -103,6 +103,18 @@
   font-weight: 700;
 }
 
+.trove-list-separator {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.sidebar-separator {
+  margin: 0;
+  border: none;
+  border-top: 1px solid #ddd;
+}
+
 .main {
   flex: 1;
   min-width: 0;

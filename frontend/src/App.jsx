@@ -127,6 +127,11 @@ function App() {
                 </label>
               </li>
             ))}
+            {withHits.length > 0 && noHits.length > 0 && (
+              <li className="trove-list-separator" aria-hidden="true">
+                <hr className="sidebar-separator" />
+              </li>
+            )}
             {noHits.map((t) => (
               <li key={t.id} className="trove-item">
                 <label className="trove-checkbox">
