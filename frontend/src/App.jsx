@@ -351,24 +351,26 @@ function App() {
                     </label>
                     {totalPages > 1 && (
                       <nav className="pagination" aria-label="Search results pages">
-                        <button
-                          type="button"
-                          className="pagination-btn"
-                          disabled={pageNum <= 0 || searching}
-                          onClick={() => goToPage(pageNum - 1)}
-                        >
-                          Previous
-                        </button>
                         <span className="pagination-info">
                           Page {pageNum + 1} of {totalPages}
                         </span>
                         <button
                           type="button"
                           className="pagination-btn"
+                          disabled={pageNum <= 0 || searching}
+                          onClick={() => goToPage(pageNum - 1)}
+                          aria-label="Previous page"
+                        >
+                          ←
+                        </button>
+                        <button
+                          type="button"
+                          className="pagination-btn"
                           disabled={pageNum >= totalPages - 1 || searching}
                           onClick={() => goToPage(pageNum + 1)}
+                          aria-label="Next page"
                         >
-                          Next
+                          →
                         </button>
                       </nav>
                     )}
