@@ -16,12 +16,6 @@ const columns = [
     cell: (info) => info.getValue(),
   },
   {
-    id: 'snippet',
-    accessorKey: 'snippet',
-    header: 'Snippet',
-    cell: (info) => info.getValue(),
-  },
-  {
     id: 'trove',
     accessorKey: 'trove',
     header: 'Trove',
