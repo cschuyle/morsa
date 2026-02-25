@@ -211,9 +211,9 @@ function App() {
         <main className="main">
           <section className="card search-section">
             <h2>Search</h2>
-            <form onSubmit={handleSearch}>
-              <label>
-                Query
+            <form onSubmit={handleSearch} className="search-form">
+              <div className="search-form-row">
+                <span className="search-query-label">Query</span>
                 <div className="search-query-wrap">
                   <input
                     type="text"
@@ -221,6 +221,7 @@ function App() {
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="e.g. Greek, Prince, Albanian — or * for all"
                     className="search-query-input"
+                    aria-label="Query"
                   />
                   <span className="search-query-actions">
                     <button
@@ -248,9 +249,7 @@ function App() {
                     </button>
                   </span>
                 </div>
-              </label>
-              <div className="search-submit-row">
-                <button type="submit" disabled={searching}>
+                <button type="submit" disabled={searching} className="search-submit-btn">
                   {searching ? 'Searching…' : 'Search'}
                 </button>
                 {searching && (
