@@ -194,9 +194,12 @@ function App() {
                   placeholder="e.g. Greek, Prince, Albanian — or * for all"
                 />
               </label>
-              <button type="submit" disabled={searching}>
-                {searching ? 'Searching…' : 'Search'}
-              </button>
+              <div className="search-submit-row">
+                <button type="submit" disabled={searching}>
+                  {searching ? 'Searching…' : 'Search'}
+                </button>
+                {searching && <span className="search-spinner" aria-hidden="true" />}
+              </div>
             </form>
             {searchError && <p className="search-error">{searchError}</p>}
             {searchResult != null && (() => {
