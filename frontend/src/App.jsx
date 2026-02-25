@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import { SearchResultsGrid } from './SearchResultsGrid'
@@ -12,6 +12,9 @@ function App() {
   const [searchResult, setSearchResult] = useState(null)
   const [searchError, setSearchError] = useState(null)
   const [searching, setSearching] = useState(false)
+  const queryRef = useRef(query)
+  const skipCheckboxSearchRef = useRef(true)
+  queryRef.current = query
 
   useEffect(() => {
     fetch('/actuator/health')
@@ -27,6 +30,33 @@ function App() {
       .then(setTroves)
       .catch(() => setTroves([]))
   }, [])
+
+  useEffect(() => {
+    if (skipCheckboxSearchRef.current) {
+      skipCheckboxSearchRef.current = false
+      return
+    }
+    const t = setTimeout(() => {
+      const q = queryRef.current
+      if (!q.trim()) {
+        setSearchResult({ count: 0, results: [] })
+        return
+      }
+      setSearching(true)
+      setSearchError(null)
+      const params = new URLSearchParams({ query: q.trim() })
+      selectedTroveIds.forEach((id) => params.append('trove', id))
+      fetch(`/api/search?${params}`)
+        .then((res) => {
+          if (!res.ok) throw new Error(res.statusText)
+          return res.json()
+        })
+        .then(setSearchResult)
+        .catch((err) => setSearchError(err.message))
+        .finally(() => setSearching(false))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [selectedTroveIds])
 
   function toggleTrove(id) {
     setSelectedTroveIds((prev) => {
