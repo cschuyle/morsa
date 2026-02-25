@@ -1,6 +1,9 @@
 .search-results-grid {
   margin-top: 1rem;
   text-align: left;
+  width: 900px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .grid-toolbar {
