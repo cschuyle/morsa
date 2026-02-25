@@ -21,7 +21,7 @@ function App() {
   const PAGE_SIZE_OPTIONS = [10, 25, 100, 500, 1000, 5000, 10000]
   queryRef.current = query
 
-  function fetchSearch(pageNum, sizeOverride = null) {
+  function fetchSearch(pageNum, sizeOverride = null, troveIdsOverride = null) {
     const size = sizeOverride ?? pageSize
     const q = queryRef.current
     if (!q.trim()) {
@@ -33,12 +33,13 @@ function App() {
     abortControllerRef.current = controller
     setSearching(true)
     setSearchError(null)
+    const troveIds = troveIdsOverride ?? selectedTroveIds
     const params = new URLSearchParams({
       query: q.trim(),
       page: String(pageNum),
       size: String(size),
     })
-    selectedTroveIds.forEach((id) => params.append('trove', id))
+    troveIds.forEach((id) => params.append('trove', id))
     fetch(`/api/search?${params}`, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(res.statusText)
@@ -101,6 +102,15 @@ function App() {
 
   function selectOnlyTrove(id) {
     setSelectedTroveIds(new Set([id]))
+  }
+
+  function handleOnlyClick(troveId) {
+    selectOnlyTrove(troveId)
+    if (!query.trim()) {
+      queryRef.current = '*'
+      setQuery('*')
+      fetchSearch(0, null, new Set([troveId]))
+    }
   }
 
   function cancelSearch() {
@@ -224,7 +234,7 @@ function App() {
                   <button
                     type="button"
                     className="trove-only-link"
-                    onClick={(e) => { e.preventDefault(); selectOnlyTrove(t.id) }}
+                    onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
                     aria-label={`Search only ${t.name}`}
                     title="Select only this trove"
                   >
@@ -257,7 +267,7 @@ function App() {
                   <button
                     type="button"
                     className="trove-only-link"
-                    onClick={(e) => { e.preventDefault(); selectOnlyTrove(t.id) }}
+                    onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
                     aria-label={`Search only ${t.name}`}
                     title="Select only this trove"
                   >
