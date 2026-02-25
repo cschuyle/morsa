@@ -211,12 +211,40 @@ function App() {
             <form onSubmit={handleSearch}>
               <label>
                 Query
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="e.g. Greek, Prince, Albanian — or * for all"
-                />
+                <div className="search-query-wrap">
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="e.g. Greek, Prince, Albanian — or * for all"
+                    className="search-query-input"
+                  />
+                  <span className="search-query-actions">
+                    <button
+                      type="button"
+                      className="search-query-btn"
+                      title="Search all (*)"
+                      onClick={() => {
+                        setQuery('*')
+                        queryRef.current = '*'
+                        fetchSearch(0)
+                      }}
+                    >
+                      *
+                    </button>
+                    <button
+                      type="button"
+                      className="search-query-btn"
+                      title="Clear"
+                      onClick={() => {
+                        setQuery('')
+                        setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                </div>
               </label>
               <div className="search-submit-row">
                 <button type="submit" disabled={searching}>
