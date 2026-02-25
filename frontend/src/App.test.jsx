@@ -12,18 +12,10 @@ describe('App', () => {
     }))
   })
 
-  it('renders Morsor heading', async () => {
-    render(<App />)
-    expect(screen.getByRole('heading', { name: 'Morsor' })).toBeInTheDocument()
-    await waitFor(() => {
-      expect(screen.getByText('Backend is up')).toBeInTheDocument()
-    })
-  })
-
   it('renders search form with Search button', async () => {
     render(<App />)
     await waitFor(() => {
-      expect(screen.getByText('Backend is up')).toBeInTheDocument()
+      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
     })
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
   })

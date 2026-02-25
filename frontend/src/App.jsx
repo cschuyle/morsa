@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Link } from 'react-router-dom'
 import { SearchResultsGrid } from './SearchResultsGrid'
 import './App.css'
 
@@ -53,8 +52,8 @@ function App() {
   useEffect(() => {
     fetch('/actuator/health')
       .then((res) => res.json())
-      .then((data) => setMessage(data.status === 'UP' ? 'Backend is up' : `Backend: ${data.status}`))
-      .catch(() => setMessage('Backend unreachable'))
+      .then((data) => setMessage(data.status === 'UP' ? 'Status: Backend is up' : `Status: Backend: ${data.status}`))
+      .catch(() => setMessage('Status: Backend unreachable'))
   }, [])
 
   useEffect(() => {
@@ -164,17 +163,9 @@ function App() {
 
   return (
     <>
-      <div className="app-header">
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Morsor</h1>
-      {message && <p className="backend-message" data-status={message === 'Backend is up' ? 'up' : 'down'}>{message}</p>}
-
+      <h1 className="app-title">
+        <span className="search-title-brand">Morsor</span> <span className="sidebar-title-note">More lists than you needed</span>
+      </h1>
       <div className="app-layout">
         <aside className="sidebar">
           <h2 className="sidebar-title">Troves <span className="sidebar-title-note">(Select none = search all)</span></h2>
@@ -249,10 +240,9 @@ function App() {
         </aside>
         <main className="main">
           <section className="card search-section">
-            <h2>Search</h2>
+            <h2 className="search-section-title">Query Console</h2>
             <form onSubmit={handleSearch} className="search-form">
               <div className="search-form-row">
-                <span className="search-query-label">Query</span>
                 <div className="search-query-wrap">
                   <input
                     type="text"
@@ -288,8 +278,13 @@ function App() {
                     </button>
                   </span>
                 </div>
-                <button type="submit" disabled={searching} className="search-submit-btn">
-                  {searching ? 'Searching…' : 'Search'}
+                <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
+                  {searching ? 'Searching…' : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
+                  )}
                 </button>
                 {searching && (
                   <>
@@ -385,6 +380,11 @@ function App() {
           </section>
         </main>
       </div>
+      <hr className="backend-status-divider" />
+      <footer className="app-footer">
+        <Link to="/about" className="app-footer-link">About</Link>
+        {message && <p className="backend-message" data-status={message === 'Status: Backend is up' ? 'up' : 'down'}>{message}</p>}
+      </footer>
     </>
   )
 }
