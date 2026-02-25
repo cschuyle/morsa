@@ -185,7 +185,8 @@ public class SearchDataService {
         if (troveParam != null && !troveParam.isEmpty()) {
             stream = stream.filter(r -> r.troveId() != null && r.troveId().equals(troveParam));
         }
-        if (!queryLower.isEmpty()) {
+        boolean matchAll = "*".equals(query != null ? query.trim() : "");
+        if (!queryLower.isEmpty() && !matchAll) {
             stream = stream.filter(r ->
                     (r.title() != null && r.title().toLowerCase().contains(queryLower))
                             || (r.snippet() != null && r.snippet().toLowerCase().contains(queryLower)));
