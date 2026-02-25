@@ -122,7 +122,7 @@ function App() {
                     onChange={() => toggleTrove(t.id)}
                   />
                   <span className="trove-name">
-                    {t.name} ({t.resultCount}/{t.count})
+                    {t.name} ({searchResult != null ? `${t.resultCount}/${t.count}` : t.count})
                   </span>
                 </label>
               </li>
@@ -141,7 +141,7 @@ function App() {
                     onChange={() => toggleTrove(t.id)}
                   />
                   <span className="trove-name">
-                    {t.name} ({t.resultCount}/{t.count})
+                    {t.name} ({searchResult != null ? `${t.resultCount}/${t.count}` : t.count})
                   </span>
                 </label>
               </li>
