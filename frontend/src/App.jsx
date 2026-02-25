@@ -121,7 +121,7 @@ function App() {
     fetchSearch(nextPage)
   }
 
-  const { withHits, noHits } = useMemo(() => {
+  const { selected: selectedTroves, notSelected: notSelectedTroves } = useMemo(() => {
     const hasResults = searchResult?.results != null && Array.isArray(searchResult.results)
     const troveCounts = searchResult?.troveCounts != null && typeof searchResult.troveCounts === 'object'
       ? searchResult.troveCounts
@@ -132,46 +132,21 @@ function App() {
         ? (troveCounts != null ? (troveCounts[t.id] ?? 0) : searchResult.results.filter((r) => r.troveId === t.id).length)
         : 0,
     }))
-    if (!hasResults) {
-      let all = [...withCounts].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-      )
-      const filterLower = troveFilter.trim().toLowerCase()
-      if (filterLower) {
-        const matches = (t) =>
-          (t.name && t.name.toLowerCase().includes(filterLower)) ||
-          (t.id && t.id.toLowerCase().includes(filterLower))
-        all = all.filter(matches)
-      }
-      if (showFilter === 'selected') {
-        all = all.filter((t) => selectedTroveIds.has(t.id))
-      } else if (showFilter === 'notSelected') {
-        all = all.filter((t) => !selectedTroveIds.has(t.id))
-      }
-      return { withHits: [], noHits: all }
-    }
-    let withHitsList = withCounts
-      .filter((t) => t.resultCount > 0)
-      .sort((a, b) => b.resultCount - a.resultCount)
-    let noHitsList = withCounts
-      .filter((t) => t.resultCount === 0)
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
     const filterLower = troveFilter.trim().toLowerCase()
-    if (filterLower) {
-      const matches = (t) =>
-        (t.name && t.name.toLowerCase().includes(filterLower)) ||
-        (t.id && t.id.toLowerCase().includes(filterLower))
-      withHitsList = withHitsList.filter(matches)
-      noHitsList = noHitsList.filter(matches)
-    }
+    const textMatches = (t) =>
+      !filterLower ||
+      (t.name && t.name.toLowerCase().includes(filterLower)) ||
+      (t.id && t.id.toLowerCase().includes(filterLower))
+    let filtered = withCounts.filter(textMatches)
     if (showFilter === 'selected') {
-      withHitsList = withHitsList.filter((t) => selectedTroveIds.has(t.id))
-      noHitsList = noHitsList.filter((t) => selectedTroveIds.has(t.id))
+      filtered = filtered.filter((t) => selectedTroveIds.has(t.id))
     } else if (showFilter === 'notSelected') {
-      withHitsList = withHitsList.filter((t) => !selectedTroveIds.has(t.id))
-      noHitsList = noHitsList.filter((t) => !selectedTroveIds.has(t.id))
+      filtered = filtered.filter((t) => !selectedTroveIds.has(t.id))
     }
-    return { withHits: withHitsList, noHits: noHitsList }
+    const sortByName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    const selected = filtered.filter((t) => selectedTroveIds.has(t.id)).sort(sortByName)
+    const notSelected = filtered.filter((t) => !selectedTroveIds.has(t.id)).sort(sortByName)
+    return { selected, notSelected }
   }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds])
 
   return (
@@ -224,8 +199,11 @@ function App() {
             </span>
           </div>
           <ul className="trove-list">
-            {withHits.map((t) => (
-              <li key={t.id} className="trove-item trove-item--has-results">
+            {selectedTroves.map((t) => (
+              <li
+                key={t.id}
+                className={`trove-item ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''}`}
+              >
                 <label className="trove-checkbox">
                   <input
                     type="checkbox"
@@ -238,13 +216,16 @@ function App() {
                 </label>
               </li>
             ))}
-            {withHits.length > 0 && noHits.length > 0 && (
+            {selectedTroves.length > 0 && notSelectedTroves.length > 0 && (
               <li className="trove-list-separator" aria-hidden="true">
                 <hr className="sidebar-separator" />
               </li>
             )}
-            {noHits.map((t) => (
-              <li key={t.id} className="trove-item">
+            {notSelectedTroves.map((t) => (
+              <li
+                key={t.id}
+                className={`trove-item ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''}`}
+              >
                 <label className="trove-checkbox">
                   <input
                     type="checkbox"
