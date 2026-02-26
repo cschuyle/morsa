@@ -116,7 +116,7 @@ docker run -p 8080:8080 \
 
 After you run the image, open http://localhost:8080.
 
-## Build and Push Docker Image all at a\once
+## Build and Push Docker Image all at once
 ```
-docker buildx build --platform linux/amd64 -t ypour-usernname/morsor:latest --push .
+docker buildx build --platform linux/amd64 -t your-usernname/morsor:latest --push .
 ```
