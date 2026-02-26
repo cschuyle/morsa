@@ -82,7 +82,10 @@ See [envrc-template](./envrc-template) for a description of the configuration en
 
 ```bash
 docker build -t morsor .
-# or if you need a different architecture (which if you're on a Mac, your PROBABLY DO), maybe something like this:
+```
+
+Or, if you need a different architecture (which if you're on a Mac, your PROBABLY DO to deplpoy on a web host), maybe something like this:
+```
 docker build --platform linux/amd64 -t morsor .
 ```
 
@@ -103,7 +106,7 @@ To use the canned data:
 docker run -p 8080:8080 morsor
 ```
 
-To use S3 (prod profile) insteead of canned data, then pass env vars:
+To use S3 (prod profile) instead of canned data, then pass env vars:
 
 ```bash
 docker run -p 8080:8080 \
@@ -111,12 +114,13 @@ docker run -p 8080:8080 \
   -e MOOCHO_BUCKET_NAME=your-bucket \
   -e AWS_ACCESS_KEY_ID=... \
   -e AWS_SECRET_ACCESS_KEY=... \
+  -e AWS_REGION=... \
   morsor
 ```
 
-After you run the image, open http://localhost:8080.
+After you run the image, open [http://localhost:8080](http://localhost:8080).
 
 ## Build and Push Docker Image all at once
 ```
-docker buildx build --platform linux/amd64 -t your-usernname/morsor:latest --push .
+docker buildx build --platform linux/amd64 -t your-username/morsor:latest --push .
 ```
