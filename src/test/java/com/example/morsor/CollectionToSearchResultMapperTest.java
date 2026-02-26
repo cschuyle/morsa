@@ -19,7 +19,7 @@ class CollectionToSearchResultMapperTest {
         try (InputStream in = new ClassPathResource("data/little-prince.json").getInputStream()) {
             JsonNode root = objectMapper.readTree(in);
             List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root);
-            assertThat(results).hasSize(2);
+            assertThat(results).hasSize(1561);
             assertThat(results.get(0).trove()).isEqualTo("Little Prince");
             assertThat(results.get(0).troveId()).isEqualTo("little-prince");
             assertThat(results.get(0).title()).isEqualTo("Princi i Vogël - The Little Prince in Albanian");
