@@ -84,7 +84,7 @@ See [envrc-template](./envrc-template) for a description of the configuration en
 docker build -t morsor .
 ```
 
-Or, if you need a different architecture (which if you're on a Mac, your PROBABLY DO to deplpoy on a web host), maybe something like this:
+Or, if you need a different architecture (which if you're on a Mac, you PROBABLY DO to deploy on a web host), maybe something like this:
 ```
 docker build --platform linux/amd64 -t morsor .
 ```
