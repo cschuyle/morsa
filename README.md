@@ -85,10 +85,19 @@ See [envrc-template](./envrc-template) for a description of the configuration en
    heroku create your-app-name
    ```
 
+2a. **Add the heroku git remote to your local repo**
+   ```
+   heroku git:remote -a your-app-name
+   ```
+
+2b. **Make sure your package.json has the correct app name**
+   
+   Look in `package.json` and make sure the `"name"` field is correct.
+
 3. **Use two buildpacks** so Node is available when Gradle builds the frontend:
    ```bash
    heroku buildpacks:add heroku/nodejs
-   heroku buildpacks:add heroku/java
+   heroku buildpacks:add heroku/gradle
    ```
    Order matters: Node first, then Java.
 
