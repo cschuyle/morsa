@@ -20,6 +20,19 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+      '/login': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/logout': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      // Built assets (e.g. after login redirect from 8080): proxy to backend so CSS/JS load correctly
+      '/assets': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
   build: {

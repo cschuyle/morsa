@@ -124,3 +124,63 @@ After you run the image, open [http://localhost:8080](http://localhost:8080).
 ```
 docker buildx build --platform linux/amd64 -t your-username/morsor:latest --push .
 ```
+
+
+---- Curate the following:
+
+## Create User (for production or local Postgres)
+
+```bash
+pip install bcrypt   # or pip3 install bcrypt
+python3 scripts/create_user.py
+```
+
+Paste the printed SQL into your database (e.g. via `psql`).
+
+## Test auth with local PostgreSQL (docker-compose)
+
+1. **Start Postgres**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Create schema and a user**
+   ```bash
+   # Load the auth tables (run once)
+   PGPASSWORD=morsor psql -h localhost -U morsor -d morsor -f src/main/resources/schema.sql
+
+   # Create a user (and optionally an API token)
+   python3 scripts/create_user.py
+   # Paste the printed SQL into psql, or run: PGPASSWORD=morsor psql -h localhost -U morsor -d morsor and paste.
+   ```
+
+3. **Run the app against Postgres**
+   Use the `postgres` profile so the app uses Postgres instead of H2:
+   ```bash
+   SPRING_PROFILES_ACTIVE=postgres SPRING_DATASOURCE_PASSWORD=morsor ./gradlew bootRun
+   ```
+   Then run the frontend (`npm run dev` in `frontend/`) and open the app; log in with the user you created (or use the API token if you generated one).
+
+Vite dev server (npm run dev, e.g. http://localhost:5173): import.meta.env.DEV is true → token is sent → no login.
+Production build (e.g. served from Spring Boot at http://localhost:8080): import.meta.env.DEV is false → no token → login required.
+
+Optional override
+To use a different dev token, add to .env.local in the frontend:
+VITE_DEV_API_TOKEN=your-dev-token
+
+
+
+docker compose up -d
+
+
+
+# 2. Create schema (once)
+PGPASSWORD=morsor psql -h localhost -U morsor -d morsor -f src/main/resources/schema.sql
+
+# 3. Create a user
+python3 scripts/create-user.py
+# Paste the printed SQL into:
+PGPASSWORD=morsor psql -h localhost -U morsor -d morsor
+
+# 4. Run the app against Postgres
+SPRING_PROFILES_ACTIVE=postgres SPRING_DATASOURCE_PASSWORD=morsor ./gradlew bootRun

@@ -1,0 +1,17 @@
+# Local PostgreSQL for testing auth. Bring up: docker compose up -d
+# Then run schema and create user (see README or below).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: morsor
+      POSTGRES_USER: morsor
+      POSTGRES_PASSWORD: morsor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: {}
