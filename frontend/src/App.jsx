@@ -519,6 +519,7 @@ function App() {
       <hr className="backend-status-divider" />
       <footer className="app-footer">
         <Link to="/about" className="app-footer-link">About</Link>
+        <Link to="/mobile" className="app-footer-link">Mobile</Link>
         {message && <p className="backend-message" data-status={message === 'Status: Backend is up' ? 'up' : 'down'}>{message}</p>}
       </footer>
     </>

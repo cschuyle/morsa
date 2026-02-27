@@ -29,13 +29,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         if (resource.exists() && resource.isReadable()) {
                             return resource;
                         }
-                        if ("".equals(resourcePath) || "index.html".equals(resourcePath)) {
+                        if ("".equals(resourcePath) || "index.html".equals(resourcePath)
+                                || "mobile".equals(resourcePath) || resourcePath.startsWith("mobile/")) {
                             resource = location.createRelative("index.html");
                             if (resource.exists() && resource.isReadable()) {
                                 return resource;
                             }
                         }
-                        return null; // let DispatcherServlet try controllers (e.g. /troves, /search)
+                        return null; // let DispatcherServlet try controllers (e.g. /api/troves, /api/search)
                     }
                 });
     }

@@ -1,0 +1,281 @@
+/* Mobile-first layout under /mobile */
+.mobile-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  font-size: 16px;
+}
+
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.mobile-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #213547;
+  text-decoration: none;
+}
+
+.mobile-nav-link {
+  font-size: 0.95rem;
+  color: #646cff;
+  text-decoration: none;
+}
+
+.mobile-main {
+  flex: 1;
+  padding: 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-search-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mobile-search-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.mobile-search-btn {
+  padding: 0.75rem 1.25rem;
+  border: 1px solid #646cff;
+  border-radius: 8px;
+  background: #646cff;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 5rem;
+}
+
+.mobile-search-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.mobile-troves-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.mobile-troves-label {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.mobile-troves-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+}
+
+.mobile-trove-picker {
+  position: fixed;
+  inset: 0;
+  top: auto;
+  max-height: 70vh;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-trove-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.mobile-trove-picker-done {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #646cff;
+  color: #fff;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mobile-trove-clear {
+  align-self: flex-start;
+  margin: 0 1rem 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  background: none;
+  font-size: 0.9rem;
+  color: #646cff;
+  cursor: pointer;
+}
+
+.mobile-trove-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 1rem 1rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.mobile-trove-item {
+  margin: 0;
+}
+
+.mobile-trove-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.mobile-trove-label input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: #646cff;
+}
+
+.mobile-result-count {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.mobile-no-results {
+  margin: 1rem 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.mobile-result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mobile-result-card {
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: #f8f8f8;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-result-title {
+  font-weight: 500;
+  color: #213547;
+}
+
+.mobile-result-trove {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.mobile-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 0;
+}
+
+.mobile-page-btn {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.mobile-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mobile-page-info {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.mobile-footer {
+  padding: 1rem;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-footer-link {
+  font-size: 0.9rem;
+  color: #646cff;
+  text-decoration: none;
+}
+
+.mobile-about-main {
+  padding: 1rem;
+}
+
+.mobile-about-content {
+  max-width: 40em;
+}
+
+.mobile-about-content h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.mobile-about-content h2 {
+  margin: 1.25rem 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.mobile-about-content p,
+.mobile-about-content ul {
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.mobile-about-content ul {
+  padding-left: 1.25rem;
+}
+
+.mobile-about-content li {
+  margin-bottom: 0.25rem;
+}
