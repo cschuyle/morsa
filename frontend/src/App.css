@@ -492,6 +492,7 @@
 .search-query-btn {
   width: 2rem;
   min-width: 2rem;
+  min-height: 2rem;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -510,6 +511,13 @@
 }
 .search-query-btn:first-child {
   font-weight: 600;
+  width: 2.6rem;
+  min-width: 2.6rem;
+  min-height: 2.6rem;
+  font-size: 1.17rem;
+}
+.search-query-btn:last-child {
+  transform: translateY(-0.06em);
 }
 .search-submit-btn {
   flex-shrink: 0;

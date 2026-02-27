@@ -92,15 +92,44 @@ function MobileApp() {
 
       <main className="mobile-main">
         <form onSubmit={handleSearch} className="mobile-search-form">
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search…"
-            className="mobile-search-input"
-            autoCapitalize="off"
-            autoCorrect="off"
-          />
+          <div className="mobile-search-query-wrap">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. Greek, Prince, Albanian — or * for all"
+              className="mobile-search-input"
+              autoCapitalize="off"
+              autoCorrect="off"
+              aria-label="Query"
+            />
+            <span className="mobile-search-query-actions">
+              <button
+                type="button"
+                className="mobile-search-query-btn"
+                title="Search all (*)"
+                onClick={() => {
+                  setQuery('*')
+                  queryRef.current = '*'
+                  setPage(0)
+                  fetchSearch(0)
+                }}
+              >
+                *
+              </button>
+              <button
+                type="button"
+                className="mobile-search-query-btn"
+                title="Clear"
+                onClick={() => {
+                  setQuery('')
+                  setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE })
+                }}
+              >
+                ×
+              </button>
+            </span>
+          </div>
           <button type="submit" className="mobile-search-btn" disabled={searching}>
             {searching ? '…' : 'Search'}
           </button>
@@ -159,7 +188,9 @@ function MobileApp() {
               {results.map((r) => (
                 <li key={r.id} className="mobile-result-card">
                   <span className="mobile-result-title">{r.title || '—'}</span>
-                  <span className="mobile-result-trove">{r.trove || r.troveId || ''}</span>
+                  {selectedTroveIds.size !== 1 && (
+                    <span className="mobile-result-trove">{r.trove || r.troveId || ''}</span>
+                  )}
                 </li>
               ))}
             </ul>
