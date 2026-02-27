@@ -101,6 +101,20 @@
   text-decoration: underline;
 }
 
+.app-footer-logout {
+  display: inline;
+  margin: 0;
+}
+
+.app-footer-logout-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
 .backend-message {
   margin: 0;
   font-size: 0.9rem;

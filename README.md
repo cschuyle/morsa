@@ -166,7 +166,7 @@ docker compose up -d
    PGPASSWORD=morsor psql -h localhost -U morsor -d morsor -f src/main/resources/schema.sql
 
    # Create a user (and optionally an API token)
-   python3 scripts/create_user.py
+   python3 scripts/create-user.py
    # Paste the printed SQL into psql, or run: PGPASSWORD=morsor psql -h localhost -U morsor -d morsor and paste.
    ```
 
@@ -197,13 +197,13 @@ SPRING_PROFILES_ACTIVE=postgres SPRING_DATASOURCE_PASSWORD=morsor ./gradlew boot
 
 ## Notes re: dev API token
 
-The app uses an API token (not a username/password) for authentication ion dev mode. The token is hardwired and cannot be used when the postgres profile is active.
+The app uses an API token (not a username/password) for authentication in dev mode (which is the default). The token is hardwired and cannot be used when the **postgres** profile is active.
 
-Vite dev server (npm run dev, e.g. http://localhost:5173): import.meta.env.DEV is true → token is sent → no login.
+Vite dev server (npm run dev, e.g. http://localhost:5173): import.meta.env.DEV is true → token is sent → So no login screen is presented.
 
 Production build (e.g. served from Spring Boot at http://localhost:8080): import.meta.env.DEV is false → no token → login required.
 
-Optional override
+_Optional override_
 
 To use a different dev token, add to .env.local in the frontend:
 `VITE_DEV_API_TOKEN=your-dev-token`
@@ -222,6 +222,6 @@ Env var `SPRING_PROFILES_ACTIVE` is a comma-delimited list of profiles to activa
 - Spring profile **s3troves**: Trove data loaded from S3; set `MOOCHO_BUCKET_NAME`. Use with `dev` (H2) or `postgres` (Postgres), e.g. `postgres,s3troves`.
   - Env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` (optional)
 
-So-called "Production" mode will normally activate **postgres** and **s3troves** profiles, which forces you to provide your own trove data in S3, and create at least one user.
+So-called "Production" mode: You would normally activate **postgres** and **s3troves** profiles, which forces you to provide your own trove data in S3, and create at least one user.
 
 Env var `MOOCHO_ONLY_TROVE_IDS` to limit troves loaded works with all profiles.
