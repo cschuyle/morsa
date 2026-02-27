@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { SearchResultsGrid } from './SearchResultsGrid'
+import { DuplicateResultsView } from './DuplicateResultsView'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import './App.css'
@@ -19,6 +20,10 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sortBy, setSortBy] = useState(null)
   const [sortDir, setSortDir] = useState('asc')
+  const [searchMode, setSearchMode] = useState('search')
+  const [primaryTroveId, setPrimaryTroveId] = useState('')
+  const [duplicatesResult, setDuplicatesResult] = useState(null)
+  const [duplicatesPage, setDuplicatesPage] = useState(0)
   const queryRef = useRef(query)
   const skipCheckboxSearchRef = useRef(true)
   const abortControllerRef = useRef(null)
@@ -86,6 +91,7 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (searchMode !== 'search') return
     if (skipCheckboxSearchRef.current) {
       skipCheckboxSearchRef.current = false
       return
@@ -99,7 +105,7 @@ function App() {
       fetchSearch(0)
     }, 400)
     return () => clearTimeout(t)
-  }, [selectedTroveIds])
+  }, [searchMode, selectedTroveIds])
 
   function toggleTrove(id) {
     setSelectedTroveIds((prev) => {
@@ -135,12 +141,65 @@ function App() {
     abortControllerRef.current?.abort()
   }
 
+  function fetchDuplicates(pageNum) {
+    const q = queryRef.current.trim() || '*'
+    if (!primaryTroveId.trim()) {
+      setDuplicatesResult({ total: 0, page: 0, size: 50, rows: [] })
+      return
+    }
+    if (selectedTroveIds.size === 0) {
+      setDuplicatesResult({ total: 0, page: 0, size: 50, rows: [] })
+      return
+    }
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    const params = new URLSearchParams({
+      primaryTrove: primaryTroveId.trim(),
+      query: q,
+      page: String(pageNum),
+      size: '50',
+      maxMatches: '20',
+    })
+    selectedTroveIds.forEach((id) => params.append('compareTrove', id))
+    fetch(`/api/search/duplicates?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+      .then((res) => {
+        if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
+        if (!res.ok) throw new Error(res.statusText)
+        return res.json()
+      })
+      .then((data) => {
+        setDuplicatesResult(data)
+        setDuplicatesPage(pageNum)
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') setSearchError(err.message)
+      })
+      .finally(() => setSearching(false))
+  }
+
   function handleSearch(e) {
     e?.preventDefault()
+    if (searchMode === 'duplicates') {
+      if (!primaryTroveId.trim()) return
+      if (selectedTroveIds.size === 0) return
+      if (primaryTroveId && selectedTroveIds.has(primaryTroveId)) {
+        setSearchError('Primary trove cannot be in compare list. Remove it from compare troves.')
+        return
+      }
+      setSearchError(null)
+      setSearchResult(null)
+      fetchDuplicates(0)
+      return
+    }
     if (!query.trim()) {
       setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
       return
     }
+    setSearchError(null)
+    setDuplicatesResult(null)
     fetchSearch(0)
   }
 
@@ -195,12 +254,39 @@ function App() {
       <div className="app-layout">
         <div className={`sidebar-wrapper ${sidebarOpen ? 'sidebar-wrapper--open' : ''}`}>
           <aside className="sidebar">
-            <h2 className="sidebar-title">Troves <span className="sidebar-title-note">(<button type="button" className="sidebar-title-link" onClick={clearTroves}>clear selections</button> to search all)</span></h2>
-          <p className="sidebar-selection-message" aria-live="polite">
-            {selectedTroveIds.size === 0
-              ? 'All troves will be searched'
-              : `${selectedTroveIds.size} of ${troves.length} troves selected`}
-          </p>
+            {searchMode === 'duplicates' ? (
+              <>
+                <div className="primary-trove-select-wrap">
+                  <label htmlFor="primary-trove-select">Primary trove</label>
+                  <select
+                    id="primary-trove-select"
+                    value={primaryTroveId}
+                    onChange={(e) => setPrimaryTroveId(e.target.value)}
+                    aria-label="Primary trove"
+                  >
+                    <option value="">Select one…</option>
+                    {troves.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <h2 className="sidebar-title">Compare troves <span className="sidebar-title-note">(<button type="button" className="sidebar-title-link" onClick={clearTroves}>clear</button>)</span></h2>
+                <p className="sidebar-selection-message" aria-live="polite">
+                  {selectedTroveIds.size === 0
+                    ? 'Select at least one compare trove'
+                    : `${selectedTroveIds.size} compare trove${selectedTroveIds.size !== 1 ? 's' : ''} selected`}
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="sidebar-title">Troves <span className="sidebar-title-note">(<button type="button" className="sidebar-title-link" onClick={clearTroves}>clear selections</button> to search all)</span></h2>
+                <p className="sidebar-selection-message" aria-live="polite">
+                  {selectedTroveIds.size === 0
+                    ? 'All troves will be searched'
+                    : `${selectedTroveIds.size} of ${troves.length} troves selected`}
+                </p>
+              </>
+            )}
           <div className="sidebar-show-wrap">
             <label className="sidebar-show-label">
               Show
@@ -318,6 +404,26 @@ function App() {
         <main className="main">
           <section className="card search-section">
             <h2 className="search-section-title">Query Console</h2>
+            <div className="search-mode-toggle" role="tablist" aria-label="Search mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={searchMode === 'search'}
+                className={searchMode === 'search' ? 'active' : ''}
+                onClick={() => { setSearchMode('search'); setDuplicatesResult(null) }}
+              >
+                Search
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={searchMode === 'duplicates'}
+                className={searchMode === 'duplicates' ? 'active' : ''}
+                onClick={() => { setSearchMode('duplicates'); setSearchResult(null) }}
+              >
+                Find duplicates
+              </button>
+            </div>
             <form onSubmit={handleSearch} className="search-form">
               <div className="search-form-row">
                 <div className="search-query-wrap">
@@ -356,12 +462,7 @@ function App() {
                   </span>
                 </div>
                 <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
-                  {searching ? 'Searching…' : (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="m21 21-4.35-4.35" />
-                    </svg>
-                  )}
+                  {searching ? 'Searching…' : 'Go!'}
                 </button>
                 {searching && (
                   <>
@@ -374,7 +475,59 @@ function App() {
               </div>
             </form>
             {searchError && <p className="search-error">{searchError}</p>}
-            {searchResult != null && (() => {
+            {searchMode === 'duplicates' && duplicatesResult == null && !searching && (
+              <p className="search-count search-count-detail">
+                Select <strong>primary trove</strong> and at least one <strong>compare trove</strong>. Use query <strong>*</strong> for all items, or type a filter.
+              </p>
+            )}
+            {searchMode === 'duplicates' && searching && (
+              <div className="duplicates-search-loading" aria-live="polite">
+                <span className="search-spinner" aria-hidden="true" />
+                <span>Finding duplicates…</span>
+              </div>
+            )}
+            {searchMode === 'duplicates' && duplicatesResult != null && !searching && (() => {
+              const total = duplicatesResult.total ?? 0
+              const pageNum = duplicatesResult.page ?? 0
+              const size = duplicatesResult.size ?? 50
+              const rows = Array.isArray(duplicatesResult.rows) ? duplicatesResult.rows : []
+              const totalPages = size > 0 ? Math.ceil(total / size) : 0
+              return (
+                <>
+                  <p className="search-count search-count-detail">
+                    {total} primary item{total !== 1 ? 's' : ''} with possible duplicates.
+                    {totalPages > 1 && ` Page ${pageNum + 1} of ${totalPages}.`}
+                  </p>
+                  {totalPages > 1 && (
+                    <nav className="pagination" aria-label="Duplicate results pages">
+                      <button
+                        type="button"
+                        className="pagination-btn"
+                        disabled={pageNum <= 0 || searching}
+                        onClick={() => fetchDuplicates(pageNum - 1)}
+                        aria-label="Previous page"
+                      >
+                        ←
+                      </button>
+                      <span className="pagination-info">
+                        {pageNum + 1} / {totalPages}
+                      </span>
+                      <button
+                        type="button"
+                        className="pagination-btn"
+                        disabled={pageNum >= totalPages - 1 || searching}
+                        onClick={() => fetchDuplicates(pageNum + 1)}
+                        aria-label="Next page"
+                      >
+                        →
+                      </button>
+                    </nav>
+                  )}
+                  <DuplicateResultsView rows={rows} />
+                </>
+              )
+            })()}
+            {searchMode === 'search' && searchResult != null && (() => {
               const results = Array.isArray(searchResult.results) ? searchResult.results : []
               const hasQuery = query.trim() !== ''
               if (!hasQuery) {

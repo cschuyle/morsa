@@ -689,3 +689,119 @@
 .read-the-docs {
   color: #666;
 }
+
+/* Duplicate-finder results: primary row + match rows */
+.duplicate-results {
+  margin-top: 0.5rem;
+  overflow-x: auto;
+}
+
+.duplicate-results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.duplicate-results-table th,
+.duplicate-results-table td {
+  padding: 0.4rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.duplicate-results-table thead th {
+  font-weight: 600;
+  color: #333;
+  background: #f8f8f8;
+}
+
+.duplicate-row-primary {
+  background: #fff;
+  font-weight: 500;
+}
+
+.duplicate-row-primary td {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.duplicate-row-match {
+  background: #f5f8ff;
+  color: #213547;
+}
+
+.duplicate-row-match td {
+  padding-left: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.duplicate-results-empty {
+  margin: 1rem 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.duplicates-search-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem 0;
+}
+
+.duplicates-search-loading .search-spinner {
+  flex-shrink: 0;
+}
+
+.search-mode-toggle {
+  display: flex;
+  gap: 0;
+  margin: 0 0 1rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0;
+}
+
+.search-mode-toggle button {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: -1px;
+  background: #e8e8e8;
+  color: #555;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.search-mode-toggle button:hover:not(.active) {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.search-mode-toggle button.active {
+  background: #fff5f0;
+  color: #213547;
+  font-weight: 500;
+  border-color: #ccc;
+  border-bottom: 1px solid #fff5f0;
+}
+
+.primary-trove-select-wrap {
+  margin-bottom: 0.75rem;
+}
+
+.primary-trove-select-wrap label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #333;
+}
+
+.primary-trove-select-wrap select {
+  width: 100%;
+  max-width: 20rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}

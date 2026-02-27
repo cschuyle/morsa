@@ -340,6 +340,67 @@ public class SearchDataService {
         return stream.toList();
     }
 
+    /**
+     * Find duplicate/near-duplicate items: for each item in the primary trove (matching query),
+     * find similar items in the compare troves by Lucene similarity (query = primary item content).
+     */
+    public List<DuplicateMatchRow> searchDuplicates(String primaryTroveId, Set<String> compareTroveIds,
+                                                     String query, int maxMatchesPerPrimary) {
+        if (primaryTroveId == null || primaryTroveId.isBlank()) return List.of();
+        Set<String> compareSet = compareTroveIds == null ? Set.of() : compareTroveIds.stream()
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.toUnmodifiableSet());
+        if (compareSet.isEmpty()) return List.of();
+
+        List<SearchResult> primaryItems = search(List.of(primaryTroveId), query != null ? query.trim() : "");
+        if (primaryItems.isEmpty()) return List.of();
+
+        int maxMatch = Math.max(1, Math.min(maxMatchesPerPrimary, 50));
+        List<DuplicateMatchRow> rows = new ArrayList<>(primaryItems.size());
+        for (SearchResult primary : primaryItems) {
+            List<ScoredSearchResult> matches = findSimilarInTroves(primary, compareSet, maxMatch);
+            rows.add(new DuplicateMatchRow(primary, matches));
+        }
+        return rows;
+    }
+
+    /** Search for items similar to the given item, restricted to the given trove IDs. Returns top N by score. */
+    private List<ScoredSearchResult> findSimilarInTroves(SearchResult similarTo, Set<String> troveIds, int topN) {
+        String content = (similarTo.title() != null ? similarTo.title() : "") + " "
+                + (similarTo.snippet() != null ? similarTo.snippet() : "");
+        String queryStr = content.trim();
+        if (queryStr.isEmpty()) return List.of();
+        if (luceneSearcher == null) return List.of();
+
+        try {
+            BooleanQuery.Builder bq = new BooleanQuery.Builder();
+            List<BytesRef> terms = troveIds.stream().map(BytesRef::new).toList();
+            bq.add(new TermInSetQuery("troveId", terms), BooleanClause.Occur.FILTER);
+            QueryParser parser = new QueryParser("content", luceneAnalyzer);
+            parser.setDefaultOperator(QueryParser.Operator.OR);
+            Query textQuery = parser.parse(QueryParser.escape(queryStr));
+            bq.add(textQuery, BooleanClause.Occur.MUST);
+            TopDocs topDocs = luceneSearcher.search(bq.build(), topN);
+            List<ScoredSearchResult> out = new ArrayList<>(topDocs.scoreDocs.length);
+            StoredFields storedFields = luceneSearcher.storedFields();
+            for (ScoreDoc sd : topDocs.scoreDocs) {
+                Document hitDoc = storedFields.document(sd.doc);
+                IndexableField idxField = hitDoc.getField("idx");
+                if (idxField != null && idxField.numericValue() != null) {
+                    int idx = idxField.numericValue().intValue();
+                    if (idx >= 0 && idx < allResults.size()) {
+                        SearchResult r = allResults.get(idx);
+                        out.add(new ScoredSearchResult(r, sd.score));
+                    }
+                }
+            }
+            return out;
+        } catch (ParseException | IOException e) {
+            log.debug("Similar search failed for primary \"{}\": {}", similarTo.title(), e.getMessage());
+            return List.of();
+        }
+    }
+
     public List<TroveOption> getTroveOptions() {
         return allResults.stream()
                 .filter(r -> r.troveId() != null && !r.troveId().isBlank())

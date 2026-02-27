@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -55,6 +56,31 @@ public class SearchController {
         int to = (int) Math.min(from + size, total);
         List<SearchResult> pageResults = from < to ? all.subList(from, to) : List.of();
         return new SearchResponse(total, pageResults, page, size, troveCounts);
+    }
+
+    private static final int DEFAULT_DUPLICATES_MAX_MATCHES = 20;
+
+    @GetMapping("/search/duplicates")
+    public DuplicatesResponse searchDuplicates(
+            @RequestParam(required = true) String primaryTrove,
+            @RequestParam(required = false) List<String> compareTrove,
+            @RequestParam(required = false, defaultValue = "*") String query,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "50") int size,
+            @RequestParam(required = false, defaultValue = "20") int maxMatches) {
+        page = Math.max(0, page);
+        size = Math.min(500, Math.max(1, size));
+        maxMatches = Math.min(50, Math.max(1, maxMatches));
+        Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.toUnmodifiableSet());
+        List<DuplicateMatchRow> all = searchDataService.searchDuplicates(
+                primaryTrove.trim(), compareSet, query, maxMatches);
+        long total = all.size();
+        int from = (int) Math.min((long) page * size, total);
+        int to = (int) Math.min(from + size, total);
+        List<DuplicateMatchRow> rows = from < to ? all.subList(from, to) : List.of();
+        return new DuplicatesResponse(total, page, size, rows);
     }
 
     private static Comparator<SearchResult> comparatorFor(String sortBy) {
