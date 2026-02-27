@@ -261,18 +261,24 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
 }
 
 .mobile-result-card {
   padding: 0.5rem 0.65rem;
-  margin-bottom: 0.35rem;
   background: #f8f8f8;
-  border-radius: 6px;
-  border: 1px solid #eee;
+  border: 1px solid #bbb;
+  border-bottom: none;
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
   text-align: left;
+}
+
+.mobile-result-card:last-child {
+  border-bottom: 1px solid #bbb;
 }
 
 .mobile-result-title {
