@@ -13,6 +13,7 @@ function MobileApp() {
   const [searching, setSearching] = useState(false)
   const [page, setPage] = useState(0)
   const [showTrovePicker, setShowTrovePicker] = useState(false)
+  const [trovePickerFilter, setTrovePickerFilter] = useState('')
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
   queryRef.current = query
@@ -202,14 +203,26 @@ function MobileApp() {
         {showTrovePicker && (
           <div className="mobile-trove-picker">
             <div className="mobile-trove-picker-header">
-              <span>Select troves</span>
+              <input
+                type="text"
+                value={trovePickerFilter}
+                onChange={(e) => setTrovePickerFilter(e.target.value)}
+                placeholder="Filter by trove name"
+                className="mobile-trove-picker-filter"
+                aria-label="Filter troves by name"
+              />
               <button type="button" onClick={() => setShowTrovePicker(false)} className="mobile-trove-picker-done">
                 Done
               </button>
             </div>
             <button type="button" onClick={clearTroves} className="mobile-trove-clear">Clear all</button>
             <ul className="mobile-trove-list">
-              {troves.map((t) => (
+              {troves
+                .filter((t) => {
+                  const q = trovePickerFilter.trim().toLowerCase()
+                  return !q || (t.name && t.name.toLowerCase().includes(q))
+                })
+                .map((t) => (
                 <li key={t.id} className="mobile-trove-item">
                   <label className="mobile-trove-label">
                     <input
