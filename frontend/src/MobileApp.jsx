@@ -153,14 +153,44 @@ function MobileApp() {
         </form>
 
         <div className="mobile-troves-row">
-          <span className="mobile-troves-label">In: {troveLabel}</span>
+          <span className="mobile-troves-label">
+            {searchResult != null && count > 0 && (
+              <>{count} result{count !== 1 ? 's' : ''} · </>
+            )}
+            In: {troveLabel}
+          </span>
+          {searchResult != null && totalPages > 1 && (
+            <nav className="mobile-pagination" aria-label="Pages">
+              <button
+                type="button"
+                className="mobile-page-btn"
+                disabled={page <= 0 || searching}
+                onClick={() => goToPage(page - 1)}
+                aria-label="Previous page"
+              >
+                ‹
+              </button>
+              <span className="mobile-page-info">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className="mobile-page-btn"
+                disabled={page >= totalPages - 1 || searching}
+                onClick={() => goToPage(page + 1)}
+                aria-label="Next page"
+              >
+                ›
+              </button>
+            </nav>
+          )}
           <button
             type="button"
             className="mobile-troves-btn"
             onClick={() => setShowTrovePicker((v) => !v)}
             aria-expanded={showTrovePicker}
           >
-            Change
+            Troves?
           </button>
         </div>
 
@@ -201,12 +231,6 @@ function MobileApp() {
 
         {searchResult != null && (
           <>
-            {count > 0 && (
-              <p className="mobile-result-count">
-                {count} result{count !== 1 ? 's' : ''}
-                {totalPages > 1 && ` · Page ${page + 1} of ${totalPages}`}
-              </p>
-            )}
             {results.length === 0 && query.trim() && !searching && (
               <p className="mobile-no-results">No results.</p>
             )}
@@ -220,29 +244,6 @@ function MobileApp() {
                 </li>
               ))}
             </ul>
-            {totalPages > 1 && (
-              <nav className="mobile-pagination" aria-label="Pages">
-                <button
-                  type="button"
-                  className="mobile-page-btn"
-                  disabled={page <= 0 || searching}
-                  onClick={() => goToPage(page - 1)}
-                >
-                  Previous
-                </button>
-                <span className="mobile-page-info">
-                  {page + 1} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  className="mobile-page-btn"
-                  disabled={page >= totalPages - 1 || searching}
-                  onClick={() => goToPage(page + 1)}
-                >
-                  Next
-                </button>
-              </nav>
-            )}
           </>
         )}
       </main>
