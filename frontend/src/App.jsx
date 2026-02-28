@@ -29,6 +29,8 @@ function App() {
   const [duplicatesPage, setDuplicatesPage] = useState(0)
   const [uniquesResult, setUniquesResult] = useState(null)
   const [uniquesPage, setUniquesPage] = useState(0)
+  const [uniquesSortBy, setUniquesSortBy] = useState(null)
+  const [uniquesSortDir, setUniquesSortDir] = useState('asc')
   const queryRef = useRef(query)
   const skipCheckboxSearchRef = useRef(true)
   const abortControllerRef = useRef(null)
@@ -185,7 +187,7 @@ function App() {
       .finally(() => setSearching(false))
   }
 
-  function fetchUniques(pageNum) {
+  function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null) {
     const q = queryRef.current.trim() || '*'
     if (!primaryTroveId.trim()) {
       setUniquesResult({ total: 0, page: 0, size: 50, results: [] })
@@ -200,12 +202,22 @@ function App() {
     abortControllerRef.current = controller
     setSearching(true)
     setSearchError(null)
+    const sortBy = sortByOverride !== undefined && sortByOverride !== null ? sortByOverride : uniquesSortBy
+    const sortDir = sortDirOverride !== undefined && sortDirOverride !== null ? sortDirOverride : uniquesSortDir
+    if (sortByOverride != null || sortDirOverride != null) {
+      setUniquesSortBy(sortBy || null)
+      setUniquesSortDir(sortDir)
+    }
     const params = new URLSearchParams({
       primaryTrove: primaryTroveId.trim(),
       query: q,
       page: String(pageNum),
       size: '50',
     })
+    if (sortBy) {
+      params.set('sortBy', sortBy)
+      params.set('sortDir', sortDir)
+    }
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
     fetch(`/api/search/uniques?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
@@ -776,7 +788,12 @@ function App() {
                       </button>
                     </nav>
                   )}
-                  <UniquesResultsView results={results} />
+                  <UniquesResultsView
+                    results={results}
+                    sortBy={uniquesSortBy}
+                    sortDir={uniquesSortDir}
+                    onSortChange={(col, dir) => fetchUniques(0, col, dir)}
+                  />
                 </>
               )
             })()}

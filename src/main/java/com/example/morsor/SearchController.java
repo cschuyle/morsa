@@ -89,13 +89,23 @@ public class SearchController {
             @RequestParam(required = false) List<String> compareTrove,
             @RequestParam(required = false, defaultValue = "*") String query,
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "50") int size) {
+            @RequestParam(required = false, defaultValue = "50") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
         page = Math.max(0, page);
         size = Math.min(500, Math.max(1, size));
         Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
                 .filter(t -> t != null && !t.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
         List<SearchResult> all = searchDataService.searchUniques(primaryTrove.trim(), compareSet, query);
+        boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
+        if (sortBy != null && !sortBy.isBlank()) {
+            Comparator<SearchResult> cmp = comparatorFor(sortBy);
+            if (cmp != null) {
+                if (descending) cmp = cmp.reversed();
+                all = all.stream().sorted(cmp).toList();
+            }
+        }
         long total = all.size();
         int from = (int) Math.min((long) page * size, total);
         int to = (int) Math.min(from + size, total);

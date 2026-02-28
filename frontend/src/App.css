@@ -822,6 +822,21 @@
   background: #f8f8f8;
 }
 
+.duplicate-results-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.duplicate-results-table th.sortable:hover {
+  background: #eee;
+}
+
+.duplicate-results-table .sort-indicator {
+  margin-left: 0.2rem;
+  font-weight: normal;
+  color: #666;
+}
+
 .duplicate-row-primary {
   background: #fff;
   font-weight: 500;
