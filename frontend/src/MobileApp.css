@@ -365,10 +365,35 @@
   gap: 0.5rem;
 }
 
+.mobile-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .mobile-footer-link {
   font-size: 0.9rem;
   color: #646cff;
   text-decoration: none;
+}
+
+.mobile-footer-link:hover {
+  text-decoration: underline;
+}
+
+.mobile-footer-logout-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #646cff;
+  text-decoration: none;
+}
+
+.mobile-footer-logout-btn:hover {
+  text-decoration: underline;
 }
 
 .mobile-about-main {

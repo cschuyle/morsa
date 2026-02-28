@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { getCsrfToken } from './getCsrfToken'
 import './MobileApp.css'
 
 function MobileAbout() {
@@ -37,7 +38,23 @@ function MobileAbout() {
       </main>
       <footer className="mobile-footer">
         <Link to="/mobile" className="mobile-footer-link">Back to search</Link>
-        <Link to="/" className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop site</Link>
+        <div className="mobile-footer-row">
+          <Link to="/" className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop site</Link>
+          <button
+            type="button"
+            className="mobile-footer-link mobile-footer-logout-btn"
+            onClick={() => {
+              const token = getCsrfToken()
+              const headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
+              if (token) headers['X-XSRF-TOKEN'] = token
+              fetch('/logout', { method: 'POST', credentials: 'include', headers })
+                .then(() => { window.location.href = '/login' })
+                .catch(() => { window.location.href = '/login' })
+            }}
+          >
+            Log Out
+          </button>
+        </div>
       </footer>
     </div>
   )
