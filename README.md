@@ -74,6 +74,8 @@ npm run test
 ```
 Watch mode (re-run on file changes): `npm run test:watch`. Run a single test file: `npm run test -- src/RequireAuth.test.jsx`.
 
+**Tests with canned data:** To run frontend tests against the same data shape as the dev backend (e.g. Little Prince trove, "The Little Prince, in Ancient Greek"), use the fixture-based mocks. Fixtures live in `frontend/src/test/fixtures/` (troves, search response, health). In tests, call `mockFetchWithCannedData()` and stub `fetch` with it so requests return that data without starting the backend. See `App.cannedData.test.jsx` and `mockFetchWithCannedData.js`.
+
 ## Option 2. You can use AWS S3 as a data store:
 
 You'll have to put your trove data in place. See [DATA.md](./DATA.md) for some info in this. If you need help go ahead and contact me!
