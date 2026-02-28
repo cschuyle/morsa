@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -359,9 +360,56 @@ public class SearchDataService {
         List<DuplicateMatchRow> rows = new ArrayList<>(primaryItems.size());
         for (SearchResult primary : primaryItems) {
             List<ScoredSearchResult> matches = findSimilarInTroves(primary, compareSet, maxMatch);
+            matches = filterMatchesByYearHeuristic(primary, matches);
             rows.add(new DuplicateMatchRow(primary, matches));
         }
         return rows;
+    }
+
+    /**
+     * Heuristic: if a title ends with (YYYY), the year alone does not make a match.
+     * - Both have years and they differ → reject.
+     * - Primary has year: candidate core text must match primary core (one contains the other or equal).
+     * - Primary has no year: no extra filter.
+     */
+    private List<ScoredSearchResult> filterMatchesByYearHeuristic(SearchResult primary, List<ScoredSearchResult> matches) {
+        TitleWithYear primaryParsed = parseTitleWithYear(primary.title() != null ? primary.title() : "");
+        return matches.stream()
+                .filter(m -> passesYearHeuristic(primaryParsed, m.result().title() != null ? m.result().title() : ""))
+                .toList();
+    }
+
+    private static final Pattern YEAR_SUFFIX = Pattern.compile("\\s*\\((\\d{4})\\)\\s*$");
+
+    private record TitleWithYear(String core, Integer year) {}
+
+    private static TitleWithYear parseTitleWithYear(String title) {
+        if (title == null || title.isBlank()) return new TitleWithYear("", null);
+        java.util.regex.Matcher m = YEAR_SUFFIX.matcher(title);
+        if (m.find()) {
+            String core = title.substring(0, m.start()).trim();
+            int y = Integer.parseInt(m.group(1));
+            return new TitleWithYear(core, y);
+        }
+        return new TitleWithYear(title.trim(), null);
+    }
+
+    private static boolean passesYearHeuristic(TitleWithYear primary, String candidateTitle) {
+        TitleWithYear candidate = parseTitleWithYear(candidateTitle);
+        if (primary.year != null && candidate.year != null && !primary.year.equals(candidate.year)) {
+            return false;
+        }
+        if (primary.year != null) {
+            return coreTextMatch(primary.core, candidate.core);
+        }
+        return true;
+    }
+
+    private static boolean coreTextMatch(String a, String b) {
+        String na = (a != null ? a : "").trim().toLowerCase();
+        String nb = (b != null ? b : "").trim().toLowerCase();
+        if (na.isEmpty() || nb.isEmpty()) return false;
+        return na.equals(nb) || nb.contains(na) || na.contains(nb);
     }
 
     /** Search for items similar to the given item, restricted to the given trove IDs. Returns top N by score. */
