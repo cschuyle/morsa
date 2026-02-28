@@ -765,7 +765,14 @@ function App() {
                 aria-selected={searchMode === 'duplicates'}
                 className={searchMode === 'duplicates' ? 'active' : ''}
                 onClick={() => {
-                  setSearchParams(buildSearchParams('duplicates', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds), { replace: true })
+                  const dupEmpty = !dupPrimaryTroveId && !dupCompareTroveIds.size
+                  if (dupEmpty && (uniqPrimaryTroveId || uniqCompareTroveIds.size)) {
+                    setDupPrimaryTroveId(uniqPrimaryTroveId)
+                    setDupCompareTroveIds(new Set(uniqCompareTroveIds))
+                    setSearchParams(buildSearchParams('duplicates', query, searchSelectedTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds), { replace: true })
+                  } else {
+                    setSearchParams(buildSearchParams('duplicates', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds), { replace: true })
+                  }
                   setSearchResult(null)
                   setUniquesResult(null)
                 }}
@@ -778,7 +785,14 @@ function App() {
                 aria-selected={searchMode === 'uniques'}
                 className={searchMode === 'uniques' ? 'active' : ''}
                 onClick={() => {
-                  setSearchParams(buildSearchParams('uniques', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds), { replace: true })
+                  const uniqEmpty = !uniqPrimaryTroveId && !uniqCompareTroveIds.size
+                  if (uniqEmpty && (dupPrimaryTroveId || dupCompareTroveIds.size)) {
+                    setUniqPrimaryTroveId(dupPrimaryTroveId)
+                    setUniqCompareTroveIds(new Set(dupCompareTroveIds))
+                    setSearchParams(buildSearchParams('uniques', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, dupPrimaryTroveId, dupCompareTroveIds), { replace: true })
+                  } else {
+                    setSearchParams(buildSearchParams('uniques', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds), { replace: true })
+                  }
                   setSearchResult(null)
                   setDuplicatesResult(null)
                 }}
