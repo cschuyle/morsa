@@ -62,8 +62,8 @@ import org.apache.lucene.util.BytesRef;
 @Service
 public class SearchDataService {
 
-    /** Trove JSON files; default is repo-root fixtures (run from project root). */
-    @Value("${moocho.data.location:file:./fixtures/data/*.json}")
+    /** Trove JSON files (set in properties / MOOCHO_DATA_LOCATION). */
+    @Value("${moocho.data.location}")
     private String dataLocation;
 
     private static final String TROVES_LIST_KEY = "troves";

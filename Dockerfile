@@ -24,6 +24,7 @@ WORKDIR /app
 RUN adduser -D -s /bin/sh appuser
 COPY --from=builder /app/build/libs/*.jar app.jar
 COPY fixtures fixtures
+ENV MOOCHO_DATA_LOCATION=file:./fixtures/data/*.json
 USER appuser
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

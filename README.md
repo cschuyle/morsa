@@ -239,4 +239,4 @@ Env var `SPRING_PROFILES_ACTIVE` is a comma-delimited list of profiles to activa
 
 So-called "Production" mode: You would normally activate **postgres** and **s3troves** profiles, which forces you to provide your own trove data in S3, and create at least one user.
 
-Env var `MOOCHO_ONLY_TROVE_IDS` to limit troves loaded works with all profiles.
+**Other env vars:** `MOOCHO_ONLY_TROVE_IDS` limits which troves are loaded (all profiles). `MOOCHO_DATA_LOCATION` overrides where trove JSON files are loaded from when not using S3 (default: `file:./fixtures/data/*.json`; run from project root). See [envrc-template](./envrc-template).

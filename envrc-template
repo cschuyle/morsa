@@ -10,6 +10,9 @@ export AWS_REGION=...
 # This is the bucket where the troves are stored. See DATA.md for more details.
 export MOOCHO_BUCKET_NAME=blah
 
+# When not using S3, trove JSON is loaded from this location (dev/default). Default is file:./fixtures/data/*.json when run from project root. Use to point at a different directory or classpath, e.g. classpath*:data/*.json.
+#export MOOCHO_DATA_LOCATION=file:./fixtures/data/*.json
+
 # Use this to only load a subset of troves. 
 # This can be useful if you have a LOT of data and you want to startup quicker, or have limited compute resources. 
 # This is especially important because the implementation uses embedded (in-memory) Lucene (search engine). 
