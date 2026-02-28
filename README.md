@@ -65,6 +65,15 @@ npm install # Needed on the first run, or if dependencies change
 npm run dev
 ```
 
+### Frontend tests
+
+From the project root or from `frontend`:
+```
+cd frontend
+npm run test
+```
+Watch mode (re-run on file changes): `npm run test:watch`. Run a single test file: `npm run test -- src/RequireAuth.test.jsx`.
+
 ## Option 2. You can use AWS S3 as a data store:
 
 You'll have to put your trove data in place. See [DATA.md](./DATA.md) for some info in this. If you need help go ahead and contact me!
