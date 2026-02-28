@@ -33,13 +33,25 @@ function RequireAuth({ children }) {
   return children
 }
 
+const PREFER_DESKTOP_KEY = 'morsorPreferDesktop'
+
+function getPreferDesktop() {
+  try {
+    return sessionStorage.getItem(PREFER_DESKTOP_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 function RootOrRedirect() {
   const [mobile, setMobile] = useState(null)
+  const [preferDesktop, setPreferDesktop] = useState(getPreferDesktop)
   useEffect(() => {
     setMobile(isMobileDevice())
+    setPreferDesktop(getPreferDesktop())
   }, [])
   if (mobile === null) return null
-  if (mobile) return <Navigate to="/mobile" replace />
+  if (mobile && !preferDesktop) return <Navigate to="/mobile" replace />
   return <App />
 }
 

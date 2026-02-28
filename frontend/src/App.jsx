@@ -962,7 +962,7 @@ function App() {
         >
           Log Out
         </button>
-        <Link to="/mobile" className="app-footer-link">Mobile</Link>
+        <Link to="/mobile" className="app-footer-link" onClick={() => sessionStorage.removeItem('morsorPreferDesktop')}>Mobile</Link>
         {message && <p className="backend-message" data-status={message === 'Status: Backend is up' ? 'up' : 'down'}>{message}</p>}
       </footer>
     </>

@@ -267,7 +267,7 @@ function MobileApp() {
       </main>
 
       <footer className="mobile-footer">
-        <Link to="/" className="mobile-footer-link">Desktop site</Link>
+        <Link to="/" className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop site</Link>
       </footer>
     </div>
   )
