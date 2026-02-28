@@ -863,6 +863,135 @@
   font-size: 0.95rem;
 }
 
+.col-uniques-help {
+  width: 2.5rem;
+  padding: 0.4rem 0.5rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.uniques-help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid #bbb;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.uniques-help-btn:hover {
+  background: #e8e8e8;
+  color: #333;
+  border-color: #999;
+}
+
+.uniques-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.uniques-dialog {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 28rem;
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.uniques-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+  background: #f8f8f8;
+}
+
+.uniques-dialog-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.uniques-dialog-close {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.uniques-dialog-close:hover {
+  background: #eee;
+  color: #333;
+}
+
+.uniques-dialog-primary {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: #555;
+  border-bottom: 1px solid #eee;
+}
+
+.uniques-dialog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  overflow-y: auto;
+}
+
+.uniques-dialog-item {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.uniques-dialog-item:last-child {
+  border-bottom: none;
+}
+
+.uniques-dialog-item-title {
+  font-size: 0.95rem;
+  color: #213547;
+}
+
+.uniques-dialog-item-meta {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.uniques-dialog-empty {
+  margin: 0;
+  padding: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
 .duplicates-search-loading {
   display: flex;
   align-items: center;
@@ -948,6 +1077,24 @@
   flex-shrink: 0;
 }
 
+.search-trove-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.search-trove-summary-row .search-trove-summary-text {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-trove-summary-row .trove-picker-clear {
+  flex-shrink: 0;
+}
+
 .primary-trove-select-wrap .trove-list {
   margin-top: 0.25rem;
 }
@@ -957,19 +1104,13 @@
   height: 1rem;
 }
 
-.primary-trove-select-wrap .primary-trove-filter-input {
-  width: 100%;
-  margin-bottom: 0.5rem;
-  padding: 0.4rem 0.5rem;
-  border: 1px solid #e5e5e5;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  box-sizing: border-box;
+.primary-trove-select-wrap .sidebar-trove-filter-wrap .primary-trove-filter-input {
+  border: none;
+  border-radius: 0;
 }
 
 .primary-trove-select-wrap .primary-trove-filter-input:focus {
   outline: none;
-  border-color: #646cff;
 }
 
 .primary-trove-list {

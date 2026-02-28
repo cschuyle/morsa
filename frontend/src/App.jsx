@@ -552,12 +552,12 @@ function App() {
               ) : (
                 <>
                   <h2 className="trove-picker-heading">Troves</h2>
-                  <p className="trove-picker-summary" aria-live="polite">
-                    {selectedTroveIds.size === 0
-                      ? 'All troves will be searched'
-                      : `${selectedTroveIds.size} of ${troves.length} selected`}
-                  </p>
-                  <div className="trove-picker-actions">
+                  <div className="search-trove-summary-row">
+                    <p className="trove-picker-summary search-trove-summary-text" aria-live="polite">
+                      {selectedTroveIds.size === 0
+                        ? 'All troves will be searched'
+                        : `${selectedTroveIds.size} of ${troves.length} selected`}
+                    </p>
                     <button
                       type="button"
                       className="trove-picker-clear"
