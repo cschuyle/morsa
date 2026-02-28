@@ -13,8 +13,12 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -43,6 +47,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -303,9 +308,12 @@ public class SearchDataService {
                 List<BytesRef> terms = troveIdSet.stream().map(BytesRef::new).toList();
                 bq.add(new TermInSetQuery("troveId", terms), BooleanClause.Occur.FILTER);
             }
-            QueryParser parser = new QueryParser("content", luceneAnalyzer);
-            parser.setDefaultOperator(QueryParser.Operator.AND);
-            Query textQuery = parser.parse(QueryParser.escape(queryTrimmed));
+            Query textQuery = buildFuzzyQuery(queryTrimmed);
+            if (textQuery == null) {
+                QueryParser parser = new QueryParser(CONTENT_FIELD, luceneAnalyzer);
+                parser.setDefaultOperator(QueryParser.Operator.AND);
+                textQuery = parser.parse(QueryParser.escape(queryTrimmed));
+            }
             bq.add(textQuery, BooleanClause.Occur.MUST);
             TopDocs topDocs = luceneSearcher.search(bq.build(), allResults.size());
             List<SearchResult> out = new ArrayList<>(topDocs.scoreDocs.length);
@@ -328,6 +336,41 @@ public class SearchDataService {
             log.warn("Lucene search failed: {}, falling back to substring match", e.getMessage());
             return searchFallback(troveIdSet, queryTrimmed);
         }
+    }
+
+    private static final String CONTENT_FIELD = "content";
+    private static final int FUZZY_MAX_EDITS = 2;
+    private static final int FUZZY_PREFIX_LENGTH = 1;
+
+    /**
+     * Build a query that matches each token from the user query with typo tolerance (fuzzy match)
+     * against indexed terms. Returns null if tokenization yields no terms (caller may use QueryParser).
+     */
+    private Query buildFuzzyQuery(String queryTrimmed) throws IOException {
+        List<String> terms = tokenizeQuery(queryTrimmed);
+        if (terms.isEmpty()) return null;
+        BooleanQuery.Builder bq = new BooleanQuery.Builder();
+        for (String term : terms) {
+            if (term.isEmpty()) continue;
+            int maxEdits = term.length() <= 3 ? 1 : FUZZY_MAX_EDITS;
+            FuzzyQuery fq = new FuzzyQuery(new Term(CONTENT_FIELD, term), maxEdits, FUZZY_PREFIX_LENGTH);
+            bq.add(fq, BooleanClause.Occur.MUST);
+        }
+        return bq.build();
+    }
+
+    private List<String> tokenizeQuery(String text) throws IOException {
+        List<String> terms = new ArrayList<>();
+        try (TokenStream ts = luceneAnalyzer.tokenStream(CONTENT_FIELD, new StringReader(text))) {
+            CharTermAttribute termAtt = ts.addAttribute(CharTermAttribute.class);
+            ts.reset();
+            while (ts.incrementToken()) {
+                String t = termAtt.toString();
+                if (t != null && !t.isEmpty()) terms.add(t);
+            }
+            ts.end();
+        }
+        return terms;
     }
 
     private List<SearchResult> searchFallback(Set<String> troveIdSet, String queryTrimmed) {
