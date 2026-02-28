@@ -363,42 +363,103 @@ function App() {
                       Compare
                     </button>
                   </div>
-                  {duplicatesTroveTab === 'primary' && (
-                    <div className="primary-trove-select-wrap" role="tabpanel">
-                      <label htmlFor="primary-trove-filter">Filter by name</label>
-                      <input
-                        id="primary-trove-filter"
-                        type="text"
-                        value={primaryTroveFilter}
-                        onChange={(e) => setPrimaryTroveFilter(e.target.value)}
-                        placeholder="Filter by name…"
-                        className="sidebar-trove-filter-input primary-trove-filter-input"
-                        aria-label="Filter primary troves by name"
-                      />
-                      <ul className="primary-trove-list" aria-label="Primary trove options">
-                        {primaryTrovesFiltered.map((t) => (
-                          <li key={t.id}>
+                  {duplicatesTroveTab === 'primary' && (() => {
+                    const primarySelectedTrove = primaryTrovesFiltered.find((t) => t.id === primaryTroveId)
+                    const primaryNotSelectedTroves = primaryTrovesFiltered.filter((t) => t.id !== primaryTroveId)
+                    return (
+                      <div className="primary-trove-select-wrap" role="tabpanel">
+                        <div className="primary-trove-summary-row">
+                          <p className="trove-picker-summary primary-trove-summary-text" aria-live="polite">
+                            {primaryTroveId
+                              ? (primarySelectedTrove?.name ?? primaryTroveId)
+                              : 'Select primary trove'}
+                          </p>
+                          {primaryTroveId && (
                             <button
                               type="button"
-                              className={`primary-trove-option ${primaryTroveId === t.id ? 'primary-trove-option--selected' : ''}`}
-                              onClick={() => setPrimaryTroveId(t.id)}
-                              aria-pressed={primaryTroveId === t.id}
+                              className="trove-picker-clear"
+                              onClick={() => setPrimaryTroveId('')}
+                              aria-label="Clear primary trove"
                             >
-                              {t.name}
+                              Clear
                             </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                          )}
+                        </div>
+                        <div className="sidebar-trove-filter-wrap">
+                          <input
+                            id="primary-trove-filter"
+                            type="text"
+                            value={primaryTroveFilter}
+                            onChange={(e) => setPrimaryTroveFilter(e.target.value)}
+                            placeholder="Filter by name…"
+                            className="sidebar-trove-filter-input primary-trove-filter-input"
+                            aria-label="Filter primary troves by name"
+                          />
+                          <span className="search-query-actions">
+                            <button
+                              type="button"
+                              className="search-query-btn"
+                              title="Clear filter"
+                              onClick={() => setPrimaryTroveFilter('')}
+                              aria-label="Clear filter"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        </div>
+                        <ul className="trove-list primary-trove-list" aria-label="Primary trove options">
+                          {primarySelectedTrove && (
+                            <li
+                              key={primarySelectedTrove.id}
+                              className="trove-item trove-item--selected"
+                            >
+                              <label className="trove-checkbox trove-radio">
+                                <input
+                                  type="radio"
+                                  name="primary-trove"
+                                  value={primarySelectedTrove.id}
+                                  checked={true}
+                                  onChange={() => setPrimaryTroveId(primarySelectedTrove.id)}
+                                />
+                                <span className="trove-name">
+                                  {primarySelectedTrove.name} ({primarySelectedTrove.count})
+                                </span>
+                              </label>
+                            </li>
+                          )}
+                          {primarySelectedTrove && primaryNotSelectedTroves.length > 0 && (
+                            <li className="trove-list-separator" aria-hidden="true">
+                              <hr className="sidebar-separator" />
+                            </li>
+                          )}
+                          {primaryNotSelectedTroves.map((t) => (
+                            <li key={t.id} className="trove-item">
+                              <label className="trove-checkbox trove-radio">
+                                <input
+                                  type="radio"
+                                  name="primary-trove"
+                                  value={t.id}
+                                  checked={primaryTroveId === t.id}
+                                  onChange={() => setPrimaryTroveId(t.id)}
+                                />
+                                <span className="trove-name">
+                                  {t.name} ({t.count})
+                                </span>
+                              </label>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  })()}
                   {duplicatesTroveTab === 'compare' && (
                     <div role="tabpanel">
-                      <p className="trove-picker-summary" aria-live="polite">
-                        {selectedTroveIds.size === 0
-                          ? 'Select at least one compare trove'
-                          : `${selectedTroveIds.size} selected`}
-                      </p>
-                      <div className="trove-picker-actions">
+                      <div className="compare-trove-summary-row">
+                        <p className="trove-picker-summary compare-trove-summary-text" aria-live="polite">
+                          {selectedTroveIds.size === 0
+                            ? 'Select at least one compare trove'
+                            : `${selectedTroveIds.size} selected`}
+                        </p>
                         <button
                           type="button"
                           className="trove-picker-clear"
