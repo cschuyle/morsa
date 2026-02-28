@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.search;
 
 import java.util.List;
 import java.util.Map;

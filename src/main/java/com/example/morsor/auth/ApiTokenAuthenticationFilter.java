@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

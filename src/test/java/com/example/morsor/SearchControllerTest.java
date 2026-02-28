@@ -1,5 +1,8 @@
 package com.example.morsor;
 
+import com.example.morsor.search.SearchResponse;
+import com.example.morsor.search.SearchResult;
+import com.example.morsor.search.TroveOption;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;

@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.auth;
 
 import java.time.Instant;
 

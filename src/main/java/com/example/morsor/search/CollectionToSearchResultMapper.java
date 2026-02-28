@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.search;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

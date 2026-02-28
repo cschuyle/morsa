@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.auth;
 
 import org.springframework.stereotype.Service;
 

@@ -1,5 +1,9 @@
 package com.example.morsor;
 
+import com.example.morsor.auth.ApiTokenRepository;
+import com.example.morsor.auth.TokenHashService;
+import com.example.morsor.auth.User;
+import com.example.morsor.auth.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

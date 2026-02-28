@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.auth;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        com.example.morsor.User user = userRepository.findByUsername(username)
+        com.example.morsor.auth.User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         return User.builder()
                 .username(user.getUsername())

@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.auth;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

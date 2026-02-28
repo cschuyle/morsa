@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.search;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;

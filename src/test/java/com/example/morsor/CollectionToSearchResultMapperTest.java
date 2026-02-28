@@ -1,5 +1,7 @@
 package com.example.morsor;
 
+import com.example.morsor.search.CollectionToSearchResultMapper;
+import com.example.morsor.search.SearchResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;

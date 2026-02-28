@@ -1,4 +1,4 @@
-package com.example.morsor;
+package com.example.morsor.auth;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -12,9 +12,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
 
-/**
- * Authenticated endpoints: issue API tokens (tied to the current principal).
- */
 @RestController
 @RequestMapping("/api")
 public class AuthController {
@@ -34,10 +31,6 @@ public class AuthController {
         this.tokenHashService = tokenHashService;
     }
 
-    /**
-     * Create a new API token for the current user. Returns the plain token once; store it securely.
-     * Request body may include optional "name" (e.g. "dev", "CI").
-     */
     @PostMapping("/tokens")
     public ResponseEntity<Map<String, String>> createToken(@RequestBody(required = false) Map<String, String> body) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
