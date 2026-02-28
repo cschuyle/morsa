@@ -7,30 +7,12 @@ import About from './About.jsx'
 import MobileApp from './MobileApp.jsx'
 import MobileAbout from './MobileAbout.jsx'
 import Login from './Login.jsx'
+import { RequireAuth } from './RequireAuth.jsx'
 
 function isMobileDevice() {
   if (typeof navigator === 'undefined' || typeof window === 'undefined') return false
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
     (window.innerWidth > 0 && window.innerWidth < 768)
-}
-
-/** Prevents flash of logged-in UI: verify auth before rendering children; redirect to /login if 401. */
-function RequireAuth({ children }) {
-  const [status, setStatus] = useState('pending')
-  useEffect(() => {
-    fetch('/api/troves', { credentials: 'include' })
-      .then((res) => {
-        if (res.status === 401) {
-          setStatus('redirecting')
-          window.location.href = '/login'
-          return
-        }
-        setStatus('ok')
-      })
-      .catch(() => setStatus('ok'))
-  }, [])
-  if (status !== 'ok') return null
-  return children
 }
 
 const PREFER_DESKTOP_KEY = 'morsorPreferDesktop'

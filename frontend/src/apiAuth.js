@@ -1,15 +1,21 @@
 /**
  * In dev, use the hardwired API token so you don't need to log in.
  * Set VITE_DEV_API_TOKEN in .env.local to override (default: dev-token).
+ * Token is sent when: (1) Vite dev server (import.meta.env.DEV), or
+ * (2) app is loaded from localhost (e.g. gradle bootRun at http://localhost:8080).
  */
 function getDevApiToken() {
-  if (import.meta.env.DEV && import.meta.env.VITE_DEV_API_TOKEN !== undefined) {
+  const isViteDev = import.meta.env.DEV
+  const isLocalhost =
+    typeof window !== 'undefined' &&
+    (window.location?.hostname === 'localhost' || window.location?.hostname === '127.0.0.1')
+  if (!isViteDev && !isLocalhost) {
+    return null
+  }
+  if (import.meta.env.VITE_DEV_API_TOKEN !== undefined && import.meta.env.VITE_DEV_API_TOKEN !== '') {
     return import.meta.env.VITE_DEV_API_TOKEN
   }
-  if (import.meta.env.DEV) {
-    return 'dev-token'
-  }
-  return null
+  return 'dev-token'
 }
 
 /**

@@ -1,0 +1,24 @@
+import { useState, useEffect } from 'react'
+import { getApiAuthHeaders } from './apiAuth'
+
+/**
+ * Prevents flash of logged-in UI: verify auth before rendering children; redirect to /login if 401.
+ * Must include getApiAuthHeaders() so dev token is sent on the initial auth check (e.g. bootRun on localhost).
+ */
+export function RequireAuth({ children }) {
+  const [status, setStatus] = useState('pending')
+  useEffect(() => {
+    fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+      .then((res) => {
+        if (res.status === 401) {
+          setStatus('redirecting')
+          window.location.href = '/login'
+          return
+        }
+        setStatus('ok')
+      })
+      .catch(() => setStatus('ok'))
+  }, [])
+  if (status !== 'ok') return null
+  return children
+}
