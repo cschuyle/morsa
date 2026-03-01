@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.TreeSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -95,5 +96,28 @@ class SearchControllerTest {
                         .isNotEqualTo(primaryId);
             }
         }
+    }
+
+    @Test
+    void duplicatesOneRowPerGroupWhenSameTroveInPrimaryAndCompare() {
+        String url = "http://localhost:" + port + "/api/search/duplicates?primaryTrove=little-prince&compareTrove=little-prince&query=*";
+        ResponseEntity<DuplicatesResponse> response = restTemplate.getForEntity(url, DuplicatesResponse.class);
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        DuplicatesResponse body = response.getBody();
+        assertThat(body).isNotNull();
+
+        List<String> groupKeys = body.rows().stream()
+                .map(row -> {
+                    TreeSet<String> group = new TreeSet<>();
+                    if (row.primary() != null && row.primary().id() != null) group.add(row.primary().id());
+                    for (ScoredSearchResult m : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
+                        if (m.result() != null && m.result().id() != null) group.add(m.result().id());
+                    }
+                    return String.join(",", group);
+                })
+                .toList();
+        assertThat(groupKeys)
+                .as("Each duplicate group must appear only once (no symmetric duplicate rows)")
+                .doesNotHaveDuplicates();
     }
 }

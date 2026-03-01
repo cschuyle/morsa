@@ -52,8 +52,11 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -413,7 +416,31 @@ public class SearchDataService {
                 rows.add(new DuplicateMatchRow(primary, matches));
             }
         }
-        return rows;
+        return deduplicateDuplicateRowsByGroup(rows);
+    }
+
+    /**
+     * When the same trove is in both primary and compare, each pair (A,B) appears as both
+     * (A primary, B match) and (B primary, A match). Keep one row per duplicate group by
+     * canonicalizing on the set of item ids and retaining the row whose primary has the
+     * smallest id in the group.
+     */
+    private List<DuplicateMatchRow> deduplicateDuplicateRowsByGroup(List<DuplicateMatchRow> rows) {
+        Map<String, DuplicateMatchRow> byGroup = new HashMap<>();
+        for (DuplicateMatchRow row : rows) {
+            TreeSet<String> group = new TreeSet<>();
+            if (row.primary() != null && row.primary().id() != null) group.add(row.primary().id());
+            for (ScoredSearchResult m : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
+                if (m.result() != null && m.result().id() != null) group.add(m.result().id());
+            }
+            if (group.isEmpty()) continue;
+            String groupKey = String.join(",", group);
+            String minId = group.iterator().next();
+            if (!byGroup.containsKey(groupKey) || (row.primary() != null && minId.equals(row.primary().id()))) {
+                byGroup.put(groupKey, row);
+            }
+        }
+        return new ArrayList<>(byGroup.values());
     }
 
     /**
