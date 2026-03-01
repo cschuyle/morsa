@@ -19,6 +19,7 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermInSetQuery;
@@ -349,20 +350,63 @@ public class SearchDataService {
     private static final int FUZZY_PREFIX_LENGTH = 1;
 
     /**
-     * Build a query that matches each token from the user query with typo tolerance (fuzzy match)
-     * against indexed terms. Returns null if tokenization yields no terms (caller may use QueryParser).
+     * Build a query that matches each token from the user query. Terms ending with {@code *}
+     * are treated as prefix matches (e.g. {@code Посл*} matches any term starting with that stem);
+     * other terms use fuzzy match for typo tolerance.
+     * Returns null if no terms (caller may use QueryParser).
      */
     private Query buildFuzzyQuery(String queryTrimmed) throws IOException {
-        List<String> terms = tokenizeQuery(queryTrimmed);
+        List<QueryTerm> terms = parseQueryTerms(queryTrimmed);
         if (terms.isEmpty()) return null;
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
-        for (String term : terms) {
-            if (term.isEmpty()) continue;
-            int maxEdits = term.length() <= 3 ? 1 : FUZZY_MAX_EDITS;
-            FuzzyQuery fq = new FuzzyQuery(new Term(CONTENT_FIELD, term), maxEdits, FUZZY_PREFIX_LENGTH);
-            bq.add(fq, BooleanClause.Occur.MUST);
+        boolean hasClauses = false;
+        for (QueryTerm qt : terms) {
+            if (qt.text().isEmpty()) continue;
+            if (qt.prefix()) {
+                String analyzedPrefix = analyzeToSingleToken(qt.text());
+                if (analyzedPrefix != null && !analyzedPrefix.isEmpty()) {
+                    bq.add(new PrefixQuery(new Term(CONTENT_FIELD, analyzedPrefix)), BooleanClause.Occur.MUST);
+                    hasClauses = true;
+                }
+            } else {
+                List<String> tokens = tokenizeQuery(qt.text());
+                for (String term : tokens) {
+                    if (term.isEmpty()) continue;
+                    int maxEdits = term.length() <= 3 ? 1 : FUZZY_MAX_EDITS;
+                    FuzzyQuery fq = new FuzzyQuery(new Term(CONTENT_FIELD, term), maxEdits, FUZZY_PREFIX_LENGTH);
+                    bq.add(fq, BooleanClause.Occur.MUST);
+                    hasClauses = true;
+                }
+            }
         }
-        return bq.build();
+        return hasClauses ? bq.build() : null;
+    }
+
+    /** A term from the query: text and whether it is a prefix (e.g. {@code Посл*} -> text=Посл, prefix=true). */
+    private record QueryTerm(String text, boolean prefix) {}
+
+    private List<QueryTerm> parseQueryTerms(String queryTrimmed) {
+        List<QueryTerm> out = new ArrayList<>();
+        if (queryTrimmed == null || queryTrimmed.isEmpty()) return out;
+        String[] parts = queryTrimmed.trim().split("\\s+");
+        for (String part : parts) {
+            if (part == null) continue;
+            String p = part.trim();
+            if (p.isEmpty()) continue;
+            if (p.endsWith("*")) {
+                String prefix = p.substring(0, p.length() - 1).trim();
+                if (!prefix.isEmpty()) out.add(new QueryTerm(prefix, true));
+            } else {
+                out.add(new QueryTerm(p, false));
+            }
+        }
+        return out;
+    }
+
+    /** Run text through the analyzer and return the first token (indexed form), or null if none. */
+    private String analyzeToSingleToken(String text) throws IOException {
+        List<String> tokens = tokenizeQuery(text);
+        return tokens.isEmpty() ? null : tokens.get(0);
     }
 
     private List<String> tokenizeQuery(String text) throws IOException {
