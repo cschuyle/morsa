@@ -2,22 +2,39 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
+import { DuplicateResultsView } from './DuplicateResultsView'
+import { UniquesResultsView } from './UniquesResultsView'
 import './MobileApp.css'
 
 const MOBILE_PAGE_SIZE = 25
+const DUP_UNIQUES_PAGE_SIZE = 50
 
 function MobileApp() {
   const [troves, setTroves] = useState([])
+  const [searchMode, setSearchMode] = useState('search') // 'search' | 'duplicates' | 'uniques'
   const [selectedTroveIds, setSelectedTroveIds] = useState(() => new Set())
+  const [primaryTroveId, setPrimaryTroveId] = useState('')
+  const [compareTroveIds, setCompareTroveIds] = useState(() => new Set())
+  const [trovePickerSubTab, setTrovePickerSubTab] = useState('primary') // 'primary' | 'compare' when dup/uniques
   const [query, setQuery] = useState('')
   const [searchResult, setSearchResult] = useState(null)
   const [searching, setSearching] = useState(false)
   const [page, setPage] = useState(0)
+  const [duplicatesResult, setDuplicatesResult] = useState(null)
+  const [duplicatesPage, setDuplicatesPage] = useState(0)
+  const [uniquesResult, setUniquesResult] = useState(null)
+  const [uniquesPage, setUniquesPage] = useState(0)
+  const [uniquesSortBy, setUniquesSortBy] = useState(null)
+  const [uniquesSortDir, setUniquesSortDir] = useState('asc')
   const [showTrovePicker, setShowTrovePicker] = useState(false)
   const [trovePickerFilter, setTrovePickerFilter] = useState('')
+  const [searchError, setSearchError] = useState(null)
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
+  const abortRef = useRef(null)
   queryRef.current = query
+
+  const isDupOrUniques = searchMode === 'duplicates' || searchMode === 'uniques'
 
   function fetchSearch(pageNum) {
     const q = queryRef.current.trim()
@@ -42,6 +59,87 @@ function MobileApp() {
       .finally(() => setSearching(false))
   }
 
+  function fetchDuplicates(pageNum) {
+    const q = queryRef.current.trim() || '*'
+    if (!primaryTroveId.trim()) {
+      setDuplicatesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, rows: [] })
+      return
+    }
+    if (compareTroveIds.size === 0) {
+      setDuplicatesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, rows: [] })
+      return
+    }
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    const params = new URLSearchParams({
+      primaryTrove: primaryTroveId.trim(),
+      query: q,
+      page: String(pageNum),
+      size: String(DUP_UNIQUES_PAGE_SIZE),
+      maxMatches: '20',
+    })
+    compareTroveIds.forEach((id) => params.append('compareTrove', id))
+    fetch(`/api/search/duplicates?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+      .then((res) => {
+        if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
+        return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
+      })
+      .then((data) => {
+        setDuplicatesResult(data)
+        setDuplicatesPage(pageNum)
+      })
+      .catch((err) => { if (err.name !== 'AbortError') setSearchError(err.message) })
+      .finally(() => setSearching(false))
+  }
+
+  function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null) {
+    const q = queryRef.current.trim() || '*'
+    if (!primaryTroveId.trim()) {
+      setUniquesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, results: [] })
+      return
+    }
+    if (compareTroveIds.size === 0) {
+      setUniquesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, results: [] })
+      return
+    }
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    const sortBy = sortByOverride ?? uniquesSortBy
+    const sortDir = sortDirOverride ?? uniquesSortDir
+    if (sortByOverride != null || sortDirOverride != null) {
+      setUniquesSortBy(sortBy || null)
+      setUniquesSortDir(sortDir)
+    }
+    const params = new URLSearchParams({
+      primaryTrove: primaryTroveId.trim(),
+      query: q,
+      page: String(pageNum),
+      size: String(DUP_UNIQUES_PAGE_SIZE),
+    })
+    if (sortBy) {
+      params.set('sortBy', sortBy)
+      params.set('sortDir', sortDir)
+    }
+    compareTroveIds.forEach((id) => params.append('compareTrove', id))
+    fetch(`/api/search/uniques?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+      .then((res) => {
+        if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
+        return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
+      })
+      .then((data) => {
+        setUniquesResult(data)
+        setUniquesPage(pageNum)
+      })
+      .catch((err) => { if (err.name !== 'AbortError') setSearchError(err.message) })
+      .finally(() => setSearching(false))
+  }
+
   useEffect(() => {
     fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
       .then((res) => {
@@ -54,13 +152,14 @@ function MobileApp() {
   }, [])
 
   useEffect(() => {
+    if (searchMode !== 'search') return
     if (skipSearchRef.current) {
       skipSearchRef.current = false
       return
     }
     const t = setTimeout(() => fetchSearch(0), 300)
     return () => clearTimeout(t)
-  }, [selectedTroveIds])
+  }, [searchMode, selectedTroveIds])
 
   function toggleTrove(id) {
     setSelectedTroveIds((prev) => {
@@ -71,8 +170,32 @@ function MobileApp() {
     })
   }
 
+  function setPrimary(id) {
+    setPrimaryTroveId(id)
+    setCompareTroveIds((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
+
+  function toggleCompare(id) {
+    if (id === primaryTroveId) return
+    setCompareTroveIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   function clearTroves() {
-    setSelectedTroveIds(new Set())
+    if (isDupOrUniques) {
+      setPrimaryTroveId('')
+      setCompareTroveIds(new Set())
+    } else {
+      setSelectedTroveIds(new Set())
+    }
   }
 
   function handleOnlyClick(troveId) {
@@ -80,14 +203,47 @@ function MobileApp() {
       queryRef.current = '*'
       setQuery('*')
     }
-    setSelectedTroveIds(new Set([troveId]))
-    setPage(0)
-    setShowTrovePicker(false)
+    if (isDupOrUniques) {
+      setPrimaryTroveId(troveId)
+      setCompareTroveIds(new Set())
+      setShowTrovePicker(false)
+    } else {
+      setSelectedTroveIds(new Set([troveId]))
+      setPage(0)
+      setShowTrovePicker(false)
+    }
   }
 
   function handleSearch(e) {
     e?.preventDefault()
+    setSearchError(null)
+    if (searchMode === 'duplicates') {
+      if (!primaryTroveId.trim()) return
+      if (compareTroveIds.size === 0) return
+      if (compareTroveIds.has(primaryTroveId)) {
+        setSearchError('Primary trove cannot be in compare list.')
+        return
+      }
+      setUniquesResult(null)
+      fetchDuplicates(0)
+      setDuplicatesPage(0)
+      return
+    }
+    if (searchMode === 'uniques') {
+      if (!primaryTroveId.trim()) return
+      if (compareTroveIds.size === 0) return
+      if (compareTroveIds.has(primaryTroveId)) {
+        setSearchError('Primary trove cannot be in compare list.')
+        return
+      }
+      setDuplicatesResult(null)
+      fetchUniques(0)
+      setUniquesPage(0)
+      return
+    }
     if (!query.trim()) return
+    setDuplicatesResult(null)
+    setUniquesResult(null)
     fetchSearch(0)
     setPage(0)
   }
@@ -100,7 +256,15 @@ function MobileApp() {
   const results = searchResult?.results ?? []
   const count = searchResult?.count ?? 0
   const totalPages = Math.ceil(count / MOBILE_PAGE_SIZE) || 0
-  const troveLabel = selectedTroveIds.size === 0 ? 'All troves' : `${selectedTroveIds.size} trove${selectedTroveIds.size !== 1 ? 's' : ''}`
+  const troveLabel = isDupOrUniques
+    ? (primaryTroveId
+        ? `Primary: ${troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · Compare: ${compareTroveIds.size}`
+        : 'Set primary & compare troves')
+    : (selectedTroveIds.size === 0 ? 'All troves' : `${selectedTroveIds.size} trove${selectedTroveIds.size !== 1 ? 's' : ''}`)
+  const filteredTroves = troves.filter((t) => {
+    const q = trovePickerFilter.trim().toLowerCase()
+    return !q || (t.name && t.name.toLowerCase().includes(q))
+  })
 
   return (
     <div className="mobile-app">
@@ -110,6 +274,49 @@ function MobileApp() {
       </header>
 
       <main className="mobile-main">
+        <div className="mobile-mode-tabs" role="tablist" aria-label="Search mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={searchMode === 'search'}
+            className={`mobile-mode-tab ${searchMode === 'search' ? 'mobile-mode-tab--active' : ''}`}
+            onClick={() => {
+              setSearchMode('search')
+              setSearchResult(null)
+              setDuplicatesResult(null)
+              setUniquesResult(null)
+            }}
+          >
+            Search
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={searchMode === 'duplicates'}
+            className={`mobile-mode-tab ${searchMode === 'duplicates' ? 'mobile-mode-tab--active' : ''}`}
+            onClick={() => {
+              setSearchMode('duplicates')
+              setSearchResult(null)
+              setUniquesResult(null)
+            }}
+          >
+            Duplicates
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={searchMode === 'uniques'}
+            className={`mobile-mode-tab ${searchMode === 'uniques' ? 'mobile-mode-tab--active' : ''}`}
+            onClick={() => {
+              setSearchMode('uniques')
+              setSearchResult(null)
+              setDuplicatesResult(null)
+            }}
+          >
+            Uniques
+          </button>
+        </div>
+
         <form onSubmit={handleSearch} className="mobile-search-form">
           <div className="mobile-search-query-wrap">
             <input
@@ -159,14 +366,31 @@ function MobileApp() {
           </button>
         </form>
 
+        {searchError && <p className="mobile-search-error" role="alert">{searchError}</p>}
+
+        {isDupOrUniques && !duplicatesResult && !uniquesResult && !searching && (
+          <p className="mobile-search-hint">Select primary trove and at least one compare trove. Use * for all items.</p>
+        )}
+        {isDupOrUniques && searching && (
+          <p className="mobile-search-loading" aria-live="polite">
+            {searchMode === 'duplicates' ? 'Finding duplicates…' : 'Finding uniques…'}
+          </p>
+        )}
+
         <div className="mobile-troves-row">
           <span className="mobile-troves-label">
-            {searchResult != null && count > 0 && (
+            {searchMode === 'search' && searchResult != null && count > 0 && (
               <>{count} item{count !== 1 ? 's' : ''} · </>
+            )}
+            {searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && (
+              <>{duplicatesResult.total} with duplicates · </>
+            )}
+            {searchMode === 'uniques' && uniquesResult != null && (uniquesResult.total ?? 0) > 0 && (
+              <>{uniquesResult.total} uniques · </>
             )}
             {troveLabel}
           </span>
-          {searchResult != null && totalPages > 1 && (
+          {searchMode === 'search' && searchResult != null && totalPages > 1 && (
             <nav className="mobile-pagination" aria-label="Pages">
               <button
                 type="button"
@@ -191,6 +415,30 @@ function MobileApp() {
               </button>
             </nav>
           )}
+          {searchMode === 'duplicates' && duplicatesResult != null && (() => {
+            const total = duplicatesResult.total ?? 0
+            const size = duplicatesResult.size ?? DUP_UNIQUES_PAGE_SIZE
+            const totalDupPages = size > 0 ? Math.ceil(total / size) : 0
+            return totalDupPages > 1 && (
+              <nav className="mobile-pagination" aria-label="Duplicate pages">
+                <button type="button" className="mobile-page-btn" disabled={duplicatesPage <= 0 || searching} onClick={() => fetchDuplicates(duplicatesPage - 1)} aria-label="Previous">‹</button>
+                <span className="mobile-page-info">{duplicatesPage + 1} / {totalDupPages}</span>
+                <button type="button" className="mobile-page-btn" disabled={duplicatesPage >= totalDupPages - 1 || searching} onClick={() => fetchDuplicates(duplicatesPage + 1)} aria-label="Next">›</button>
+              </nav>
+            )
+          })()}
+          {searchMode === 'uniques' && uniquesResult != null && (() => {
+            const total = uniquesResult.total ?? 0
+            const size = uniquesResult.size ?? DUP_UNIQUES_PAGE_SIZE
+            const totalUniqPages = size > 0 ? Math.ceil(total / size) : 0
+            return totalUniqPages > 1 && (
+              <nav className="mobile-pagination" aria-label="Uniques pages">
+                <button type="button" className="mobile-page-btn" disabled={uniquesPage <= 0 || searching} onClick={() => fetchUniques(uniquesPage - 1)} aria-label="Previous">‹</button>
+                <span className="mobile-page-info">{uniquesPage + 1} / {totalUniqPages}</span>
+                <button type="button" className="mobile-page-btn" disabled={uniquesPage >= totalUniqPages - 1 || searching} onClick={() => fetchUniques(uniquesPage + 1)} aria-label="Next">›</button>
+              </nav>
+            )
+          })()}
           <button
             type="button"
             className="mobile-troves-btn"
@@ -216,39 +464,73 @@ function MobileApp() {
                 Done
               </button>
             </div>
+            {isDupOrUniques && (
+              <div className="mobile-primary-compare-tabs" role="tablist">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={trovePickerSubTab === 'primary'}
+                  className={`mobile-primary-compare-tab ${trovePickerSubTab === 'primary' ? 'mobile-primary-compare-tab--active' : ''}`}
+                  onClick={() => setTrovePickerSubTab('primary')}
+                >
+                  Primary
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={trovePickerSubTab === 'compare'}
+                  className={`mobile-primary-compare-tab ${trovePickerSubTab === 'compare' ? 'mobile-primary-compare-tab--active' : ''}`}
+                  onClick={() => setTrovePickerSubTab('compare')}
+                >
+                  Compare
+                </button>
+              </div>
+            )}
             <button type="button" onClick={clearTroves} className="mobile-trove-clear">Clear all</button>
             <ul className="mobile-trove-list">
-              {troves
-                .filter((t) => {
-                  const q = trovePickerFilter.trim().toLowerCase()
-                  return !q || (t.name && t.name.toLowerCase().includes(q))
-                })
-                .map((t) => (
-                <li key={t.id} className="mobile-trove-item">
-                  <label className="mobile-trove-label">
-                    <input
-                      type="checkbox"
-                      checked={selectedTroveIds.has(t.id)}
-                      onChange={() => toggleTrove(t.id)}
-                    />
-                    <span>{t.name}</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="mobile-trove-only-link"
-                    onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
-                    aria-label={`Search only ${t.name}`}
-                    title="Select only this trove"
-                  >
-                    only
-                  </button>
-                </li>
-              ))}
+              {isDupOrUniques && trovePickerSubTab === 'primary'
+                ? filteredTroves.map((t) => (
+                    <li key={t.id} className="mobile-trove-item">
+                      <label className="mobile-trove-label">
+                        <input
+                          type="radio"
+                          name="mobile-primary-trove"
+                          checked={primaryTroveId === t.id}
+                          onChange={() => setPrimary(t.id)}
+                        />
+                        <span>{t.name}</span>
+                      </label>
+                      <button type="button" className="mobile-trove-only-link" onClick={(e) => { e.preventDefault(); setPrimary(t.id); setShowTrovePicker(false) }} aria-label={`Set primary: ${t.name}`}>only</button>
+                    </li>
+                  ))
+                : isDupOrUniques && trovePickerSubTab === 'compare'
+                  ? filteredTroves.filter((t) => t.id !== primaryTroveId).map((t) => (
+                      <li key={t.id} className="mobile-trove-item">
+                        <label className="mobile-trove-label">
+                          <input
+                            type="checkbox"
+                            checked={compareTroveIds.has(t.id)}
+                            onChange={() => toggleCompare(t.id)}
+                          />
+                          <span>{t.name}</span>
+                        </label>
+                      </li>
+                    ))
+                  : filteredTroves.map((t) => (
+                      <li key={t.id} className="mobile-trove-item">
+                        <label className="mobile-trove-label">
+                          <input type="checkbox" checked={selectedTroveIds.has(t.id)} onChange={() => toggleTrove(t.id)} />
+                          <span>{t.name}</span>
+                        </label>
+                        <button type="button" className="mobile-trove-only-link" onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }} aria-label={`Search only ${t.name}`} title="Select only this trove">only</button>
+                      </li>
+                    ))
+              }
             </ul>
           </div>
         )}
 
-        {searchResult != null && (
+        {searchMode === 'search' && searchResult != null && (
           <>
             {results.length === 0 && query.trim() && !searching && (
               <p className="mobile-no-results">No items.</p>
@@ -264,6 +546,23 @@ function MobileApp() {
               ))}
             </ul>
           </>
+        )}
+
+        {searchMode === 'duplicates' && duplicatesResult != null && !searching && (
+          <div className="mobile-dup-uniques-results">
+            <DuplicateResultsView rows={Array.isArray(duplicatesResult.rows) ? duplicatesResult.rows : []} />
+          </div>
+        )}
+
+        {searchMode === 'uniques' && uniquesResult != null && !searching && (
+          <div className="mobile-dup-uniques-results">
+            <UniquesResultsView
+              results={Array.isArray(uniquesResult.results) ? uniquesResult.results : []}
+              sortBy={uniquesSortBy}
+              sortDir={uniquesSortDir}
+              onSortChange={(col, dir) => fetchUniques(0, col, dir)}
+            />
+          </div>
         )}
       </main>
 
