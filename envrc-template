@@ -18,3 +18,8 @@ export MOOCHO_BUCKET_NAME=blah
 # This is especially important because the implementation uses embedded (in-memory) Lucene (search engine). 
 # All data is loaded and indexed at startup time.
 #export MOOCHO_ONLY_TROVE_IDS=trove-id-1,trove-id-2,...
+
+# Search/duplicates/uniques result cache: TTL in minutes (default 5), max memory in bytes (default 1073741824 = 1GB).
+# When the cache is full, new results are still returned but not cached; the UI shows a warning.
+#export MOOCHO_CACHE_TTL_MINUTES=5
+#export MOOCHO_CACHE_MAX_BYTES=1073741824

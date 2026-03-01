@@ -1,5 +1,6 @@
 package com.example.morsor.search;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -8,18 +9,25 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Server-side cache for search/duplicates/uniques full result sets.
  * Key = query params (no page/size). Value = full list. Pagination = slice the cached list.
- * TTL 5 minutes. Memory limited to 1GB; when exceeded, new results are not cached.
+ * TTL and max memory are configurable via moocho.cache.ttl-minutes and moocho.cache.max-bytes.
  */
 @Component
 public class SearchCache {
 
-    private static final long TTL_MS = 5 * 60 * 1000;
-    private static final long MAX_BYTES = 1024L * 1024 * 1024; // 1GB
     /** Rough estimate per item (search result, duplicate row, or unique result) for memory cap. */
     private static final long ESTIMATED_BYTES_PER_ITEM = 1024;
 
+    private final long ttlMs;
+    private final long maxBytes;
     private final ConcurrentHashMap<String, Entry<?>> cache = new ConcurrentHashMap<>();
     private long totalBytes;
+
+    public SearchCache(
+            @Value("${moocho.cache.ttl-minutes:5}") int ttlMinutes,
+            @Value("${moocho.cache.max-bytes:1073741824}") long maxBytes) {
+        this.ttlMs = (long) ttlMinutes * 60 * 1000;
+        this.maxBytes = maxBytes > 0 ? maxBytes : 1073741824L;
+    }
 
     /**
      * @return result with data and whether it was cached (false if cache memory limit would be exceeded)
@@ -36,10 +44,10 @@ public class SearchCache {
         long estimatedBytes = estimateSize(data);
         synchronized (this) {
             evictExpired(now);
-            if (totalBytes + estimatedBytes > MAX_BYTES) {
+            if (totalBytes + estimatedBytes > this.maxBytes) {
                 return new CacheResult<>(data, false);
             }
-            cache.put(key, new Entry<>(data, now + TTL_MS, estimatedBytes));
+            cache.put(key, new Entry<>(data, now + ttlMs, estimatedBytes));
             totalBytes += estimatedBytes;
         }
         return new CacheResult<>(data, true);

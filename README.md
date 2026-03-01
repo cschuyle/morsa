@@ -239,4 +239,11 @@ Env var `SPRING_PROFILES_ACTIVE` is a comma-delimited list of profiles to activa
 
 So-called "Production" mode: You would normally activate **postgres** and **s3troves** profiles, which forces you to provide your own trove data in S3, and create at least one user.
 
-**Other env vars:** `MOOCHO_ONLY_TROVE_IDS` limits which troves are loaded (all profiles). `MOOCHO_DATA_LOCATION` overrides where trove JSON files are loaded from when not using S3 (default: `file:./fixtures/data/*.json`; run from project root). See [envrc-template](./envrc-template).
+**Other env vars:** 
+
+- `MOOCHO_ONLY_TROVE_IDS` limits which troves are loaded (all profiles). 
+- `MOOCHO_DATA_LOCATION` overrides where trove JSON files are loaded from when not using S3 (default: `file:./fixtures/data/*.json`; run from project root). 
+
+Search result cache ( See [envrc-template](./envrc-template) )
+- `MOOCHO_CACHE_TTL_MINUTES` (default 5) 
+- `MOOCHO_CACHE_MAX_BYTES` (default 1073741824 = 1GB); when the cache is full, results are still returned but not cached and the UI shows a warning. 
