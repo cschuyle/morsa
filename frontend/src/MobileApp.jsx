@@ -191,6 +191,15 @@ function MobileApp() {
   }, [])
 
   useEffect(() => {
+    if (!showTrovePicker) return
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowTrovePicker(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showTrovePicker])
+
+  useEffect(() => {
     fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return null }
@@ -515,7 +524,7 @@ function MobileApp() {
         </div>
 
         {showTrovePicker && (
-          <div className="mobile-trove-picker">
+          <div className={`mobile-trove-picker${isDupOrUniques ? ' mobile-trove-picker--with-tabs' : ''}`}>
             {isDupOrUniques && (
               <div className="mobile-primary-compare-tabs" role="tablist">
                 <button

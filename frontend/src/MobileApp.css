@@ -172,6 +172,11 @@
   animation: mobile-trove-picker-slide-in 0.25s ease-out;
 }
 
+/* On compare tabs, move filter box down so it sits below the Primary/Compare tabs */
+.mobile-trove-picker--with-tabs .mobile-trove-filter-row {
+  margin-top: 0.5rem;
+}
+
 @keyframes mobile-trove-picker-slide-in {
   from {
     transform: translateY(-100%);
@@ -503,6 +508,7 @@
 .mobile-primary-compare-tabs {
   display: flex;
   margin: 0 1rem 0.75rem;
+  min-height: 2.1rem;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
@@ -511,7 +517,8 @@
 
 .mobile-primary-compare-tab {
   flex: 1;
-  padding: 0.55rem 0.75rem;
+  min-height: 2.1rem;
+  padding: 0.7rem 0.75rem;
   border: none;
   background: transparent;
   font-size: 0.9rem;
