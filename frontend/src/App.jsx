@@ -819,7 +819,19 @@ function App() {
                       onClick={() => {
                         setQuery('*')
                         queryRef.current = '*'
-                        fetchSearch(0)
+                        if (searchMode === 'duplicates') {
+                          if (primaryTroveId.trim() && selectedTroveIds.size > 0 && !selectedTroveIds.has(primaryTroveId)) {
+                            setUniquesResult(null)
+                            fetchDuplicates(0)
+                          }
+                        } else if (searchMode === 'uniques') {
+                          if (primaryTroveId.trim() && selectedTroveIds.size > 0 && !selectedTroveIds.has(primaryTroveId)) {
+                            setDuplicatesResult(null)
+                            fetchUniques(0)
+                          }
+                        } else {
+                          fetchSearch(0)
+                        }
                       }}
                     >
                       *

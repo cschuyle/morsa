@@ -338,7 +338,19 @@ function MobileApp() {
                   setQuery('*')
                   queryRef.current = '*'
                   setPage(0)
-                  fetchSearch(0)
+                  if (searchMode === 'duplicates') {
+                    if (primaryTroveId.trim() && compareTroveIds.size > 0 && !compareTroveIds.has(primaryTroveId)) {
+                      setUniquesResult(null)
+                      fetchDuplicates(0)
+                    }
+                  } else if (searchMode === 'uniques') {
+                    if (primaryTroveId.trim() && compareTroveIds.size > 0 && !compareTroveIds.has(primaryTroveId)) {
+                      setDuplicatesResult(null)
+                      fetchUniques(0)
+                    }
+                  } else {
+                    fetchSearch(0)
+                  }
                 }}
               >
                 *
