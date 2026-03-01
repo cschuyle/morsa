@@ -502,9 +502,9 @@ function App() {
                               type="button"
                               className="trove-picker-clear"
                               onClick={() => setPrimaryTroveId('')}
-                              aria-label="Clear Primary"
-                            >
-                              Clear Primary
+aria-label="Clear primary trove"
+                              >
+                              Clear
                             </button>
                           )}
                         </div>
@@ -577,20 +577,31 @@ function App() {
                   })()}
                   {duplicatesTroveTab === 'compare' && (
                     <div role="tabpanel">
-                      <div className="compare-trove-summary-row">
+                      <div className="compare-trove-summary-block">
                         <p className="trove-picker-summary compare-trove-summary-text" aria-live="polite">
                           {selectedTroveIds.size === 0
-                            ? 'Select at least one compare trove'
+                            ? 'Select comparison troves'
                             : `${formatCount(selectedTroveIds.size)} selected`}
                         </p>
-                        <button
-                          type="button"
-                          className="trove-picker-clear"
-                          onClick={clearTroves}
-                          aria-label="Clear Comparison troves"
+                        <div className="compare-trove-buttons-row">
+                          <button
+                            type="button"
+                            className="trove-picker-clear"
+                            onClick={clearTroves}
+aria-label="Clear compare troves"
                         >
-                          Clear Comparison troves
+                          Clear
                         </button>
+                          <button
+                            type="button"
+                            className="trove-picker-clear"
+                            onClick={() => { if (dupPrimaryTroveId) setDupCompareTroveIds(new Set([dupPrimaryTroveId])) }}
+                            disabled={!dupPrimaryTroveId}
+                            aria-label="Compare to self"
+                          >
+                            Compare to self
+                          </button>
+                        </div>
                       </div>
                       <div className="sidebar-show-wrap">
                         <label className="sidebar-show-label">

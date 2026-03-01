@@ -496,13 +496,18 @@ function MobileApp() {
             {searchMode === 'search' && searchResult != null && count > 0 && (
               <>{formatCount(count)} item{count !== 1 ? 's' : ''} · </>
             )}
-            {searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && (
-              <>{formatCount(duplicatesResult.total)} dups · </>
-            )}
+            {searchMode === 'duplicates' && duplicatesResult != null && (() => {
+              const total = duplicatesResult.total ?? 0
+              const selfCompare = compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)
+              const name = troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId
+              if (selfCompare && total > 0) return <><strong>{name}</strong> · {formatCount(total)} possible dups</>
+              if (total > 0) return <>{formatCount(total)} dups · </>
+              return null
+            })()}
             {searchMode === 'uniques' && uniquesResult != null && (uniquesResult.total ?? 0) > 0 && (
               <>{formatCount(uniquesResult.total)} uniques · </>
             )}
-            {troveLabel}
+            {!(searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)) && troveLabel}
           </span>
           {searchMode === 'search' && searchResult != null && totalPages > 1 && (
             <nav className="mobile-pagination" aria-label="Pages">
@@ -611,7 +616,20 @@ function MobileApp() {
                 Done
               </button>
             </div>
-            <button type="button" onClick={clearTroves} className="mobile-trove-clear">Clear all</button>
+            <div className="mobile-trove-clear-row">
+              <button type="button" onClick={clearTroves} className="mobile-trove-clear">Clear all</button>
+              {searchMode === 'duplicates' && (
+                <button
+                  type="button"
+                  className="mobile-trove-clear"
+                  onClick={() => { if (primaryTroveId) setCompareTroveIds(new Set([primaryTroveId])) }}
+                  disabled={!primaryTroveId}
+                  aria-label="Compare to self"
+                >
+                  Compare to self
+                </button>
+              )}
+            </div>
             <ul className="mobile-trove-list">
               {isDupOrUniques && trovePickerSubTab === 'primary'
                 ? filteredTroves.map((t) => (

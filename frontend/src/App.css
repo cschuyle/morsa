@@ -1085,22 +1085,34 @@
   flex-shrink: 0;
 }
 
-.compare-trove-summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
+.compare-trove-summary-block {
   margin-bottom: 0.5rem;
 }
 
-.compare-trove-summary-row .compare-trove-summary-text {
-  margin: 0;
-  flex: 1;
-  min-width: 0;
+.compare-trove-summary-block .compare-trove-summary-text {
+  margin: 0 0 0.35rem;
 }
 
-.compare-trove-summary-row .trove-picker-clear {
+.compare-trove-buttons-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.compare-trove-buttons-row .trove-picker-clear {
   flex-shrink: 0;
+}
+
+.compare-trove-buttons-row .trove-picker-clear:disabled {
+  color: #999;
+  cursor: default;
+  background: #f5f5f5;
+  border-color: #ddd;
+}
+.compare-trove-buttons-row .trove-picker-clear:disabled:hover {
+  background: #f5f5f5;
+  border-color: #ddd;
+  color: #999;
 }
 
 .search-trove-summary-row {
