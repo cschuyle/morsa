@@ -915,6 +915,11 @@ function App() {
               </div>
             </form>
             {searchError && <p className="search-error">{searchError}</p>}
+            {(searchMode === 'search' && searchResult?.warning) || (searchMode === 'duplicates' && duplicatesResult?.warning) || (searchMode === 'uniques' && uniquesResult?.warning) ? (
+              <p className="search-cache-warning" role="status">
+                {(searchMode === 'search' && searchResult?.warning) || (searchMode === 'duplicates' && duplicatesResult?.warning) || (searchMode === 'uniques' && uniquesResult?.warning)}
+              </p>
+            ) : null}
             {(searchMode === 'duplicates' || searchMode === 'uniques') && duplicatesResult == null && uniquesResult == null && !searching && (
               <p className="search-count search-count-detail">
                 Select <strong>primary trove</strong> and at least one <strong>compare trove</strong>. Use query <strong>*</strong> for all items, or type a filter.

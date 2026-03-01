@@ -404,6 +404,11 @@ function MobileApp() {
         </form>
 
         {searchError && <p className="mobile-search-error" role="alert">{searchError}</p>}
+        {((searchMode === 'search' && searchResult?.warning) || (searchMode === 'duplicates' && duplicatesResult?.warning) || (searchMode === 'uniques' && uniquesResult?.warning)) && (
+          <p className="search-cache-warning" role="status">
+            {(searchMode === 'search' && searchResult?.warning) || (searchMode === 'duplicates' && duplicatesResult?.warning) || (searchMode === 'uniques' && uniquesResult?.warning)}
+          </p>
+        )}
 
         {isDupOrUniques && !duplicatesResult && !uniquesResult && !searching && (
           <p className="mobile-search-hint">Select primary trove and at least one compare trove. Use * for all items.</p>

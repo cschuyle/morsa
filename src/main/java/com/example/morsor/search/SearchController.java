@@ -43,7 +43,8 @@ public class SearchController {
         size = Math.min(MAX_PAGE_SIZE, Math.max(1, size));
         String cacheKey = "s:" + (query != null ? query.trim() : "") + ":"
                 + (trove != null ? trove.stream().filter(t -> t != null).sorted().collect(Collectors.joining(",")) : "");
-        List<SearchResult> all = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query));
+        SearchCache.CacheResult<SearchResult> cacheResult = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query));
+        List<SearchResult> all = cacheResult.data();
         boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<SearchResult> cmp = comparatorFor(sortBy);
@@ -59,7 +60,8 @@ public class SearchController {
         int from = (int) Math.min((long) page * size, total);
         int to = (int) Math.min(from + size, total);
         List<SearchResult> pageResults = from < to ? all.subList(from, to) : List.of();
-        return new SearchResponse(total, pageResults, page, size, troveCounts);
+        String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
+        return new SearchResponse(total, pageResults, page, size, troveCounts, warning);
     }
 
     private static final int DEFAULT_DUPLICATES_MAX_MATCHES = 20;
@@ -83,13 +85,15 @@ public class SearchController {
         String cacheKey = "d:" + primaryTrimmed + ":"
                 + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
                 + queryVal + ":" + maxMatchesVal;
-        List<DuplicateMatchRow> all = searchCache.getOrCompute(cacheKey,
+        SearchCache.CacheResult<DuplicateMatchRow> cacheResult = searchCache.getOrCompute(cacheKey,
                 () -> searchDataService.searchDuplicates(primaryTrimmed, compareSet, queryVal, maxMatchesVal));
+        List<DuplicateMatchRow> all = cacheResult.data();
         long total = all.size();
         int from = (int) Math.min((long) pageNum * pageSize, total);
         int to = (int) Math.min(from + pageSize, total);
         List<DuplicateMatchRow> rows = from < to ? all.subList(from, to) : List.of();
-        return new DuplicatesResponse(total, pageNum, pageSize, rows);
+        String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
+        return new DuplicatesResponse(total, pageNum, pageSize, rows, warning);
     }
 
     @GetMapping("/search/uniques")
@@ -109,8 +113,9 @@ public class SearchController {
         String cacheKey = "u:" + primaryTrove.trim() + ":"
                 + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
                 + (query != null ? query : "*");
-        List<UniqueResult> all = searchCache.getOrCompute(cacheKey,
+        SearchCache.CacheResult<UniqueResult> cacheResult = searchCache.getOrCompute(cacheKey,
                 () -> searchDataService.searchUniques(primaryTrove.trim(), compareSet, query));
+        List<UniqueResult> all = cacheResult.data();
         boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);
@@ -123,7 +128,8 @@ public class SearchController {
         int from = (int) Math.min((long) page * size, total);
         int to = (int) Math.min(from + size, total);
         List<UniqueResult> results = from < to ? all.subList(from, to) : List.of();
-        return new UniquesResponse(total, page, size, results);
+        String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
+        return new UniquesResponse(total, page, size, results, warning);
     }
 
     private static Comparator<UniqueResult> uniquesComparatorFor(String sortBy) {

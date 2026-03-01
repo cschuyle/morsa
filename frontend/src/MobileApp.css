@@ -529,6 +529,14 @@
   border-radius: 6px;
 }
 
+.search-cache-warning {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: #b45309;
+  border-radius: 6px;
+}
+
 .mobile-search-hint,
 .mobile-search-loading {
   margin: 0 0 0.75rem;

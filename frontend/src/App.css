@@ -702,6 +702,12 @@
   margin-top: 1rem;
 }
 
+.search-cache-warning {
+  color: #b45309;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
 .search-count {
   margin-top: 1rem;
   margin-bottom: 0;
