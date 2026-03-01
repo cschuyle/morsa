@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { queryCache } from './queryCache'
+import { formatCount } from './formatCount'
 import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
 import './MobileApp.css'
@@ -284,9 +285,9 @@ function MobileApp() {
   const totalPages = Math.ceil(count / MOBILE_PAGE_SIZE) || 0
   const troveLabel = isDupOrUniques
     ? (primaryTroveId
-        ? <><strong>Primary:</strong> {troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · <strong>Compare:</strong> {compareTroveIds.size}</>
+        ? <><strong>Primary:</strong> {troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · <strong>Compare:</strong> {formatCount(compareTroveIds.size)}</>
         : 'Set primary & compare troves')
-    : (selectedTroveIds.size === 0 ? 'All troves' : `${selectedTroveIds.size} trove${selectedTroveIds.size !== 1 ? 's' : ''}`)
+    : (selectedTroveIds.size === 0 ? 'All troves' : `${formatCount(selectedTroveIds.size)} trove${selectedTroveIds.size !== 1 ? 's' : ''}`)
   const filteredTroves = troves.filter((t) => {
     const q = trovePickerFilter.trim().toLowerCase()
     return !q || (t.name && t.name.toLowerCase().includes(q))
@@ -420,13 +421,13 @@ function MobileApp() {
         <div className="mobile-troves-row">
           <span className="mobile-troves-label">
             {searchMode === 'search' && searchResult != null && count > 0 && (
-              <>{count} item{count !== 1 ? 's' : ''} · </>
+              <>{formatCount(count)} item{count !== 1 ? 's' : ''} · </>
             )}
             {searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && (
-              <>{duplicatesResult.total} dups · </>
+              <>{formatCount(duplicatesResult.total)} dups · </>
             )}
             {searchMode === 'uniques' && uniquesResult != null && (uniquesResult.total ?? 0) > 0 && (
-              <>{uniquesResult.total} uniques · </>
+              <>{formatCount(uniquesResult.total)} uniques · </>
             )}
             {troveLabel}
           </span>
@@ -442,7 +443,7 @@ function MobileApp() {
                 ‹
               </button>
               <span className="mobile-page-info">
-                {page + 1} / {totalPages}
+                {formatCount(page + 1)} / {formatCount(totalPages)}
               </span>
               <button
                 type="button"
@@ -462,7 +463,7 @@ function MobileApp() {
             return totalDupPages > 1 && (
               <nav className="mobile-pagination" aria-label="Duplicate pages">
                 <button type="button" className="mobile-page-btn" disabled={duplicatesPage <= 0 || searching} onClick={() => fetchDuplicates(duplicatesPage - 1)} aria-label="Previous">‹</button>
-                <span className="mobile-page-info">{duplicatesPage + 1} / {totalDupPages}</span>
+                <span className="mobile-page-info">{formatCount(duplicatesPage + 1)} / {formatCount(totalDupPages)}</span>
                 <button type="button" className="mobile-page-btn" disabled={duplicatesPage >= totalDupPages - 1 || searching} onClick={() => fetchDuplicates(duplicatesPage + 1)} aria-label="Next">›</button>
               </nav>
             )
@@ -474,7 +475,7 @@ function MobileApp() {
             return totalUniqPages > 1 && (
               <nav className="mobile-pagination" aria-label="Uniques pages">
                 <button type="button" className="mobile-page-btn" disabled={uniquesPage <= 0 || searching} onClick={() => fetchUniques(uniquesPage - 1)} aria-label="Previous">‹</button>
-                <span className="mobile-page-info">{uniquesPage + 1} / {totalUniqPages}</span>
+                <span className="mobile-page-info">{formatCount(uniquesPage + 1)} / {formatCount(totalUniqPages)}</span>
                 <button type="button" className="mobile-page-btn" disabled={uniquesPage >= totalUniqPages - 1 || searching} onClick={() => fetchUniques(uniquesPage + 1)} aria-label="Next">›</button>
               </nav>
             )

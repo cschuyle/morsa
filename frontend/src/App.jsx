@@ -6,6 +6,7 @@ import { UniquesResultsView } from './UniquesResultsView'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { queryCache } from './queryCache'
+import { formatCount } from './formatCount'
 import './App.css'
 
 function App() {
@@ -506,7 +507,7 @@ function App() {
                                   onChange={() => setPrimaryTroveId(primarySelectedTrove.id)}
                                 />
                                 <span className="trove-name">
-                                  {primarySelectedTrove.name} ({primarySelectedTrove.count})
+                                  {primarySelectedTrove.name} ({formatCount(primarySelectedTrove.count)})
                                 </span>
                               </label>
                             </li>
@@ -527,7 +528,7 @@ function App() {
                                   onChange={() => setPrimaryTroveId(t.id)}
                                 />
                                 <span className="trove-name">
-                                  {t.name} ({t.count})
+                                  {t.name} ({formatCount(t.count)})
                                 </span>
                               </label>
                             </li>
@@ -542,7 +543,7 @@ function App() {
                         <p className="trove-picker-summary compare-trove-summary-text" aria-live="polite">
                           {selectedTroveIds.size === 0
                             ? 'Select at least one compare trove'
-                            : `${selectedTroveIds.size} selected`}
+                            : `${formatCount(selectedTroveIds.size)} selected`}
                         </p>
                         <button
                           type="button"
@@ -602,7 +603,7 @@ function App() {
                                 onChange={() => toggleTrove(t.id)}
                               />
                               <span className="trove-name">
-                                {t.name} ({searchResult != null ? `${t.resultCount}/${t.count}` : t.count})
+                                {t.name} ({searchResult != null ? `${formatCount(t.resultCount)}/${formatCount(t.count)}` : formatCount(t.count)})
                               </span>
                             </label>
                           </li>
@@ -624,7 +625,7 @@ function App() {
                                 onChange={() => toggleTrove(t.id)}
                               />
                               <span className="trove-name">
-                                {t.name} ({searchResult != null ? `${t.resultCount}/${t.count}` : t.count})
+                                {t.name} ({searchResult != null ? `${formatCount(t.resultCount)}/${formatCount(t.count)}` : formatCount(t.count)})
                               </span>
                             </label>
                           </li>
@@ -640,7 +641,7 @@ function App() {
                     <p className="trove-picker-summary search-trove-summary-text" aria-live="polite">
                       {selectedTroveIds.size === 0
                         ? 'All troves will be searched'
-                        : `${selectedTroveIds.size} of ${troves.length} selected`}
+                        : `${formatCount(selectedTroveIds.size)} of ${formatCount(troves.length)} selected`}
                     </p>
                     <button
                       type="button"
@@ -700,7 +701,7 @@ function App() {
                     onChange={() => toggleTrove(t.id)}
                   />
                   <span className="trove-name">
-                    {t.name} ({searchResult != null ? `${t.resultCount}/${t.count}` : t.count})
+                    {t.name} ({searchResult != null ? `${formatCount(t.resultCount)}/${formatCount(t.count)}` : formatCount(t.count)})
                   </span>
                 </label>
                 {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
@@ -733,7 +734,7 @@ function App() {
                     onChange={() => toggleTrove(t.id)}
                   />
                   <span className="trove-name">
-                    {t.name} ({searchResult != null ? `${t.resultCount}/${t.count}` : t.count})
+                    {t.name} ({searchResult != null ? `${formatCount(t.resultCount)}/${formatCount(t.count)}` : formatCount(t.count)})
                   </span>
                 </label>
                 {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
@@ -911,8 +912,8 @@ function App() {
               return (
                 <>
                   <p className="search-count search-count-detail">
-                    {total} primary item{total !== 1 ? 's' : ''} with possible duplicates.
-                    {totalPages > 1 && ` Page ${pageNum + 1} of ${totalPages}.`}
+                    {formatCount(total)} primary item{total !== 1 ? 's' : ''} with possible duplicates.
+                    {totalPages > 1 && ` Page ${formatCount(pageNum + 1)} of ${formatCount(totalPages)}.`}
                   </p>
                   {totalPages > 1 && (() => {
                     const maxShow = 5
@@ -924,7 +925,7 @@ function App() {
                     return (
                       <nav className="pagination" aria-label="Duplicate results pages">
                         <span className="pagination-info">
-                          Page {pageNum + 1} of {totalPages}
+                          Page {formatCount(pageNum + 1)} of {formatCount(totalPages)}
                         </span>
                         <button
                           type="button"
@@ -958,10 +959,10 @@ function App() {
                               className={`pagination-btn pagination-num ${i === pageNum ? 'pagination-num--current' : ''}`}
                               disabled={searching}
                               onClick={() => fetchDuplicates(i)}
-                              aria-label={`Page ${i + 1}`}
+                              aria-label={`Page ${formatCount(i + 1)}`}
                               aria-current={i === pageNum ? 'page' : undefined}
                             >
-                              {i + 1}
+                              {formatCount(i + 1)}
                             </button>
                           ))}
                           {end < totalPages && (
@@ -972,10 +973,10 @@ function App() {
                                 className={`pagination-btn pagination-num ${totalPages - 1 === pageNum ? 'pagination-num--current' : ''}`}
                                 disabled={searching}
                                 onClick={() => fetchDuplicates(totalPages - 1)}
-                                aria-label={`Page ${totalPages}`}
+                                aria-label={`Page ${formatCount(totalPages)}`}
                                 aria-current={totalPages - 1 === pageNum ? 'page' : undefined}
                               >
-                                {totalPages}
+                                {formatCount(totalPages)}
                               </button>
                             </>
                           )}
@@ -1005,8 +1006,8 @@ function App() {
               return (
                 <>
                   <p className="search-count search-count-detail">
-                    {total} item{total !== 1 ? 's' : ''} in primary with no match in compare troves.
-                    {totalPages > 1 && ` Page ${pageNum + 1} of ${totalPages}.`}
+                    {formatCount(total)} item{total !== 1 ? 's' : ''} in primary with no match in compare troves.
+                    {totalPages > 1 && ` Page ${formatCount(pageNum + 1)} of ${formatCount(totalPages)}.`}
                   </p>
                   {totalPages > 1 && (() => {
                     const maxShow = 5
@@ -1018,7 +1019,7 @@ function App() {
                     return (
                       <nav className="pagination" aria-label="Uniques results pages">
                         <span className="pagination-info">
-                          Page {pageNum + 1} of {totalPages}
+                          Page {formatCount(pageNum + 1)} of {formatCount(totalPages)}
                         </span>
                         <button
                           type="button"
@@ -1052,10 +1053,10 @@ function App() {
                               className={`pagination-btn pagination-num ${i === pageNum ? 'pagination-num--current' : ''}`}
                               disabled={searching}
                               onClick={() => fetchUniques(i)}
-                              aria-label={`Page ${i + 1}`}
+                              aria-label={`Page ${formatCount(i + 1)}`}
                               aria-current={i === pageNum ? 'page' : undefined}
                             >
-                              {i + 1}
+                              {formatCount(i + 1)}
                             </button>
                           ))}
                           {end < totalPages && (
@@ -1066,10 +1067,10 @@ function App() {
                                 className={`pagination-btn pagination-num ${totalPages - 1 === pageNum ? 'pagination-num--current' : ''}`}
                                 disabled={searching}
                                 onClick={() => fetchUniques(totalPages - 1)}
-                                aria-label={`Page ${totalPages}`}
+                                aria-label={`Page ${formatCount(totalPages)}`}
                                 aria-current={totalPages - 1 === pageNum ? 'page' : undefined}
                               >
-                                {totalPages}
+                                {formatCount(totalPages)}
                               </button>
                             </>
                           )}
@@ -1133,8 +1134,8 @@ function App() {
               return (
                 <>
                   <p className="search-count search-count-detail">
-                    {count} item{count !== 1 ? 's' : ''} in {trovesWithResults} out of {trovesInScope} {scopeLabel}.
-                    {totalPages > 1 && ` Showing ${from}–${to}.`}
+                    {formatCount(count)} item{count !== 1 ? 's' : ''} in {formatCount(trovesWithResults)} out of {formatCount(trovesInScope)} {scopeLabel}.
+                    {totalPages > 1 && ` Showing ${formatCount(from)}–${formatCount(to)}.`}
                   </p>
                   <div className="search-results-options">
                     <label className="page-size-label">
@@ -1147,7 +1148,7 @@ function App() {
                       >
                         {PAGE_SIZE_OPTIONS.map((n) => (
                           <option key={n} value={n}>
-                            {n}
+                            {formatCount(n)}
                           </option>
                         ))}
                       </select>
@@ -1162,7 +1163,7 @@ function App() {
                       return (
                         <nav className="pagination" aria-label="Search results pages">
                           <span className="pagination-info">
-                            Page {pageNum + 1} of {totalPages}
+                            Page {formatCount(pageNum + 1)} of {formatCount(totalPages)}
                           </span>
                           <button
                             type="button"
@@ -1196,10 +1197,10 @@ function App() {
                                 className={`pagination-btn pagination-num ${i === pageNum ? 'pagination-num--current' : ''}`}
                                 disabled={searching}
                                 onClick={() => goToPage(i)}
-                                aria-label={`Page ${i + 1}`}
+                                aria-label={`Page ${formatCount(i + 1)}`}
                                 aria-current={i === pageNum ? 'page' : undefined}
                               >
-                                {i + 1}
+                                {formatCount(i + 1)}
                               </button>
                             ))}
                             {end < totalPages && (
@@ -1210,10 +1211,10 @@ function App() {
                                   className={`pagination-btn pagination-num ${totalPages - 1 === pageNum ? 'pagination-num--current' : ''}`}
                                   disabled={searching}
                                   onClick={() => goToPage(totalPages - 1)}
-                                  aria-label={`Page ${totalPages}`}
+                                  aria-label={`Page ${formatCount(totalPages)}`}
                                   aria-current={totalPages - 1 === pageNum ? 'page' : undefined}
                                 >
-                                  {totalPages}
+                                  {formatCount(totalPages)}
                                 </button>
                               </>
                             )}
