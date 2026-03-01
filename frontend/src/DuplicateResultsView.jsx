@@ -27,7 +27,7 @@ export function DuplicateResultsView({ rows = [] }) {
                 <td className="col-trove">{row.primary?.trove ?? row.primary?.troveId ?? ''}</td>
                 <td className="col-score" aria-label="Primary item">—</td>
               </tr>
-              {(row.matches ?? []).map((m, matchIdx) => (
+              {(row.matches ?? []).filter((m) => m.result?.id !== row.primary?.id).map((m, matchIdx) => (
                 <tr key={matchIdx} className="duplicate-row-match">
                   <td className="col-title">{m.result?.title ?? '—'}</td>
                   <td className="col-trove">{m.result?.trove ?? m.result?.troveId ?? ''}</td>

@@ -1,7 +1,10 @@
 package com.example.morsor;
 
+import com.example.morsor.search.DuplicateMatchRow;
+import com.example.morsor.search.DuplicatesResponse;
 import com.example.morsor.search.SearchResponse;
 import com.example.morsor.search.SearchResult;
+import com.example.morsor.search.ScoredSearchResult;
 import com.example.morsor.search.TroveOption;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,5 +75,25 @@ class SearchControllerTest {
         assertThat(greekResult).isNotNull();
         assertThat(greekResult.trove()).isEqualTo("Little Prince");
         assertThat(greekResult.title()).isEqualTo("The Little Prince, in Ancient Greek");
+    }
+
+    @Test
+    void duplicatesExcludeSelfMatchWhenSameTroveInPrimaryAndCompare() {
+        String url = "http://localhost:" + port + "/api/search/duplicates?primaryTrove=little-prince&compareTrove=little-prince&query=*";
+        ResponseEntity<DuplicatesResponse> response = restTemplate.getForEntity(url, DuplicatesResponse.class);
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        DuplicatesResponse body = response.getBody();
+        assertThat(body).isNotNull();
+
+        for (DuplicateMatchRow row : body.rows()) {
+            String primaryId = row.primary() != null ? row.primary().id() : null;
+            if (primaryId == null) continue;
+            for (ScoredSearchResult match : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
+                String matchId = match.result() != null ? match.result().id() : null;
+                assertThat(matchId)
+                        .as("No match must be the same item as the primary (primary id=%s)", primaryId)
+                        .isNotEqualTo(primaryId);
+            }
+        }
     }
 }

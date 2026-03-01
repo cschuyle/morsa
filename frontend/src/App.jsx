@@ -332,10 +332,6 @@ function App() {
     if (searchMode === 'duplicates') {
       if (!primaryTroveId.trim()) return
       if (selectedTroveIds.size === 0) return
-      if (primaryTroveId && selectedTroveIds.has(primaryTroveId)) {
-        setSearchError('Primary trove cannot be in compare list. Remove it from compare troves.')
-        return
-      }
       setSearchError(null)
       setSearchResult(null)
       setUniquesResult(null)
@@ -847,7 +843,7 @@ function App() {
                         setQuery('*')
                         queryRef.current = '*'
                         if (searchMode === 'duplicates') {
-                          if (primaryTroveId.trim() && selectedTroveIds.size > 0 && !selectedTroveIds.has(primaryTroveId)) {
+                          if (primaryTroveId.trim() && selectedTroveIds.size > 0) {
                             setUniquesResult(null)
                             fetchDuplicates(0)
                           }

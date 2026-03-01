@@ -207,7 +207,7 @@ function MobileApp() {
   }
 
   function toggleCompare(id) {
-    if (id === primaryTroveId) return
+    if (searchMode === 'uniques' && id === primaryTroveId) return
     setCompareTroveIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -247,10 +247,6 @@ function MobileApp() {
     if (searchMode === 'duplicates') {
       if (!primaryTroveId.trim()) return
       if (compareTroveIds.size === 0) return
-      if (compareTroveIds.has(primaryTroveId)) {
-        setSearchError('Primary trove cannot be in compare list.')
-        return
-      }
       setUniquesResult(null)
       fetchDuplicates(0)
       setDuplicatesPage(0)
@@ -366,7 +362,7 @@ function MobileApp() {
                   queryRef.current = '*'
                   setPage(0)
                   if (searchMode === 'duplicates') {
-                    if (primaryTroveId.trim() && compareTroveIds.size > 0 && !compareTroveIds.has(primaryTroveId)) {
+                    if (primaryTroveId.trim() && compareTroveIds.size > 0) {
                       setUniquesResult(null)
                       fetchDuplicates(0)
                     }
@@ -556,7 +552,7 @@ function MobileApp() {
                     </li>
                   ))
                 : isDupOrUniques && trovePickerSubTab === 'compare'
-                  ? filteredTroves.filter((t) => t.id !== primaryTroveId).map((t) => (
+                  ? (searchMode === 'uniques' ? filteredTroves.filter((t) => t.id !== primaryTroveId) : filteredTroves).map((t) => (
                       <li key={t.id} className="mobile-trove-item">
                         <label className="mobile-trove-label">
                           <input

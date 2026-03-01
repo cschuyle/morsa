@@ -52,6 +52,7 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -544,6 +545,7 @@ public class SearchDataService {
                     int idx = idxField.numericValue().intValue();
                     if (idx >= 0 && idx < allResults.size()) {
                         SearchResult r = allResults.get(idx);
+                        if (Objects.equals(r.id(), similarTo.id())) continue;
                         out.add(new ScoredSearchResult(r, sd.score));
                     }
                 }
