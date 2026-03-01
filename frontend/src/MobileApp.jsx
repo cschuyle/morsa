@@ -258,7 +258,7 @@ function MobileApp() {
   const totalPages = Math.ceil(count / MOBILE_PAGE_SIZE) || 0
   const troveLabel = isDupOrUniques
     ? (primaryTroveId
-        ? `Primary: ${troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · Compare: ${compareTroveIds.size}`
+        ? <><strong>Primary:</strong> {troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · <strong>Compare:</strong> {compareTroveIds.size}</>
         : 'Set primary & compare troves')
     : (selectedTroveIds.size === 0 ? 'All troves' : `${selectedTroveIds.size} trove${selectedTroveIds.size !== 1 ? 's' : ''}`)
   const filteredTroves = troves.filter((t) => {
@@ -397,7 +397,7 @@ function MobileApp() {
               <>{count} item{count !== 1 ? 's' : ''} · </>
             )}
             {searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && (
-              <>{duplicatesResult.total} with duplicates · </>
+              <>{duplicatesResult.total} dups · </>
             )}
             {searchMode === 'uniques' && uniquesResult != null && (uniquesResult.total ?? 0) > 0 && (
               <>{uniquesResult.total} uniques · </>
