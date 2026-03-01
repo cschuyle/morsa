@@ -40,6 +40,8 @@ function App() {
   const [duplicatesTroveTab, setDuplicatesTroveTab] = useState('primary')
   const [duplicatesResult, setDuplicatesResult] = useState(null)
   const [duplicatesPage, setDuplicatesPage] = useState(0)
+  const [duplicatesSortBy, setDuplicatesSortBy] = useState(null)
+  const [duplicatesSortDir, setDuplicatesSortDir] = useState('asc')
   const [uniquesResult, setUniquesResult] = useState(null)
   const [uniquesPage, setUniquesPage] = useState(0)
   const [uniquesSortBy, setUniquesSortBy] = useState(null)
@@ -412,6 +414,31 @@ function App() {
     const notSelected = filtered.filter((t) => !selectedTroveIds.has(t.id)).sort(sortByName)
     return { selected, notSelected }
   }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds])
+
+  const sortedDuplicateRows = useMemo(() => {
+    const raw = Array.isArray(duplicatesResult?.rows) ? duplicatesResult.rows : []
+    if (!duplicatesSortBy) return raw
+    const maxScore = (row) => {
+      if (!row?.matches?.length) return 0
+      return Math.max(...row.matches.map((m) => (typeof m?.score === 'number' ? m.score : 0)))
+    }
+    const dir = duplicatesSortDir === 'desc' ? -1 : 1
+    return [...raw].sort((a, b) => {
+      let cmp = 0
+      if (duplicatesSortBy === 'title') {
+        const ta = (a.primary?.title ?? '').toLowerCase()
+        const tb = (b.primary?.title ?? '').toLowerCase()
+        cmp = ta.localeCompare(tb, undefined, { sensitivity: 'base' })
+      } else if (duplicatesSortBy === 'trove') {
+        const ta = (a.primary?.trove ?? a.primary?.troveId ?? '').toLowerCase()
+        const tb = (b.primary?.trove ?? b.primary?.troveId ?? '').toLowerCase()
+        cmp = ta.localeCompare(tb, undefined, { sensitivity: 'base' })
+      } else if (duplicatesSortBy === 'score') {
+        cmp = maxScore(a) - maxScore(b)
+      }
+      return dir * cmp
+    })
+  }, [duplicatesResult?.rows, duplicatesSortBy, duplicatesSortDir])
 
   return (
     <>
@@ -903,7 +930,7 @@ function App() {
               const total = duplicatesResult.total ?? 0
               const pageNum = duplicatesResult.page ?? 0
               const size = duplicatesResult.size ?? 50
-              const rows = Array.isArray(duplicatesResult.rows) ? duplicatesResult.rows : []
+              const rows = sortedDuplicateRows
               const totalPages = size > 0 ? Math.ceil(total / size) : 0
               return (
                 <>
@@ -989,7 +1016,15 @@ function App() {
                       </nav>
                     )
                   })()}
-                  <DuplicateResultsView rows={rows} />
+                  <DuplicateResultsView
+                    rows={rows}
+                    sortBy={duplicatesSortBy}
+                    sortDir={duplicatesSortDir}
+                    onSortChange={(col, dir) => {
+                      setDuplicatesSortBy(col)
+                      setDuplicatesSortDir(dir)
+                    }}
+                  />
                 </>
               )
             })()}

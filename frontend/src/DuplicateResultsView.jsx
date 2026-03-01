@@ -2,8 +2,15 @@ import { Fragment } from 'react'
 
 /**
  * Renders duplicate-finder results: each row has one primary item and N match rows (different style).
+ * sortBy / sortDir / onSortChange: optional column sort (title, trove, score). Sorting uses primary row only.
  */
-export function DuplicateResultsView({ rows = [] }) {
+export function DuplicateResultsView({ rows = [], sortBy = null, sortDir = 'asc', onSortChange }) {
+  const handleSort = (columnId) => {
+    if (!onSortChange) return
+    const nextDir = sortBy === columnId && sortDir === 'asc' ? 'desc' : 'asc'
+    onSortChange(columnId, nextDir)
+  }
+
   if (!rows.length) {
     return (
       <p className="duplicate-results-empty">No duplicate rows. Try a different query or trove selection.</p>
@@ -14,18 +21,42 @@ export function DuplicateResultsView({ rows = [] }) {
       <table className="duplicate-results-table">
         <thead>
           <tr>
-            <th className="col-title">Title</th>
-            <th className="col-trove">Trove</th>
-            <th className="col-score">Score</th>
+            <th
+              className={`col-title ${onSortChange ? 'sortable' : ''}`}
+              onClick={onSortChange ? () => handleSort('title') : undefined}
+            >
+              Title
+              {sortBy === 'title' && <span className="sort-indicator">{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>}
+            </th>
+            <th
+              className={`col-trove ${onSortChange ? 'sortable' : ''}`}
+              onClick={onSortChange ? () => handleSort('trove') : undefined}
+            >
+              Trove
+              {sortBy === 'trove' && <span className="sort-indicator">{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>}
+            </th>
+            <th
+              className={`col-score ${onSortChange ? 'sortable' : ''}`}
+              onClick={onSortChange ? () => handleSort('score') : undefined}
+            >
+              Score
+              {sortBy === 'score' && <span className="sort-indicator">{sortDir === 'asc' ? ' ↑' : ' ↓'}</span>}
+            </th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, rowIdx) => (
+          {rows.map((row, rowIdx) => {
+            const maxScore = (row.matches ?? []).reduce((best, m) => {
+              const s = typeof m?.score === 'number' ? m.score : -Infinity
+              return s > best ? s : best
+            }, -Infinity)
+            const primaryScore = maxScore === -Infinity ? '—' : maxScore.toFixed(2)
+            return (
             <Fragment key={rowIdx}>
               <tr className="duplicate-row-primary">
                 <td className="col-title">{row.primary?.title ?? '—'}</td>
                 <td className="col-trove">{row.primary?.trove ?? row.primary?.troveId ?? ''}</td>
-                <td className="col-score" aria-label="Primary item">—</td>
+                <td className="col-score" aria-label="Primary item (max match score)">{primaryScore}</td>
               </tr>
               {(row.matches ?? []).filter((m) => m.result?.id !== row.primary?.id).map((m, matchIdx) => (
                 <tr key={matchIdx} className="duplicate-row-match">
@@ -35,7 +66,8 @@ export function DuplicateResultsView({ rows = [] }) {
                 </tr>
               ))}
             </Fragment>
-          ))}
+            )
+          })}
         </tbody>
       </table>
     </div>
