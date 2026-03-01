@@ -16,9 +16,11 @@ import java.util.stream.Collectors;
 public class SearchController {
 
     private final SearchDataService searchDataService;
+    private final SearchCache searchCache;
 
-    public SearchController(SearchDataService searchDataService) {
+    public SearchController(SearchDataService searchDataService, SearchCache searchCache) {
         this.searchDataService = searchDataService;
+        this.searchCache = searchCache;
     }
 
     @GetMapping("/troves")
@@ -39,7 +41,9 @@ public class SearchController {
             @RequestParam(required = false, defaultValue = "asc") String sortDir) {
         page = Math.max(0, page);
         size = Math.min(MAX_PAGE_SIZE, Math.max(1, size));
-        List<SearchResult> all = searchDataService.search(trove, query);
+        String cacheKey = "s:" + (query != null ? query.trim() : "") + ":"
+                + (trove != null ? trove.stream().filter(t -> t != null).sorted().collect(Collectors.joining(",")) : "");
+        List<SearchResult> all = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query));
         boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<SearchResult> cmp = comparatorFor(sortBy);
@@ -68,19 +72,24 @@ public class SearchController {
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "50") int size,
             @RequestParam(required = false, defaultValue = "20") int maxMatches) {
-        page = Math.max(0, page);
-        size = Math.min(500, Math.max(1, size));
-        maxMatches = Math.min(50, Math.max(1, maxMatches));
+        final int pageNum = Math.max(0, page);
+        final int pageSize = Math.min(500, Math.max(1, size));
+        final int maxMatchesVal = Math.min(50, Math.max(1, maxMatches));
         Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
                 .filter(t -> t != null && !t.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
-        List<DuplicateMatchRow> all = searchDataService.searchDuplicates(
-                primaryTrove.trim(), compareSet, query, maxMatches);
+        final String primaryTrimmed = primaryTrove.trim();
+        final String queryVal = query != null ? query : "*";
+        String cacheKey = "d:" + primaryTrimmed + ":"
+                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
+                + queryVal + ":" + maxMatchesVal;
+        List<DuplicateMatchRow> all = searchCache.getOrCompute(cacheKey,
+                () -> searchDataService.searchDuplicates(primaryTrimmed, compareSet, queryVal, maxMatchesVal));
         long total = all.size();
-        int from = (int) Math.min((long) page * size, total);
-        int to = (int) Math.min(from + size, total);
+        int from = (int) Math.min((long) pageNum * pageSize, total);
+        int to = (int) Math.min(from + pageSize, total);
         List<DuplicateMatchRow> rows = from < to ? all.subList(from, to) : List.of();
-        return new DuplicatesResponse(total, page, size, rows);
+        return new DuplicatesResponse(total, pageNum, pageSize, rows);
     }
 
     @GetMapping("/search/uniques")
@@ -97,7 +106,11 @@ public class SearchController {
         Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
                 .filter(t -> t != null && !t.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
-        List<UniqueResult> all = searchDataService.searchUniques(primaryTrove.trim(), compareSet, query);
+        String cacheKey = "u:" + primaryTrove.trim() + ":"
+                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
+                + (query != null ? query : "*");
+        List<UniqueResult> all = searchCache.getOrCompute(cacheKey,
+                () -> searchDataService.searchUniques(primaryTrove.trim(), compareSet, query));
         boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);

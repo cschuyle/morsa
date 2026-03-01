@@ -5,6 +5,7 @@ import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
+import { queryCache } from './queryCache'
 import './App.css'
 
 function App() {
@@ -55,11 +56,6 @@ function App() {
       setSearchResult({ count: 0, results: [], page: 0, size })
       return
     }
-    abortControllerRef.current?.abort()
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-    setSearching(true)
-    setSearchError(null)
     const troveIds = troveIdsOverride ?? selectedTroveIds
     const nextSortBy = sortByOverride !== undefined && sortByOverride !== null ? sortByOverride : sortBy
     const nextSortDir = sortDirOverride !== undefined && sortDirOverride !== null ? sortDirOverride : sortDir
@@ -77,13 +73,27 @@ function App() {
       params.set('sortBy', nextSortBy)
       params.set('sortDir', nextSortDir)
     }
-    fetch(`/api/search?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+    const url = `/api/search?${params}`
+    const cached = queryCache.get(url)
+    if (cached) {
+      setSearchResult(cached)
+      return
+    }
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
       })
-      .then(setSearchResult)
+      .then((data) => {
+        queryCache.set(url, data)
+        setSearchResult(data)
+      })
       .catch((err) => {
         if (err.name !== 'AbortError') setSearchError(err.message)
       })
@@ -223,11 +233,6 @@ function App() {
       setDuplicatesResult({ total: 0, page: 0, size: 50, rows: [] })
       return
     }
-    abortControllerRef.current?.abort()
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-    setSearching(true)
-    setSearchError(null)
     const params = new URLSearchParams({
       primaryTrove: primaryTroveId.trim(),
       query: q,
@@ -236,13 +241,26 @@ function App() {
       maxMatches: '20',
     })
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
-    fetch(`/api/search/duplicates?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+    const url = `/api/search/duplicates?${params}`
+    const cached = queryCache.get(url)
+    if (cached) {
+      setDuplicatesResult(cached)
+      setDuplicatesPage(pageNum)
+      return
+    }
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
       })
       .then((data) => {
+        queryCache.set(url, data)
         setDuplicatesResult(data)
         setDuplicatesPage(pageNum)
       })
@@ -262,11 +280,6 @@ function App() {
       setUniquesResult({ total: 0, page: 0, size: 50, results: [] })
       return
     }
-    abortControllerRef.current?.abort()
-    const controller = new AbortController()
-    abortControllerRef.current = controller
-    setSearching(true)
-    setSearchError(null)
     const sortBy = sortByOverride !== undefined && sortByOverride !== null ? sortByOverride : uniquesSortBy
     const sortDir = sortDirOverride !== undefined && sortDirOverride !== null ? sortDirOverride : uniquesSortDir
     if (sortByOverride != null || sortDirOverride != null) {
@@ -284,13 +297,26 @@ function App() {
       params.set('sortDir', sortDir)
     }
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
-    fetch(`/api/search/uniques?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+    const url = `/api/search/uniques?${params}`
+    const cached = queryCache.get(url)
+    if (cached) {
+      setUniquesResult(cached)
+      setUniquesPage(pageNum)
+      return
+    }
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
       })
       .then((data) => {
+        queryCache.set(url, data)
         setUniquesResult(data)
         setUniquesPage(pageNum)
       })

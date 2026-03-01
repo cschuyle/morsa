@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
+import { queryCache } from './queryCache'
 import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
 import './MobileApp.css'
@@ -42,19 +43,28 @@ function MobileApp() {
       setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE })
       return
     }
-    setSearching(true)
     const params = new URLSearchParams({
       query: q,
       page: String(pageNum),
       size: String(MOBILE_PAGE_SIZE),
     })
     selectedTroveIds.forEach((id) => params.append('trove', id))
-    fetch(`/api/search?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+    const url = `/api/search?${params}`
+    const cached = queryCache.get(url)
+    if (cached) {
+      setSearchResult(cached)
+      return
+    }
+    setSearching(true)
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() } })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
       })
-      .then(setSearchResult)
+      .then((data) => {
+        queryCache.set(url, data)
+        setSearchResult(data)
+      })
       .catch(() => setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE }))
       .finally(() => setSearching(false))
   }
@@ -69,11 +79,6 @@ function MobileApp() {
       setDuplicatesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, rows: [] })
       return
     }
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    abortRef.current = controller
-    setSearching(true)
-    setSearchError(null)
     const params = new URLSearchParams({
       primaryTrove: primaryTroveId.trim(),
       query: q,
@@ -82,12 +87,25 @@ function MobileApp() {
       maxMatches: '20',
     })
     compareTroveIds.forEach((id) => params.append('compareTrove', id))
-    fetch(`/api/search/duplicates?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+    const url = `/api/search/duplicates?${params}`
+    const cached = queryCache.get(url)
+    if (cached) {
+      setDuplicatesResult(cached)
+      setDuplicatesPage(pageNum)
+      return
+    }
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
       })
       .then((data) => {
+        queryCache.set(url, data)
         setDuplicatesResult(data)
         setDuplicatesPage(pageNum)
       })
@@ -105,11 +123,6 @@ function MobileApp() {
       setUniquesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, results: [] })
       return
     }
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    abortRef.current = controller
-    setSearching(true)
-    setSearchError(null)
     const sortBy = sortByOverride ?? uniquesSortBy
     const sortDir = sortDirOverride ?? uniquesSortDir
     if (sortByOverride != null || sortDirOverride != null) {
@@ -127,12 +140,25 @@ function MobileApp() {
       params.set('sortDir', sortDir)
     }
     compareTroveIds.forEach((id) => params.append('compareTrove', id))
-    fetch(`/api/search/uniques?${params}`, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
+    const url = `/api/search/uniques?${params}`
+    const cached = queryCache.get(url)
+    if (cached) {
+      setUniquesResult(cached)
+      setUniquesPage(pageNum)
+      return
+    }
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+    setSearching(true)
+    setSearchError(null)
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
       })
       .then((data) => {
+        queryCache.set(url, data)
         setUniquesResult(data)
         setUniquesPage(pageNum)
       })
