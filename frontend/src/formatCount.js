@@ -8,3 +8,15 @@ export function formatCount(n) {
   }
   return String(n ?? 0)
 }
+
+/**
+ * Format byte count for display (e.g. 1536 → "2 KB", 1048576 → "1 MB", 1073741824 → "1.0 GB").
+ * Used for cache size in the status message.
+ */
+export function formatCacheBytes(bytes) {
+  if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) return '0 B'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+}

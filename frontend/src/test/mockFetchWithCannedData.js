@@ -9,7 +9,6 @@
  */
 import trovesFixture from '../fixtures/troves.json'
 import searchResponseFixture from '../fixtures/searchResponse.json'
-import healthFixture from '../fixtures/health.json'
 
 export function mockFetchWithCannedData() {
   return (url, _options) => {
@@ -28,11 +27,11 @@ export function mockFetchWithCannedData() {
         json: () => Promise.resolve(searchResponseFixture),
       })
     }
-    if (path.includes('/actuator/health')) {
+    if (path.includes('/api/status')) {
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve(healthFixture),
+        json: () => Promise.resolve({ status: 'UP', cache: { entries: 0, estimatedBytes: 0 } }),
       })
     }
     return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) })

@@ -78,8 +78,8 @@ describe('Desktop search pagination', () => {
           json: () => Promise.resolve(makeSearchResponse(count, page, size, resultsLength)),
         })
       }
-      if (path.includes('/actuator/health')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP' }) })
+      if (path.includes('/api/status')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP', cache: { entries: 0, estimatedBytes: 0 } }) })
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
     }))
@@ -129,8 +129,8 @@ describe('Desktop duplicates pagination', () => {
           json: () => Promise.resolve(makeDuplicatesResponse(total, page, size)),
         })
       }
-      if (path.includes('/actuator/health')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP' }) })
+      if (path.includes('/api/status')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP', cache: { entries: 0, estimatedBytes: 0 } }) })
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
     }))
@@ -173,8 +173,8 @@ describe('Desktop uniques pagination', () => {
           json: () => Promise.resolve(makeUniquesResponse(total, page, size)),
         })
       }
-      if (path.includes('/actuator/health')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP' }) })
+      if (path.includes('/api/status')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP', cache: { entries: 0, estimatedBytes: 0 } }) })
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
     }))

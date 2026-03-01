@@ -6,7 +6,7 @@ import { UniquesResultsView } from './UniquesResultsView'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { queryCache } from './queryCache'
-import { formatCount } from './formatCount'
+import { formatCount, formatCacheBytes } from './formatCount'
 import './App.css'
 
 function App() {
@@ -52,6 +52,21 @@ function App() {
   const PAGE_SIZE_OPTIONS = [10, 25, 100, 500, 1000, 5000, 10000]
   queryRef.current = query
 
+  function refreshStatusMessage() {
+    fetch('/api/status', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+      .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; return res.json() })
+      .then((data) => {
+        if (!data) return
+        const base = data.status === 'UP' ? 'Status: Backend is up' : `Status: Backend: ${data.status}`
+        const cache = data.cache
+        const cacheMsg = cache != null && typeof cache.entries === 'number' && typeof cache.estimatedBytes === 'number'
+          ? ` · Cache: ${formatCount(cache.entries)} entries, ~${formatCacheBytes(cache.estimatedBytes)}`
+          : ''
+        setMessage(base + cacheMsg)
+      })
+      .catch(() => setMessage('Status: Backend unreachable'))
+  }
+
   function fetchSearch(pageNum, sizeOverride = null, troveIdsOverride = null, sortByOverride = null, sortDirOverride = null) {
     const size = sizeOverride ?? pageSize
     const q = queryRef.current
@@ -96,6 +111,7 @@ function App() {
       .then((data) => {
         queryCache.set(url, data)
         setSearchResult(data)
+        refreshStatusMessage()
       })
       .catch((err) => {
         if (err.name !== 'AbortError') setSearchError(err.message)
@@ -104,10 +120,7 @@ function App() {
   }
 
   useEffect(() => {
-    fetch('/actuator/health', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
-      .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; return res.json() })
-      .then((data) => data && setMessage(data.status === 'UP' ? 'Status: Backend is up' : `Status: Backend: ${data.status}`))
-      .catch(() => setMessage('Status: Backend unreachable'))
+    refreshStatusMessage()
   }, [])
 
   useEffect(() => {
@@ -266,6 +279,7 @@ function App() {
         queryCache.set(url, data)
         setDuplicatesResult(data)
         setDuplicatesPage(pageNum)
+        refreshStatusMessage()
       })
       .catch((err) => {
         if (err.name !== 'AbortError') setSearchError(err.message)
@@ -322,6 +336,7 @@ function App() {
         queryCache.set(url, data)
         setUniquesResult(data)
         setUniquesPage(pageNum)
+        refreshStatusMessage()
       })
       .catch((err) => {
         if (err.name !== 'AbortError') setSearchError(err.message)
@@ -1298,7 +1313,7 @@ function App() {
           Log Out
         </button>
         <Link to="/mobile" className="app-footer-link" onClick={() => sessionStorage.removeItem('morsorPreferDesktop')}>Mobile</Link>
-        {message && <p className="backend-message" data-status={message === 'Status: Backend is up' ? 'up' : 'down'}>{message}</p>}
+        {message && <p className="backend-message" data-status={message.startsWith('Status: Backend is up') ? 'up' : 'down'}>{message}</p>}
       </footer>
     </>
   )

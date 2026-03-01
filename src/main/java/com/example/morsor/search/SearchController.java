@@ -28,6 +28,16 @@ public class SearchController {
         return searchDataService.getTroveOptions();
     }
 
+    /** Status and cache stats for the UI; avoids dependency on actuator health contributor API. */
+    @GetMapping("/status")
+    public StatusResponse status() {
+        SearchCache.CacheStats stats = searchCache.getStats();
+        return new StatusResponse("UP", new CacheStatus(stats.entryCount(), stats.estimatedBytes()));
+    }
+
+    public record StatusResponse(String status, CacheStatus cache) {}
+    public record CacheStatus(int entries, long estimatedBytes) {}
+
     private static final int DEFAULT_PAGE_SIZE = 500;
     private static final int MAX_PAGE_SIZE = 10_000;
 

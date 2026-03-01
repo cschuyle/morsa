@@ -69,6 +69,15 @@ public class SearchCache {
         return (long) list.size() * ESTIMATED_BYTES_PER_ITEM;
     }
 
+    /** Snapshot of cache size for status/health. */
+    public record CacheStats(int entryCount, long estimatedBytes) {}
+
+    public CacheStats getStats() {
+        synchronized (this) {
+            return new CacheStats(cache.size(), totalBytes);
+        }
+    }
+
     public record CacheResult<T>(List<T> data, boolean cached) {}
 
     private static class Entry<T> {
