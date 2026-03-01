@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { queryCache } from './queryCache'
-import { formatCount } from './formatCount'
+import { formatCount, formatCacheBytes } from './formatCount'
 import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
 import './MobileApp.css'
@@ -31,12 +31,28 @@ function MobileApp() {
   const [showTrovePicker, setShowTrovePicker] = useState(false)
   const [trovePickerFilter, setTrovePickerFilter] = useState('')
   const [searchError, setSearchError] = useState(null)
+  const [statusMessage, setStatusMessage] = useState('')
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
   const abortRef = useRef(null)
   queryRef.current = query
 
   const isDupOrUniques = searchMode === 'duplicates' || searchMode === 'uniques'
+
+  function refreshStatusMessage() {
+    fetch('/api/status', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+      .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; return res.json() })
+      .then((data) => {
+        if (!data) return
+        const base = data.status === 'UP' ? 'Status: Backend is up' : `Status: Backend: ${data.status}`
+        const cache = data.cache
+        const cacheMsg = cache != null && typeof cache.entries === 'number' && typeof cache.estimatedBytes === 'number'
+          ? ` · Cache: ${formatCount(cache.entries)} entries, ~${formatCacheBytes(cache.estimatedBytes)}`
+          : ''
+        setStatusMessage(base + cacheMsg)
+      })
+      .catch(() => setStatusMessage('Status: Backend unreachable'))
+  }
 
   function fetchSearch(pageNum) {
     const q = queryRef.current.trim()
@@ -65,6 +81,7 @@ function MobileApp() {
       .then((data) => {
         queryCache.set(url, data)
         setSearchResult(data)
+        refreshStatusMessage()
       })
       .catch(() => setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE }))
       .finally(() => setSearching(false))
@@ -109,6 +126,7 @@ function MobileApp() {
         queryCache.set(url, data)
         setDuplicatesResult(data)
         setDuplicatesPage(pageNum)
+        refreshStatusMessage()
       })
       .catch((err) => { if (err.name !== 'AbortError') setSearchError(err.message) })
       .finally(() => setSearching(false))
@@ -162,10 +180,15 @@ function MobileApp() {
         queryCache.set(url, data)
         setUniquesResult(data)
         setUniquesPage(pageNum)
+        refreshStatusMessage()
       })
       .catch((err) => { if (err.name !== 'AbortError') setSearchError(err.message) })
       .finally(() => setSearching(false))
   }
+
+  useEffect(() => {
+    refreshStatusMessage()
+  }, [])
 
   useEffect(() => {
     fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
@@ -620,6 +643,9 @@ function MobileApp() {
       </main>
 
       <footer className="mobile-footer">
+        {statusMessage && (
+          <p className="mobile-status-message" role="status">{statusMessage}</p>
+        )}
         <div className="mobile-footer-row">
           <Link to="/" className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop site</Link>
           <button
