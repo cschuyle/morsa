@@ -491,22 +491,35 @@ function App() {
                     const primaryNotSelectedTroves = primaryTrovesFiltered.filter((t) => t.id !== primaryTroveId)
                     return (
                       <div className="primary-trove-select-wrap" role="tabpanel">
-                        <div className="primary-trove-summary-row">
+                        <div className="primary-trove-summary-block">
                           <p className="trove-picker-summary primary-trove-summary-text" aria-live="polite">
                             {primaryTroveId
                               ? (primarySelectedTrove?.name ?? primaryTroveId)
                               : 'Select primary trove'}
                           </p>
-                          {primaryTroveId && (
+                          <div className="primary-trove-buttons-row">
+                            {primaryTroveId ? (
+                              <button
+                                type="button"
+                                className="trove-picker-clear"
+                                onClick={() => setPrimaryTroveId('')}
+                                aria-label="Clear primary trove"
+                              >
+                                Clear
+                              </button>
+                            ) : (
+                              <span />
+                            )}
                             <button
                               type="button"
                               className="trove-picker-clear"
-                              onClick={() => setPrimaryTroveId('')}
-aria-label="Clear primary trove"
-                              >
-                              Clear
+                              onClick={() => { if (dupPrimaryTroveId) setDupCompareTroveIds(new Set([dupPrimaryTroveId])) }}
+                              disabled={!dupPrimaryTroveId}
+                              aria-label="Compare to self"
+                            >
+                              Compare to self
                             </button>
-                          )}
+                          </div>
                         </div>
                         <div className="sidebar-trove-filter-wrap">
                           <input
