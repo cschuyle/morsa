@@ -466,14 +466,25 @@ function MobileApp() {
         {showTrovePicker && (
           <div className="mobile-trove-picker">
             <div className="mobile-trove-picker-header">
-              <input
-                type="text"
-                value={trovePickerFilter}
-                onChange={(e) => setTrovePickerFilter(e.target.value)}
-                placeholder="Filter by trove name"
-                className="mobile-trove-picker-filter"
-                aria-label="Filter troves by name"
-              />
+              <div className="mobile-trove-filter-wrap">
+                <input
+                  type="text"
+                  value={trovePickerFilter}
+                  onChange={(e) => setTrovePickerFilter(e.target.value)}
+                  placeholder="Filter by trove name"
+                  className="mobile-trove-picker-filter"
+                  aria-label="Filter troves by name"
+                />
+                <button
+                  type="button"
+                  className="mobile-trove-filter-clear"
+                  title="Clear filter"
+                  onClick={() => setTrovePickerFilter('')}
+                  aria-label="Clear filter"
+                >
+                  ×
+                </button>
+              </div>
               <button type="button" onClick={() => setShowTrovePicker(false)} className="mobile-trove-picker-done">
                 Done
               </button>
