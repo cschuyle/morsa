@@ -1,9 +1,9 @@
 /**
- * Regression test: desktop search pagination shows "1 ... 6 7 8 9 10 ... N"
- * (first page, ellipsis, 5 sequential numbers, ellipsis, last page) so we don't lose it again.
+ * Regression test: desktop pagination (Search, Duplicates, Uniques) shows
+ * "1 ... 6 7 8 9 10 ... N" so we don't lose it again.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 
@@ -23,6 +23,39 @@ function makeSearchResponse(count, page, size, resultsLength) {
     troveCounts: { test: count },
   }
 }
+
+function makeDuplicatesResponse(total, page, size) {
+  const rowsLength = Math.min(size, Math.max(0, total - page * size))
+  const rows = Array.from({ length: rowsLength }, (_, i) => ({
+    primary: { id: `p-${i}`, title: `Primary ${i}`, trove: 'P', troveId: 'p' },
+    matches: [],
+  }))
+  return { total, page, size, rows }
+}
+
+function makeUniquesResponse(total, page, size) {
+  const resultsLength = Math.min(size, Math.max(0, total - page * size))
+  const results = Array.from({ length: resultsLength }, (_, i) => ({
+    item: { id: `u-${i}`, title: `Unique ${i}`, trove: 'P', troveId: 'p' },
+    score: 0.5,
+    nearMisses: [],
+  }))
+  return { total, page, size, results }
+}
+
+function expectNumberedPagination(nav) {
+  const numsContainer = nav.querySelector('.pagination-nums')
+  expect(numsContainer).toBeInTheDocument()
+  const ellipses = nav.querySelectorAll('.pagination-ellipsis')
+  expect(ellipses.length).toBeGreaterThanOrEqual(1)
+  expect(screen.getByRole('button', { name: 'Page 1' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Page 10' })).toBeInTheDocument()
+}
+
+const twoTroves = [
+  { id: 'p', name: 'Primary Trove', count: 100 },
+  { id: 'c', name: 'Compare Trove', count: 100 },
+]
 
 describe('Desktop search pagination', () => {
   beforeEach(() => {
@@ -52,7 +85,7 @@ describe('Desktop search pagination', () => {
     }))
   })
 
-  it('shows numbered pagination with ellipses when many pages (1 ... 5 6 7 8 9 ... 10)', async () => {
+  it('Search: shows numbered pagination with ellipses when many pages', async () => {
     render(
       <MemoryRouter>
         <App />
@@ -75,14 +108,94 @@ describe('Desktop search pagination', () => {
 
     const nav = screen.getByRole('navigation', { name: /Search results pages/i })
     expect(nav).toBeInTheDocument()
+    expectNumberedPagination(nav)
+  })
+})
 
-    const numsContainer = nav.querySelector('.pagination-nums')
-    expect(numsContainer).toBeInTheDocument()
+describe('Desktop duplicates pagination', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn((url) => {
+      const path = typeof url === 'string' ? url : ''
+      if (path.includes('/api/troves')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(twoTroves) })
+      }
+      if (path.includes('/api/search/duplicates')) {
+        const u = new URL(path, 'http://localhost')
+        const page = parseInt(u.searchParams.get('page') || '0', 10)
+        const size = parseInt(u.searchParams.get('size') || '50', 10)
+        const total = 500
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(makeDuplicatesResponse(total, page, size)),
+        })
+      }
+      if (path.includes('/actuator/health')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP' }) })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    }))
+  })
 
-    const ellipses = nav.querySelectorAll('.pagination-ellipsis')
-    expect(ellipses.length).toBeGreaterThanOrEqual(1)
+  it('Duplicates: shows numbered pagination with ellipses when many pages', async () => {
+    render(
+      <MemoryRouter initialEntries={['/?mode=duplicates&primary=p&compare=c']}>
+        <App />
+      </MemoryRouter>
+    )
+    await waitFor(() => {
+      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+    })
+    // URL state (primary=p, compare=c) is restored on mount; trigger search
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
 
-    expect(screen.getByRole('button', { name: 'Page 1' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Page 10' })).toBeInTheDocument()
+    const nav = await screen.findByRole('navigation', { name: /Duplicate results pages/i, timeout: 3000 })
+    await waitFor(() => {
+      expect(within(nav).getByText(/Page 1 of 10/)).toBeInTheDocument()
+    })
+    expectNumberedPagination(nav)
+  })
+})
+
+describe('Desktop uniques pagination', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn((url) => {
+      const path = typeof url === 'string' ? url : ''
+      if (path.includes('/api/troves')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(twoTroves) })
+      }
+      if (path.includes('/api/search/uniques')) {
+        const u = new URL(path, 'http://localhost')
+        const page = parseInt(u.searchParams.get('page') || '0', 10)
+        const size = parseInt(u.searchParams.get('size') || '50', 10)
+        const total = 500
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(makeUniquesResponse(total, page, size)),
+        })
+      }
+      if (path.includes('/actuator/health')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ status: 'UP' }) })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    }))
+  })
+
+  it('Uniques: shows numbered pagination with ellipses when many pages', async () => {
+    render(
+      <MemoryRouter initialEntries={['/?mode=uniques&primary=p&compare=c']}>
+        <App />
+      </MemoryRouter>
+    )
+    await waitFor(() => {
+      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+    })
+    // URL state (primary=p, compare=c) is restored on mount; trigger search
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+
+    const nav = await screen.findByRole('navigation', { name: /Uniques results pages/i, timeout: 3000 })
+    await waitFor(() => {
+      expect(within(nav).getByText(/Page 1 of 10/)).toBeInTheDocument()
+    })
+    expectNumberedPagination(nav)
   })
 })
