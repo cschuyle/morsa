@@ -58,7 +58,7 @@ export function DuplicateResultsView({ rows = [], sortBy = null, sortDir = 'asc'
                 <td className="col-trove">{row.primary?.trove ?? row.primary?.troveId ?? ''}</td>
                 <td className="col-score" aria-label="Primary item (max match score)">{primaryScore}</td>
               </tr>
-              {(row.matches ?? []).filter((m) => m.result?.id !== row.primary?.id).map((m, matchIdx) => (
+              {(row.matches ?? []).filter((m) => String(m.result?.id ?? '') !== String(row.primary?.id ?? '')).map((m, matchIdx) => (
                 <tr key={matchIdx} className="duplicate-row-match">
                   <td className="col-title">{m.result?.title ?? '—'}</td>
                   <td className="col-trove">{m.result?.trove ?? m.result?.troveId ?? ''}</td>
