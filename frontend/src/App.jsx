@@ -41,10 +41,12 @@ function App() {
   const [duplicatesTroveTab, setDuplicatesTroveTab] = useState('primary')
   const [duplicatesResult, setDuplicatesResult] = useState(null)
   const [duplicatesPage, setDuplicatesPage] = useState(0)
+  const [dupPageSize, setDupPageSize] = useState(50)
   const [duplicatesSortBy, setDuplicatesSortBy] = useState(null)
   const [duplicatesSortDir, setDuplicatesSortDir] = useState('asc')
   const [uniquesResult, setUniquesResult] = useState(null)
   const [uniquesPage, setUniquesPage] = useState(0)
+  const [uniqPageSize, setUniqPageSize] = useState(50)
   const [uniquesSortBy, setUniquesSortBy] = useState(null)
   const [uniquesSortDir, setUniquesSortDir] = useState('asc')
   const queryRef = useRef(query)
@@ -244,21 +246,22 @@ function App() {
     abortControllerRef.current?.abort()
   }
 
-  function fetchDuplicates(pageNum) {
+  function fetchDuplicates(pageNum, sizeOverride = null) {
     const q = queryRef.current.trim() || '*'
+    const size = sizeOverride ?? dupPageSize
     if (!primaryTroveId.trim()) {
-      setDuplicatesResult({ total: 0, page: 0, size: 50, rows: [] })
+      setDuplicatesResult({ total: 0, page: 0, size, rows: [] })
       return
     }
     if (selectedTroveIds.size === 0) {
-      setDuplicatesResult({ total: 0, page: 0, size: 50, rows: [] })
+      setDuplicatesResult({ total: 0, page: 0, size, rows: [] })
       return
     }
     const params = new URLSearchParams({
       primaryTrove: primaryTroveId.trim(),
       query: q,
       page: String(pageNum),
-      size: '50',
+      size: String(size),
       maxMatches: '20',
     })
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
@@ -292,14 +295,15 @@ function App() {
       .finally(() => setSearching(false))
   }
 
-  function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null) {
+  function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null, sizeOverride = null) {
     const q = queryRef.current.trim() || '*'
+    const size = sizeOverride ?? uniqPageSize
     if (!primaryTroveId.trim()) {
-      setUniquesResult({ total: 0, page: 0, size: 50, results: [] })
+      setUniquesResult({ total: 0, page: 0, size, results: [] })
       return
     }
     if (selectedTroveIds.size === 0) {
-      setUniquesResult({ total: 0, page: 0, size: 50, results: [] })
+      setUniquesResult({ total: 0, page: 0, size, results: [] })
       return
     }
     const sortBy = sortByOverride !== undefined && sortByOverride !== null ? sortByOverride : uniquesSortBy
@@ -312,7 +316,7 @@ function App() {
       primaryTrove: primaryTroveId.trim(),
       query: q,
       page: String(pageNum),
-      size: '50',
+      size: String(size),
     })
     if (sortBy) {
       params.set('sortBy', sortBy)
@@ -386,6 +390,16 @@ function App() {
     const newSize = Number(e.target.value)
     setPageSize(newSize)
     if (searchResult != null && query.trim()) fetchSearch(0, newSize)
+  }
+  function handleDupPageSizeChange(e) {
+    const newSize = Number(e.target.value)
+    setDupPageSize(newSize)
+    if (duplicatesResult != null && primaryTroveId.trim() && selectedTroveIds.size > 0) fetchDuplicates(0, newSize)
+  }
+  function handleUniqPageSizeChange(e) {
+    const newSize = Number(e.target.value)
+    setUniqPageSize(newSize)
+    if (uniquesResult != null && primaryTroveId.trim() && selectedTroveIds.size > 0) fetchUniques(0, null, null, newSize)
   }
 
   function goToPage(nextPage) {
@@ -982,6 +996,8 @@ aria-label="Clear compare troves"
               const size = duplicatesResult.size ?? 50
               const rows = sortedDuplicateRows
               const totalPages = size > 0 ? Math.ceil(total / size) : 0
+              const from = total === 0 ? 0 : pageNum * size + 1
+              const to = Math.min((pageNum + 1) * size, total)
               const primaryName = troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId
               const compareNamesList = [...selectedTroveIds].map((id) => troves.find((t) => t.id === id)?.name ?? id).join(', ')
               const compareDisplay = compareNamesList.length < 50 ? compareNamesList : `${selectedTroveIds.size} troves`
@@ -990,8 +1006,25 @@ aria-label="Clear compare troves"
                 <>
                   <p className="search-count search-count-detail">
                     <><strong>Primary:</strong> {primaryName} · {compareSummary}. </>{formatCount(total)} {selectedTroveIds.size === 1 && selectedTroveIds.has(primaryTroveId) ? '' : 'primary '}item{total !== 1 ? 's' : ''} with possible duplicates.
+                    {totalPages > 1 && ` Showing ${formatCount(from)}–${formatCount(to)}.`}
                   </p>
-                  {totalPages > 1 && (() => {
+                  <div className="search-results-options">
+                    <label className="page-size-label">
+                      Page size
+                      <select
+                        value={dupPageSize}
+                        onChange={handleDupPageSizeChange}
+                        className="page-size-select"
+                        disabled={searching}
+                      >
+                        {PAGE_SIZE_OPTIONS.map((n) => (
+                          <option key={n} value={n}>
+                            {formatCount(n)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {totalPages > 1 && (() => {
                     const maxShow = 5
                     let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
                     let end = Math.min(totalPages, start + maxShow)
@@ -1069,6 +1102,7 @@ aria-label="Clear compare troves"
                       </nav>
                     )
                   })()}
+                  </div>
                   <DuplicateResultsView
                     rows={rows}
                     sortBy={duplicatesSortBy}
@@ -1087,6 +1121,8 @@ aria-label="Clear compare troves"
               const size = uniquesResult.size ?? 50
               const results = Array.isArray(uniquesResult.results) ? uniquesResult.results : []
               const totalPages = size > 0 ? Math.ceil(total / size) : 0
+              const from = total === 0 ? 0 : pageNum * size + 1
+              const to = Math.min((pageNum + 1) * size, total)
               const primaryName = troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId
               const compareNamesList = [...selectedTroveIds].map((id) => troves.find((t) => t.id === id)?.name ?? id).join(', ')
               const compareDisplay = compareNamesList.length < 50 ? compareNamesList : `${selectedTroveIds.size} troves`
@@ -1095,8 +1131,25 @@ aria-label="Clear compare troves"
                 <>
                   <p className="search-count search-count-detail">
                     <><strong>Primary:</strong> {primaryName} · {compareSummary}. </>{formatCount(total)} item{total !== 1 ? 's' : ''}{selectedTroveIds.size === 1 && selectedTroveIds.has(primaryTroveId) ? ' ' : ' in primary '}are either unique or have no obvious match.
+                    {totalPages > 1 && ` Showing ${formatCount(from)}–${formatCount(to)}.`}
                   </p>
-                  {totalPages > 1 && (() => {
+                  <div className="search-results-options">
+                    <label className="page-size-label">
+                      Page size
+                      <select
+                        value={uniqPageSize}
+                        onChange={handleUniqPageSizeChange}
+                        className="page-size-select"
+                        disabled={searching}
+                      >
+                        {PAGE_SIZE_OPTIONS.map((n) => (
+                          <option key={n} value={n}>
+                            {formatCount(n)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {totalPages > 1 && (() => {
                     const maxShow = 5
                     let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
                     let end = Math.min(totalPages, start + maxShow)
@@ -1174,6 +1227,7 @@ aria-label="Clear compare troves"
                       </nav>
                     )
                   })()}
+                  </div>
                   <UniquesResultsView
                     results={results}
                     sortBy={uniquesSortBy}
