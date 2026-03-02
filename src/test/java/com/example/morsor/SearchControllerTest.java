@@ -4,6 +4,7 @@ import com.example.morsor.search.DuplicateMatchRow;
 import com.example.morsor.search.DuplicatesResponse;
 import com.example.morsor.search.SearchResponse;
 import com.example.morsor.search.SearchResult;
+import com.example.morsor.search.SearchResultWithScore;
 import com.example.morsor.search.ScoredSearchResult;
 import com.example.morsor.search.TroveOption;
 import org.junit.jupiter.api.Test;
@@ -69,11 +70,12 @@ class SearchControllerTest {
         SearchResponse body = response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.results()).as("Filtered search should return the Ancient Greek item").isNotEmpty();
-        SearchResult greekResult = body.results().stream()
-                .filter(r -> "PP-4277".equals(r.id()))
+        SearchResultWithScore greekRow = body.results().stream()
+                .filter(r -> r.result() != null && "PP-4277".equals(r.result().id()))
                 .findFirst()
                 .orElse(null);
-        assertThat(greekResult).isNotNull();
+        assertThat(greekRow).isNotNull();
+        SearchResult greekResult = greekRow.result();
         assertThat(greekResult.trove()).isEqualTo("Little Prince");
         assertThat(greekResult.title()).isEqualTo("The Little Prince, in Ancient Greek");
     }

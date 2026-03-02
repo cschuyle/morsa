@@ -1251,6 +1251,7 @@ aria-label="Clear compare troves"
                       sortBy={sortBy}
                       sortDir={sortDir}
                       onSortChange={handleGridSortChange}
+                      showScoreColumn={query.trim() !== '*'}
                     />
                   </>
                 )
@@ -1378,6 +1379,7 @@ aria-label="Clear compare troves"
                     sortBy={sortBy}
                     sortDir={sortDir}
                     onSortChange={handleGridSortChange}
+                    showScoreColumn={query.trim() !== '*'}
                   />
                 </>
               )

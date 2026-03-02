@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import './SearchResultsGrid.css'
 
-const columns = [
+const baseColumns = [
   {
     id: 'title',
     accessorKey: 'title',
@@ -21,9 +21,22 @@ const columns = [
     cell: (info) => info.getValue(),
   },
 ]
+const scoreColumn = {
+  id: 'score',
+  accessorKey: 'score',
+  header: 'Score',
+  cell: (info) => {
+    const v = info.getValue()
+    return typeof v === 'number' ? v.toFixed(2) : '—'
+  },
+}
 
-export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange }) {
+export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
+  const columns = useMemo(
+    () => (showScoreColumn ? [...baseColumns, scoreColumn] : baseColumns),
+    [showScoreColumn]
+  )
   const sorting = useMemo(
     () => (sortBy ? [{ id: sortBy, desc: sortDir === 'desc' }] : []),
     [sortBy, sortDir]

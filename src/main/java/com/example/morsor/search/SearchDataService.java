@@ -285,7 +285,7 @@ public class SearchDataService {
         }
     }
 
-    public List<SearchResult> search(List<String> troveIds, String query) {
+    public List<ScoredSearchResult> search(List<String> troveIds, String query) {
         Set<String> troveIdSet = troveIds == null ? Set.of() : troveIds.stream()
                 .map(t -> t == null ? null : t.trim())
                 .filter(t -> t != null && !t.isEmpty())
@@ -299,11 +299,11 @@ public class SearchDataService {
             if (!troveIdSet.isEmpty()) {
                 stream = stream.filter(r -> r.troveId() != null && troveIdSet.contains(r.troveId()));
             }
-            return stream.toList();
+            return stream.map(r -> new ScoredSearchResult(r, 0.0)).toList();
         }
 
         if (luceneSearcher == null) {
-            return searchFallback(troveIdSet, queryTrimmed);
+            return searchFallbackScored(troveIdSet, queryTrimmed);
         }
         try {
             BooleanQuery.Builder bq = new BooleanQuery.Builder();
@@ -319,7 +319,7 @@ public class SearchDataService {
             }
             bq.add(textQuery, BooleanClause.Occur.MUST);
             TopDocs topDocs = luceneSearcher.search(bq.build(), allResults.size());
-            List<SearchResult> out = new ArrayList<>(topDocs.scoreDocs.length);
+            List<ScoredSearchResult> out = new ArrayList<>(topDocs.scoreDocs.length);
             StoredFields storedFields = luceneSearcher.storedFields();
             for (ScoreDoc sd : topDocs.scoreDocs) {
                 Document hitDoc = storedFields.document(sd.doc);
@@ -327,17 +327,17 @@ public class SearchDataService {
                 if (idxField != null && idxField.numericValue() != null) {
                     int idx = idxField.numericValue().intValue();
                     if (idx >= 0 && idx < allResults.size()) {
-                        out.add(allResults.get(idx));
+                        out.add(new ScoredSearchResult(allResults.get(idx), sd.score));
                     }
                 }
             }
             return out;
         } catch (ParseException e) {
             log.debug("Lucene parse failed for query \"{}\", falling back to substring match: {}", queryTrimmed, e.getMessage());
-            return searchFallback(troveIdSet, queryTrimmed);
+            return searchFallbackScored(troveIdSet, queryTrimmed);
         } catch (IOException e) {
             log.warn("Lucene search failed: {}, falling back to substring match", e.getMessage());
-            return searchFallback(troveIdSet, queryTrimmed);
+            return searchFallbackScored(troveIdSet, queryTrimmed);
         }
     }
 
@@ -363,6 +363,11 @@ public class SearchDataService {
         return stream.toList();
     }
 
+    private List<ScoredSearchResult> searchFallbackScored(Set<String> troveIdSet, String queryTrimmed) {
+        List<SearchResult> list = searchFallback(troveIdSet, queryTrimmed);
+        return list.stream().map(r -> new ScoredSearchResult(r, 0.0)).toList();
+    }
+
     /**
      * Find duplicate/near-duplicate items: for each item in the primary trove (matching query),
      * find similar items in the compare troves by Lucene similarity (query = primary item content).
@@ -375,12 +380,13 @@ public class SearchDataService {
                 .collect(Collectors.toUnmodifiableSet());
         if (compareSet.isEmpty()) return List.of();
 
-        List<SearchResult> primaryItems = search(List.of(primaryTroveId), query != null ? query.trim() : "");
-        if (primaryItems.isEmpty()) return List.of();
+        List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
+        if (primaryScored.isEmpty()) return List.of();
 
         int maxMatch = Math.max(1, Math.min(maxMatchesPerPrimary, 50));
-        List<DuplicateMatchRow> rows = new ArrayList<>(primaryItems.size());
-        for (SearchResult primary : primaryItems) {
+        List<DuplicateMatchRow> rows = new ArrayList<>(primaryScored.size());
+        for (ScoredSearchResult ss : primaryScored) {
+            SearchResult primary = ss.result();
             List<ScoredSearchResult> matches = findSimilarInTroves(primary, compareSet, maxMatch);
             matches = filterMatchesByYearHeuristic(primary, matches);
             matches = matches.stream().limit(5).toList();
@@ -435,11 +441,12 @@ public class SearchDataService {
                 .collect(Collectors.toUnmodifiableSet());
         if (compareSet.isEmpty()) return List.of();
 
-        List<SearchResult> primaryItems = search(List.of(primaryTroveId), query != null ? query.trim() : "");
-        if (primaryItems.isEmpty()) return List.of();
+        List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
+        if (primaryScored.isEmpty()) return List.of();
 
-        List<UniqueResult> uniquesWithScore = new ArrayList<>(primaryItems.size());
-        for (SearchResult primary : primaryItems) {
+        List<UniqueResult> uniquesWithScore = new ArrayList<>(primaryScored.size());
+        for (ScoredSearchResult ss : primaryScored) {
+            SearchResult primary = ss.result();
             List<ScoredSearchResult> rawMatches = findSimilarInTroves(primary, compareSet, 50);
             List<ScoredSearchResult> filtered = filterMatchesByYearHeuristic(primary, rawMatches);
             if (filtered.isEmpty()) {

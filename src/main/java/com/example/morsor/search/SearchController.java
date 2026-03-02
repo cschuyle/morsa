@@ -53,11 +53,16 @@ public class SearchController {
         size = Math.min(MAX_PAGE_SIZE, Math.max(1, size));
         String cacheKey = "s:" + (query != null ? query.trim() : "") + ":"
                 + (trove != null ? trove.stream().filter(t -> t != null).sorted().collect(Collectors.joining(",")) : "");
-        SearchCache.CacheResult<SearchResult> cacheResult = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query));
-        List<SearchResult> all = cacheResult.data();
+        String queryVal = query != null ? query.trim() : "";
+        boolean isWildcard = "*".equals(queryVal) || queryVal.isEmpty();
+        SearchCache.CacheResult<ScoredSearchResult> cacheResult = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query));
+        List<ScoredSearchResult> scored = cacheResult.data();
+        List<SearchResultWithScore> all = scored.stream()
+                .map(ss -> new SearchResultWithScore(ss.result(), isWildcard ? null : ss.score()))
+                .toList();
         boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
         if (sortBy != null && !sortBy.isBlank()) {
-            Comparator<SearchResult> cmp = comparatorFor(sortBy);
+            Comparator<SearchResultWithScore> cmp = comparatorForWithScore(sortBy);
             if (cmp != null) {
                 if (descending) cmp = cmp.reversed();
                 all = all.stream().sorted(cmp).toList();
@@ -65,11 +70,11 @@ public class SearchController {
         }
         long total = all.size();
         Map<String, Long> troveCounts = all.stream()
-                .filter(r -> r.troveId() != null && !r.troveId().isBlank())
-                .collect(Collectors.groupingBy(SearchResult::troveId, Collectors.counting()));
+                .filter(r -> r.result().troveId() != null && !r.result().troveId().isBlank())
+                .collect(Collectors.groupingBy(r -> r.result().troveId(), Collectors.counting()));
         int from = (int) Math.min((long) page * size, total);
         int to = (int) Math.min(from + size, total);
-        List<SearchResult> pageResults = from < to ? all.subList(from, to) : List.of();
+        List<SearchResultWithScore> pageResults = from < to ? all.subList(from, to) : List.of();
         String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
         return new SearchResponse(total, pageResults, page, size, troveCounts, warning);
     }
@@ -159,6 +164,19 @@ public class SearchController {
                     r -> r.title() != null ? r.title().toLowerCase() : "");
             case "trove" -> Comparator.comparing(
                     r -> r.trove() != null ? r.trove().toLowerCase() : "");
+            default -> null;
+        };
+    }
+
+    private static Comparator<SearchResultWithScore> comparatorForWithScore(String sortBy) {
+        return switch (sortBy.toLowerCase()) {
+            case "title" -> Comparator.comparing(
+                    r -> r.result().title() != null ? r.result().title().toLowerCase() : "");
+            case "trove" -> Comparator.comparing(
+                    r -> r.result().trove() != null ? r.result().trove().toLowerCase() : "");
+            case "score" -> Comparator.comparing(
+                    SearchResultWithScore::score,
+                    Comparator.nullsLast(Comparator.naturalOrder()));
             default -> null;
         };
     }

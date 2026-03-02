@@ -109,3 +109,8 @@
 .grid-table .col-trove {
   width: 8rem;
 }
+
+.grid-table .col-score {
+  width: 5rem;
+  text-align: right;
+}
