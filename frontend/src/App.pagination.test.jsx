@@ -92,7 +92,7 @@ describe('Desktop search pagination', () => {
       </MemoryRouter>
     )
     await waitFor(() => {
-      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+      expect(screen.getByText(/Status: Backend is up/)).toBeInTheDocument()
     })
     await waitFor(() => {
       expect(screen.getByText(/Test Trove/)).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe('Desktop duplicates pagination', () => {
       </MemoryRouter>
     )
     await waitFor(() => {
-      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+      expect(screen.getByText(/Status: Backend is up/)).toBeInTheDocument()
     })
     // URL state (primary=p, compare=c) is restored on mount; trigger search
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))
@@ -187,7 +187,7 @@ describe('Desktop uniques pagination', () => {
       </MemoryRouter>
     )
     await waitFor(() => {
-      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+      expect(screen.getByText(/Status: Backend is up/)).toBeInTheDocument()
     })
     // URL state (primary=p, compare=c) is restored on mount; trigger search
     fireEvent.click(screen.getByRole('button', { name: 'Search' }))

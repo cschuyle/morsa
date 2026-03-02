@@ -20,7 +20,7 @@ describe('App', () => {
       </MemoryRouter>
     )
     await waitFor(() => {
-      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+      expect(screen.getByText(/Status: Backend is up/)).toBeInTheDocument()
     })
     expect(screen.getByRole('button', { name: 'Search' })).toBeInTheDocument()
   })

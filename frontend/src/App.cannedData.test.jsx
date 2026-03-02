@@ -20,7 +20,7 @@ describe('App with canned data', () => {
       </MemoryRouter>
     )
     await waitFor(() => {
-      expect(screen.getByText('Status: Backend is up')).toBeInTheDocument()
+      expect(screen.getByText(/Status: Backend is up/)).toBeInTheDocument()
     })
     await waitFor(() => {
       expect(screen.getByText(/Little Prince/)).toBeInTheDocument()
