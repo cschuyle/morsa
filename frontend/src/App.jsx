@@ -170,11 +170,15 @@ function App() {
   }
 
   // Persist current tab, query, and trove selection to URL (bookmarkable).
-  // Skip overwriting when the URL has primary/compare but state is still empty (pasted URL, URL→state not applied yet).
+  // Skip overwriting when the URL has params we haven't applied yet (pasted URL, desktop↔mobile toggle).
   useEffect(() => {
     const urlHasPrimaryOrCompare = searchParams.get('primary') || searchParams.getAll('compare').length > 0
     const stateHasNone = !primaryTroveId && (searchMode === 'duplicates' ? !dupCompareTroveIds.size : !uniqCompareTroveIds.size)
     if (urlHasPrimaryOrCompare && stateHasNone) return
+    const urlHasQuery = searchParams.get('q') != null && searchParams.get('q') !== ''
+    const urlHasTrove = searchParams.getAll('trove').length > 0
+    const searchStateNotSynced = (urlHasQuery && (!query || (query ?? '').trim() === '')) || (urlHasTrove && searchSelectedTroveIds.size === 0)
+    if (searchMode === 'search' && searchStateNotSynced) return
     const next = buildSearchParams(
       searchMode,
       query,
