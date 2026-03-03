@@ -245,5 +245,5 @@ So-called "Production" mode: You would normally activate **postgres** and **s3tr
 - `MOOCHO_DATA_LOCATION` overrides where trove JSON files are loaded from when not using S3 (default: `file:./fixtures/data/*.json`; run from project root). 
 
 Search result cache ( See [envrc-template](./envrc-template) )
-- `MOOCHO_CACHE_TTL_MINUTES` (default 5) 
+- `MOOCHO_CACHE_TTL_MINUTES` (default 720 = 12 hours) 
 - `MOOCHO_CACHE_MAX_BYTES` (default 1073741824 = 1GB); when the cache is full, results are still returned but not cached and the UI shows a warning. 

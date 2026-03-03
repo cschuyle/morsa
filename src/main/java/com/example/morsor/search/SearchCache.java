@@ -23,7 +23,7 @@ public class SearchCache {
     private long totalBytes;
 
     public SearchCache(
-            @Value("${moocho.cache.ttl-minutes:5}") int ttlMinutes,
+            @Value("${moocho.cache.ttl-minutes:720}") int ttlMinutes,
             @Value("${moocho.cache.max-bytes:1073741824}") long maxBytes) {
         this.ttlMs = (long) ttlMinutes * 60 * 1000;
         this.maxBytes = maxBytes > 0 ? maxBytes : 1073741824L;
