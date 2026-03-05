@@ -215,6 +215,21 @@
   outline: 2px solid rgba(255, 255, 255, 0.6);
 }
 
+.search-thumb-lightbox-audios {
+  position: absolute;
+  bottom: 5.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.search-thumb-lightbox-audios.search-thumb-lightbox-audios-only {
+  bottom: 1rem;
+}
+
 .search-thumb-lightbox-videos {
   position: absolute;
   bottom: 4rem;
