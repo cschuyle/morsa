@@ -35,12 +35,13 @@ function thumbnailColumnDef(onThumbnailClick) {
       const files = Array.isArray(row?.files) ? row.files : []
       const pdfs = files.filter((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
       const imageUrls = files.filter((u) => typeof u === 'string' && /\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i.test(u))
+      const ebooks = files.filter((u) => typeof u === 'string' && /\.(mobi|epub)(\?|$)/i.test(u))
       if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
       return (
         <button
           type="button"
           className="search-thumb-btn"
-          onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls })}
+          onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls, ebooks })}
           aria-label="View full size"
         >
           {largeUrl && (
@@ -147,6 +148,24 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   aria-label="Open image"
                 >
                   <img src={imgUrl} alt="" />
+                </a>
+              ))}
+            </div>
+          )}
+          {Array.isArray(lightbox.ebooks) && lightbox.ebooks.length > 0 && (
+            <div
+              className={`search-thumb-lightbox-ebooks ${!(lightbox.pdfs?.length) ? 'search-thumb-lightbox-ebooks-only' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightbox.ebooks.map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="search-thumb-file-link"
+                >
+                  {(/\.epub(\?|$)/i.test(url) ? 'EPUB' : 'MOBI')}
                 </a>
               ))}
             </div>

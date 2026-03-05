@@ -173,9 +173,10 @@
   box-sizing: border-box;
 }
 
-.search-thumb-lightbox img {
+/* Main large image: leave room at bottom for link rows (thumbs, ebooks, PDFs) */
+.search-thumb-lightbox > img {
   max-width: 100%;
-  max-height: 100%;
+  max-height: calc(100vh - 10rem);
   object-fit: contain;
 }
 
@@ -212,6 +213,21 @@
 
 .search-thumb-lightbox-thumb:hover {
   outline: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.search-thumb-lightbox-ebooks {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.search-thumb-lightbox-ebooks.search-thumb-lightbox-ebooks-only {
+  bottom: 1rem;
 }
 
 .search-thumb-lightbox-files {
