@@ -1106,15 +1106,22 @@ aria-label="Clear compare troves"
             {(searchMode === 'duplicates' || searchMode === 'uniques') && searching && (
               <div className="duplicates-search-loading" aria-live="polite">
                 <span>{searchMode === 'duplicates' ? 'Finding duplicates…' : 'Finding uniques…'}</span>
-                {compareProgress.total > 0 && (
-                  <div className="search-compare-progress-wrap" aria-valuenow={compareProgress.current} aria-valuemin={0} aria-valuemax={compareProgress.total} role="progressbar" aria-label="Analysis progress">
-                    <div
-                      className="search-compare-progress-bar"
-                      style={{ width: `${(compareProgress.current / compareProgress.total) * 100}%` }}
-                    />
+                <div
+                  className="search-compare-progress-wrap"
+                  role="progressbar"
+                  aria-valuenow={compareProgress.total > 0 ? compareProgress.current : undefined}
+                  aria-valuemin={0}
+                  aria-valuemax={compareProgress.total > 0 ? compareProgress.total : undefined}
+                  aria-label="Analysis progress"
+                >
+                  <div
+                    className={`search-compare-progress-bar ${compareProgress.total === 0 ? 'search-compare-progress-indeterminate' : ''}`}
+                    style={compareProgress.total > 0 ? { width: `${(compareProgress.current / compareProgress.total) * 100}%` } : undefined}
+                  />
+                  {compareProgress.total > 0 && (
                     <span className="search-compare-progress-text">{compareProgress.current} / {compareProgress.total}</span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
             {searchMode === 'duplicates' && duplicatesResult != null && !searching && (() => {

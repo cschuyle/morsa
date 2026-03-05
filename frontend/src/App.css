@@ -1152,6 +1152,16 @@
   transition: width 0.15s ease-out;
 }
 
+.search-compare-progress-bar.search-compare-progress-indeterminate {
+  width: 40% !important;
+  animation: search-compare-progress-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes search-compare-progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
 .search-compare-progress-text {
   position: absolute;
   inset: 0;
