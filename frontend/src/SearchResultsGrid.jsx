@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -22,24 +22,34 @@ const textColumns = [
   },
 ]
 
-const thumbnailColumn = {
-  id: 'thumb',
-  accessorKey: 'thumbnailUrl',
-  header: '',
-  cell: (info) => {
-    const row = info.row.original
-    const url = info.getValue()
-    const itemType = row?.itemType
-    if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
-    return (
-      <img
-        src={url}
-        alt=""
-        className="search-thumb"
-        loading="lazy"
-      />
-    )
-  },
+function thumbnailColumnDef(onThumbnailClick) {
+  return {
+    id: 'thumb',
+    accessorKey: 'thumbnailUrl',
+    header: '',
+    cell: (info) => {
+      const row = info.row.original
+      const url = info.getValue()
+      const itemType = row?.itemType
+      const largeUrl = row?.largeImageUrl
+      if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
+      return (
+        <button
+          type="button"
+          className="search-thumb-btn"
+          onClick={() => largeUrl && onThumbnailClick(largeUrl)}
+          aria-label="View full size"
+        >
+          <img
+            src={url}
+            alt=""
+            className="search-thumb"
+            loading="lazy"
+          />
+        </button>
+      )
+    },
+  }
 }
 const scoreColumn = {
   id: 'score',
@@ -53,12 +63,22 @@ const scoreColumn = {
 
 export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
+  const [lightboxUrl, setLightboxUrl] = useState(null)
+
+  const closeLightbox = useCallback(() => setLightboxUrl(null), [])
+  useEffect(() => {
+    if (!lightboxUrl) return
+    const onKey = (e) => { if (e.key === 'Escape') closeLightbox() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxUrl, closeLightbox])
+
   const hasThumbnails = useMemo(
     () => Array.isArray(data) && data.some((row) => row && row.thumbnailUrl && row.itemType === 'littlePrinceItem'),
     [data]
   )
   const baseColumns = useMemo(
-    () => (hasThumbnails ? [thumbnailColumn, ...textColumns] : textColumns),
+    () => (hasThumbnails ? [thumbnailColumnDef(setLightboxUrl), ...textColumns] : textColumns),
     [hasThumbnails]
   )
   const columns = useMemo(
@@ -94,6 +114,18 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
 
   return (
     <div className="search-results-grid">
+      {lightboxUrl && (
+        <div
+          className="search-thumb-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image full size"
+          onClick={closeLightbox}
+        >
+          <button type="button" className="search-thumb-lightbox-close" onClick={closeLightbox} aria-label="Close">×</button>
+          <img src={lightboxUrl} alt="" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
       <div className="grid-toolbar">
         <input
           type="search"
