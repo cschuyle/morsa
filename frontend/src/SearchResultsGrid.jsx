@@ -38,12 +38,14 @@ function thumbnailColumnDef(onThumbnailClick) {
       const ebooks = files.filter((u) => typeof u === 'string' && /\.(mobi|epub)(\?|$)/i.test(u))
       const videos = files.filter((u) => typeof u === 'string' && /\.(mp4|m4v|avi|mov|mkv|webm|wmv|flv)(\?|$)/i.test(u))
       const audios = files.filter((u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u))
+      const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
+      const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
       if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
       return (
         <button
           type="button"
           className="search-thumb-btn"
-          onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios })}
+          onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles })}
           aria-label="View full size"
         >
           {largeUrl && (
@@ -132,15 +134,14 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
           onClick={closeLightbox}
         >
           <button type="button" className="search-thumb-lightbox-close" onClick={closeLightbox} aria-label="Close">×</button>
-          {lightbox.imageUrl && (
-            <img src={lightbox.imageUrl} alt="" onClick={(e) => e.stopPropagation()} />
-          )}
-          {Array.isArray(lightbox.imageUrls) && lightbox.imageUrls.length > 0 && (
-            <div
-              className={`search-thumb-lightbox-images ${!(lightbox.pdfs?.length) ? 'search-thumb-lightbox-images-only' : ''}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {lightbox.imageUrls.map((imgUrl) => (
+          <div className="search-thumb-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            {lightbox.imageUrl && (
+              <img src={lightbox.imageUrl} alt="" />
+            )}
+          </div>
+          <div className="search-thumb-lightbox-footer" onClick={(e) => e.stopPropagation()}>
+            {Array.isArray(lightbox.imageUrls) &&
+              lightbox.imageUrls.map((imgUrl) => (
                 <a
                   key={imgUrl}
                   href={imgUrl}
@@ -152,83 +153,46 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   <img src={imgUrl} alt="" />
                 </a>
               ))}
-            </div>
-          )}
-          {Array.isArray(lightbox.audios) && lightbox.audios.length > 0 && (
-            <div
-              className={`search-thumb-lightbox-audios ${!(lightbox.pdfs?.length) && !(lightbox.ebooks?.length) && !(lightbox.videos?.length) ? 'search-thumb-lightbox-audios-only' : ''}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {lightbox.audios.map((url) => {
-                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'audio'
-                return (
-                  <a
-                    key={url}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="search-thumb-file-link"
-                  >
-                    {ext.toUpperCase()}
-                  </a>
-                )
-              })}
-            </div>
-          )}
-          {Array.isArray(lightbox.videos) && lightbox.videos.length > 0 && (
-            <div
-              className={`search-thumb-lightbox-videos ${!(lightbox.pdfs?.length) && !(lightbox.ebooks?.length) ? 'search-thumb-lightbox-videos-only' : ''}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {lightbox.videos.map((url) => {
-                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'video'
-                return (
-                  <a
-                    key={url}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="search-thumb-file-link"
-                  >
-                    {ext.toUpperCase()}
-                  </a>
-                )
-              })}
-            </div>
-          )}
-          {Array.isArray(lightbox.ebooks) && lightbox.ebooks.length > 0 && (
-            <div
-              className={`search-thumb-lightbox-ebooks ${!(lightbox.pdfs?.length) ? 'search-thumb-lightbox-ebooks-only' : ''}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {lightbox.ebooks.map((url) => (
-                <a
-                  key={url}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="search-thumb-file-link"
-                >
-                  {(/\.epub(\?|$)/i.test(url) ? 'EPUB' : 'MOBI')}
-                </a>
-              ))}
-            </div>
-          )}
-          {Array.isArray(lightbox.pdfs) && lightbox.pdfs.length > 0 && (
-            <div className="search-thumb-lightbox-files" onClick={(e) => e.stopPropagation()}>
-              {lightbox.pdfs.map((url, idx) => (
-                <a
-                  key={url}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="search-thumb-file-link"
-                >
+            {Array.isArray(lightbox.pdfs) &&
+              lightbox.pdfs.map((url, idx) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
                   {lightbox.pdfs.length > 1 ? `PDF ${idx + 1}` : 'PDF'}
                 </a>
               ))}
-            </div>
-          )}
+            {Array.isArray(lightbox.ebooks) &&
+              lightbox.ebooks.map((url) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                  {(/\.epub(\?|$)/i.test(url) ? 'EPUB' : 'MOBI')}
+                </a>
+              ))}
+            {Array.isArray(lightbox.videos) &&
+              lightbox.videos.map((url) => {
+                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'video'
+                return (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                    {ext.toUpperCase()}
+                  </a>
+                )
+              })}
+            {Array.isArray(lightbox.audios) &&
+              lightbox.audios.map((url) => {
+                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'audio'
+                return (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                    {ext.toUpperCase()}
+                  </a>
+                )
+              })}
+            {Array.isArray(lightbox.otherFiles) &&
+              lightbox.otherFiles.map((url) => {
+                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'file'
+                return (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                    {ext.toUpperCase()}
+                  </a>
+                )
+              })}
+          </div>
         </div>
       )}
       <div className="grid-toolbar">
