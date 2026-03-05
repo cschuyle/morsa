@@ -986,16 +986,37 @@ aria-label="Clear compare troves"
                 </button>
                 {searchMode === 'search' && Array.isArray(searchResult?.availableFileTypes) && searchResult.availableFileTypes.length >= 2 && (
                   <div className="search-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
-                    <button
-                      type="button"
-                      className="search-filetype-dropdown-trigger"
-                      onClick={() => setFileTypeDropdownOpen((o) => !o)}
-                      aria-haspopup="listbox"
-                      aria-expanded={fileTypeDropdownOpen}
-                      aria-label="Filter by file type"
-                    >
-                      File types: {fileTypeFilters.size === 0 ? 'All' : [...fileTypeFilters].sort().join(', ')}
-                    </button>
+                    <div className="search-filetype-trigger-wrap">
+                      <button
+                        type="button"
+                        className="search-filetype-dropdown-trigger"
+                        onClick={() => setFileTypeDropdownOpen((o) => !o)}
+                        aria-haspopup="listbox"
+                        aria-expanded={fileTypeDropdownOpen}
+                        aria-label="Filter by file type"
+                      >
+                        {fileTypeFilters.size === 0 ? 'File types: All' : `Only ${[...fileTypeFilters].sort().join(', ')}`}
+                      </button>
+                      {fileTypeFilters.size > 0 && (
+                        <>
+                          <span className="search-filetype-divider" aria-hidden="true" />
+                          <button
+                          type="button"
+                          className="search-filetype-clear"
+                          title="Clear file type filter"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setFileTypeFilters(new Set())
+                            setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, new Set()), { replace: true })
+                            fetchSearch(0, null, null, null, null, new Set())
+                          }}
+                          aria-label="Clear file type filter"
+                        >
+                          ×
+                        </button>
+                        </>
+                      )}
+                    </div>
                     {fileTypeDropdownOpen && (
                       <div
                         className="search-filetype-dropdown-panel"
