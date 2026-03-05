@@ -179,6 +179,41 @@
   object-fit: contain;
 }
 
+.search-thumb-lightbox-images {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.search-thumb-lightbox-images.search-thumb-lightbox-images-only {
+  bottom: 1rem;
+}
+
+.search-thumb-lightbox-thumb {
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-thumb-lightbox-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-thumb-lightbox-thumb:hover {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+}
+
 .search-thumb-lightbox-files {
   position: absolute;
   bottom: 1rem;

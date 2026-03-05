@@ -34,12 +34,13 @@ function thumbnailColumnDef(onThumbnailClick) {
       const largeUrl = row?.largeImageUrl
       const files = Array.isArray(row?.files) ? row.files : []
       const pdfs = files.filter((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
+      const imageUrls = files.filter((u) => typeof u === 'string' && /\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i.test(u))
       if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
       return (
         <button
           type="button"
           className="search-thumb-btn"
-          onClick={() => (largeUrl || pdfs.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs })}
+          onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls })}
           aria-label="View full size"
         >
           {largeUrl && (
@@ -130,6 +131,25 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
           <button type="button" className="search-thumb-lightbox-close" onClick={closeLightbox} aria-label="Close">×</button>
           {lightbox.imageUrl && (
             <img src={lightbox.imageUrl} alt="" onClick={(e) => e.stopPropagation()} />
+          )}
+          {Array.isArray(lightbox.imageUrls) && lightbox.imageUrls.length > 0 && (
+            <div
+              className={`search-thumb-lightbox-images ${!(lightbox.pdfs?.length) ? 'search-thumb-lightbox-images-only' : ''}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {lightbox.imageUrls.map((imgUrl) => (
+                <a
+                  key={imgUrl}
+                  href={imgUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="search-thumb-lightbox-thumb"
+                  aria-label="Open image"
+                >
+                  <img src={imgUrl} alt="" />
+                </a>
+              ))}
+            </div>
           )}
           {Array.isArray(lightbox.pdfs) && lightbox.pdfs.length > 0 && (
             <div className="search-thumb-lightbox-files" onClick={(e) => e.stopPropagation()}>
