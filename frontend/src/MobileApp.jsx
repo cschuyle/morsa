@@ -43,6 +43,7 @@ function MobileApp() {
   const [trovePickerFilter, setTrovePickerFilter] = useState('')
   const [searchError, setSearchError] = useState(null)
   const [statusMessage, setStatusMessage] = useState('')
+  const [cacheEntries, setCacheEntries] = useState(0)
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
@@ -135,9 +136,10 @@ function MobileApp() {
         const base = data.status === 'UP' ? 'Status: Backend is up' : `Status: Backend: ${data.status}`
         const cache = data.cache
         const cacheMsg = cache != null && typeof cache.entries === 'number' && typeof cache.estimatedBytes === 'number'
-          ? ` · Cache: ${formatCount(cache.entries)} entries, ~${formatCacheBytes(cache.estimatedBytes)}`
+          ? (cache.entries === 0 ? ' · Cache: empty' : ` · Cache: ${formatCount(cache.entries)} entries, ~${formatCacheBytes(cache.estimatedBytes)}`)
           : ''
         setStatusMessage(base + cacheMsg)
+        setCacheEntries(cache != null && typeof cache.entries === 'number' ? cache.entries : 0)
       })
       .catch(() => setStatusMessage('Status: Backend unreachable'))
   }
@@ -619,12 +621,17 @@ onClick={() => {
               aria-valuemax={compareProgress.total > 0 ? compareProgress.total : undefined}
               aria-label="Analysis progress"
             >
-              <div
-                className={`search-compare-progress-bar ${compareProgress.total === 0 ? 'search-compare-progress-indeterminate' : ''}`}
-                style={compareProgress.total > 0 ? { width: `${(compareProgress.current / compareProgress.total) * 100}%` } : undefined}
-              />
+              <div className="search-compare-progress-track">
+                <div
+                  className={`search-compare-progress-bar ${compareProgress.total === 0 ? 'search-compare-progress-indeterminate' : ''}`}
+                  style={compareProgress.total > 0 ? { width: `${(compareProgress.current / compareProgress.total) * 100}%` } : undefined}
+                />
+                {compareProgress.total > 0 && (
+                  <span className="search-compare-progress-percent">{Math.round((compareProgress.current / compareProgress.total) * 100)}%</span>
+                )}
+              </div>
               {compareProgress.total > 0 && (
-                <span className="search-compare-progress-text">{compareProgress.current} / {compareProgress.total}</span>
+                <span className="search-compare-progress-count">{compareProgress.current} / {compareProgress.total}</span>
               )}
             </div>
           </div>
@@ -863,21 +870,25 @@ onClick={() => {
         {statusMessage && (
           <p className="mobile-status-message" role="status">
             {statusMessage}
-            {' · '}
-            <button
-              type="button"
-              className="mobile-footer-link mobile-clear-cache-btn"
-              onClick={() => {
-                const headers = { ...getApiAuthHeaders() }
-                const token = getCsrfToken()
-                if (token) headers['X-XSRF-TOKEN'] = token
-                fetch('/api/cache/clear', { method: 'POST', credentials: 'include', headers })
-                  .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) refreshStatusMessage() })
-                  .catch(() => {})
-              }}
-            >
-              Clear Cache
-            </button>
+            {cacheEntries > 0 && (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="mobile-footer-link mobile-clear-cache-btn"
+                  onClick={() => {
+                    const headers = { ...getApiAuthHeaders() }
+                    const token = getCsrfToken()
+                    if (token) headers['X-XSRF-TOKEN'] = token
+                    fetch('/api/cache/clear', { method: 'POST', credentials: 'include', headers })
+                      .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) refreshStatusMessage() })
+                      .catch(() => {})
+                  }}
+                >
+                  Clear Cache
+                </button>
+              </>
+            )}
           </p>
         )}
         <div className="mobile-footer-row">

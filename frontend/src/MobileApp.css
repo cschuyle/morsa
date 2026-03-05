@@ -611,6 +611,14 @@
   flex: 1;
   min-width: 0;
   max-width: 20rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-compare-progress-track {
+  flex: 1;
+  min-width: 0;
   height: 1.25rem;
   background: #e8e8e8;
   border-radius: 4px;
@@ -635,7 +643,7 @@
   100% { transform: translateX(350%); }
 }
 
-.search-compare-progress-text {
+.search-compare-progress-percent {
   position: absolute;
   inset: 0;
   display: flex;
@@ -644,6 +652,12 @@
   font-size: 0.75rem;
   color: #333;
   pointer-events: none;
+}
+
+.search-compare-progress-count {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: #333;
 }
 
 /* Duplicate / Uniques results (base styles; mobile doesn't load App.css) */

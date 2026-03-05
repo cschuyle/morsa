@@ -11,6 +11,7 @@ import './App.css'
 
 function App() {
   const [message, setMessage] = useState('')
+  const [cacheEntries, setCacheEntries] = useState(0)
   const [troves, setTroves] = useState([])
   const [searchSelectedTroveIds, setSearchSelectedTroveIds] = useState(() => new Set())
   const [dupCompareTroveIds, setDupCompareTroveIds] = useState(() => new Set())
@@ -67,9 +68,10 @@ function App() {
         const base = data.status === 'UP' ? 'Status: Backend is up' : `Status: Backend: ${data.status}`
         const cache = data.cache
         const cacheMsg = cache != null && typeof cache.entries === 'number' && typeof cache.estimatedBytes === 'number'
-          ? ` · Cache: ${formatCount(cache.entries)} entries, ~${formatCacheBytes(cache.estimatedBytes)}`
+          ? (cache.entries === 0 ? ' · Cache: empty' : ` · Cache: ${formatCount(cache.entries)} entries, ~${formatCacheBytes(cache.estimatedBytes)}`)
           : ''
         setMessage(base + cacheMsg)
+        setCacheEntries(cache != null && typeof cache.entries === 'number' ? cache.entries : 0)
       })
       .catch(() => setMessage('Status: Backend unreachable'))
   }
@@ -1114,12 +1116,17 @@ aria-label="Clear compare troves"
                   aria-valuemax={compareProgress.total > 0 ? compareProgress.total : undefined}
                   aria-label="Analysis progress"
                 >
-                  <div
-                    className={`search-compare-progress-bar ${compareProgress.total === 0 ? 'search-compare-progress-indeterminate' : ''}`}
-                    style={compareProgress.total > 0 ? { width: `${(compareProgress.current / compareProgress.total) * 100}%` } : undefined}
-                  />
+                  <div className="search-compare-progress-track">
+                    <div
+                      className={`search-compare-progress-bar ${compareProgress.total === 0 ? 'search-compare-progress-indeterminate' : ''}`}
+                      style={compareProgress.total > 0 ? { width: `${(compareProgress.current / compareProgress.total) * 100}%` } : undefined}
+                    />
+                    {compareProgress.total > 0 && (
+                      <span className="search-compare-progress-percent">{Math.round((compareProgress.current / compareProgress.total) * 100)}%</span>
+                    )}
+                  </div>
                   {compareProgress.total > 0 && (
-                    <span className="search-compare-progress-text">{compareProgress.current} / {compareProgress.total}</span>
+                    <span className="search-compare-progress-count">{compareProgress.current} / {compareProgress.total}</span>
                   )}
                 </div>
               </div>
@@ -1542,21 +1549,25 @@ aria-label="Clear compare troves"
         {message && (
           <p className="backend-message" data-status={message.startsWith('Status: Backend is up') ? 'up' : 'down'}>
             {message}
-            {' · '}
-            <button
-              type="button"
-              className="app-footer-link app-footer-clear-cache"
-              onClick={() => {
-                const headers = { ...getApiAuthHeaders() }
-                const token = getCsrfToken()
-                if (token) headers['X-XSRF-TOKEN'] = token
-                fetch('/api/cache/clear', { method: 'POST', credentials: 'include', headers })
-                  .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) refreshStatusMessage() })
-                  .catch(() => {})
-              }}
-            >
-              Clear Cache
-            </button>
+            {cacheEntries > 0 && (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="app-footer-link app-footer-clear-cache"
+                  onClick={() => {
+                    const headers = { ...getApiAuthHeaders() }
+                    const token = getCsrfToken()
+                    if (token) headers['X-XSRF-TOKEN'] = token
+                    fetch('/api/cache/clear', { method: 'POST', credentials: 'include', headers })
+                      .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) refreshStatusMessage() })
+                      .catch(() => {})
+                  }}
+                >
+                  Clear Cache
+                </button>
+              </>
+            )}
           </p>
         )}
       </footer>
