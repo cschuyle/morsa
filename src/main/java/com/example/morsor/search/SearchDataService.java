@@ -54,6 +54,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -398,6 +399,12 @@ public class SearchDataService {
      */
     public List<DuplicateMatchRow> searchDuplicates(String primaryTroveId, Set<String> compareTroveIds,
                                                      String query, int maxMatchesPerPrimary) {
+        return searchDuplicates(primaryTroveId, compareTroveIds, query, maxMatchesPerPrimary, null);
+    }
+
+    public List<DuplicateMatchRow> searchDuplicates(String primaryTroveId, Set<String> compareTroveIds,
+                                                     String query, int maxMatchesPerPrimary,
+                                                     BiConsumer<Integer, Integer> progress) {
         if (primaryTroveId == null || primaryTroveId.isBlank()) return List.of();
         Set<String> compareSet = compareTroveIds == null ? Set.of() : compareTroveIds.stream()
                 .filter(t -> t != null && !t.isBlank())
@@ -407,9 +414,13 @@ public class SearchDataService {
         List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
         if (primaryScored.isEmpty()) return List.of();
 
+        int total = primaryScored.size();
+        if (progress != null) progress.accept(0, total);
+
         int maxMatch = Math.max(1, Math.min(maxMatchesPerPrimary, 50));
         List<DuplicateMatchRow> rows = new ArrayList<>(primaryScored.size());
-        for (ScoredSearchResult ss : primaryScored) {
+        for (int i = 0; i < primaryScored.size(); i++) {
+            ScoredSearchResult ss = primaryScored.get(i);
             SearchResult primary = ss.result();
             List<ScoredSearchResult> matches = findSimilarInTroves(primary, compareSet, maxMatch);
             matches = filterMatchesByYearHeuristic(primary, matches);
@@ -417,6 +428,7 @@ public class SearchDataService {
             if (!matches.isEmpty()) {
                 rows.add(new DuplicateMatchRow(primary, matches));
             }
+            if (progress != null) progress.accept(i + 1, total);
         }
         List<DuplicateMatchRow> deduped = deduplicateDuplicateRowsByGroup(rows);
         deduped.sort((a, b) -> Double.compare(maxMatchScore(b), maxMatchScore(a)));
@@ -459,6 +471,11 @@ public class SearchDataService {
      * The nearest miss is the best similarity score among compare-trove items that were rejected by the year heuristic.
      */
     public List<UniqueResult> searchUniques(String primaryTroveId, Set<String> compareTroveIds, String query) {
+        return searchUniques(primaryTroveId, compareTroveIds, query, null);
+    }
+
+    public List<UniqueResult> searchUniques(String primaryTroveId, Set<String> compareTroveIds, String query,
+                                            BiConsumer<Integer, Integer> progress) {
         if (primaryTroveId == null || primaryTroveId.isBlank()) return List.of();
         Set<String> compareSet = compareTroveIds == null ? Set.of() : compareTroveIds.stream()
                 .filter(t -> t != null && !t.isBlank())
@@ -468,8 +485,12 @@ public class SearchDataService {
         List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
         if (primaryScored.isEmpty()) return List.of();
 
+        int total = primaryScored.size();
+        if (progress != null) progress.accept(0, total);
+
         List<UniqueResult> uniquesWithScore = new ArrayList<>(primaryScored.size());
-        for (ScoredSearchResult ss : primaryScored) {
+        for (int i = 0; i < primaryScored.size(); i++) {
+            ScoredSearchResult ss = primaryScored.get(i);
             SearchResult primary = ss.result();
             List<ScoredSearchResult> rawMatches = findSimilarInTroves(primary, compareSet, 50);
             List<ScoredSearchResult> filtered = filterMatchesByYearHeuristic(primary, rawMatches);
@@ -484,6 +505,7 @@ public class SearchDataService {
                         .toList();
                 uniquesWithScore.add(new UniqueResult(primary, nearestMiss, topNearMisses));
             }
+            if (progress != null) progress.accept(i + 1, total);
         }
         uniquesWithScore.sort(java.util.Comparator.comparingDouble(UniqueResult::score));
         return uniquesWithScore;

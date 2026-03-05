@@ -1,10 +1,14 @@
 package com.example.morsor.search;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +22,12 @@ public class SearchController {
 
     private final SearchDataService searchDataService;
     private final SearchCache searchCache;
+    private final ObjectMapper objectMapper;
 
-    public SearchController(SearchDataService searchDataService, SearchCache searchCache) {
+    public SearchController(SearchDataService searchDataService, SearchCache searchCache, ObjectMapper objectMapper) {
         this.searchDataService = searchDataService;
         this.searchCache = searchCache;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/troves")
@@ -164,6 +170,58 @@ public class SearchController {
         return new DuplicatesResponse(total, pageNum, pageSize, rows, warning);
     }
 
+    @GetMapping(value = "/search/duplicates/stream", produces = "application/x-ndjson")
+    public org.springframework.http.ResponseEntity<StreamingResponseBody> streamDuplicates(
+            @RequestParam(required = true) String primaryTrove,
+            @RequestParam(required = false) List<String> compareTrove,
+            @RequestParam(required = false, defaultValue = "*") String query,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "50") int size,
+            @RequestParam(required = false, defaultValue = "20") int maxMatches) {
+        final int pageNum = Math.max(0, page);
+        final int pageSize = Math.min(500, Math.max(1, size));
+        final int maxMatchesVal = Math.min(50, Math.max(1, maxMatches));
+        Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.toUnmodifiableSet());
+        final String primaryTrimmed = primaryTrove.trim();
+        final String queryVal = query != null ? query : "*";
+        String cacheKey = "d:" + primaryTrimmed + ":"
+                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
+                + queryVal + ":" + maxMatchesVal;
+        ObjectMapper om = this.objectMapper;
+        StreamingResponseBody stream = out -> {
+            try {
+                SearchCache.CacheResult<DuplicateMatchRow> cacheResult = searchCache.getOrCompute(cacheKey, () ->
+                        searchDataService.searchDuplicates(primaryTrimmed, compareSet, queryVal, maxMatchesVal, (current, total) -> {
+                            try {
+                                out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
+                                out.write('\n');
+                                out.flush();
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                        }));
+                List<DuplicateMatchRow> all = cacheResult.data();
+                long total = all.size();
+                int from = (int) Math.min((long) pageNum * pageSize, total);
+                int to = (int) Math.min(from + pageSize, total);
+                List<DuplicateMatchRow> rows = from < to ? all.subList(from, to) : List.of();
+                String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
+                DuplicatesResponse resp = new DuplicatesResponse(total, pageNum, pageSize, rows, warning);
+                out.write(om.writeValueAsBytes(Map.of("type", "done", "result", resp)));
+                out.write('\n');
+                out.flush();
+            } catch (Exception e) {
+                if (e instanceof UncheckedIOException u) throw u;
+                throw new RuntimeException(e);
+            }
+        };
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/x-ndjson; charset=utf-8")
+                .body(stream);
+    }
+
     @GetMapping("/search/uniques")
     public UniquesResponse searchUniques(
             @RequestParam(required = true) String primaryTrove,
@@ -198,6 +256,65 @@ public class SearchController {
         List<UniqueResult> results = from < to ? all.subList(from, to) : List.of();
         String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
         return new UniquesResponse(total, page, size, results, warning);
+    }
+
+    @GetMapping(value = "/search/uniques/stream", produces = "application/x-ndjson")
+    public org.springframework.http.ResponseEntity<StreamingResponseBody> streamUniques(
+            @RequestParam(required = true) String primaryTrove,
+            @RequestParam(required = false) List<String> compareTrove,
+            @RequestParam(required = false, defaultValue = "*") String query,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "50") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+        final int pageNum = Math.max(0, page);
+        final int pageSize = Math.min(500, Math.max(1, size));
+        Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.toUnmodifiableSet());
+        final String primaryTrimmed = primaryTrove.trim();
+        final String queryVal = query != null ? query : "*";
+        String cacheKey = "u:" + primaryTrimmed + ":"
+                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":" + queryVal;
+        ObjectMapper om = this.objectMapper;
+        StreamingResponseBody stream = out -> {
+            try {
+                SearchCache.CacheResult<UniqueResult> cacheResult = searchCache.getOrCompute(cacheKey, () ->
+                        searchDataService.searchUniques(primaryTrimmed, compareSet, queryVal, (current, total) -> {
+                            try {
+                                out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
+                                out.write('\n');
+                                out.flush();
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                        }));
+                List<UniqueResult> all = cacheResult.data();
+                boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
+                if (sortBy != null && !sortBy.isBlank()) {
+                    Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);
+                    if (cmp != null) {
+                        if (descending) cmp = cmp.reversed();
+                        all = all.stream().sorted(cmp).toList();
+                    }
+                }
+                long total = all.size();
+                int from = (int) Math.min((long) pageNum * pageSize, total);
+                int to = (int) Math.min(from + pageSize, total);
+                List<UniqueResult> results = from < to ? all.subList(from, to) : List.of();
+                String warning = cacheResult.cached() ? null : "Result not cached (cache memory limit reached). Pagination may be slower.";
+                UniquesResponse resp = new UniquesResponse(total, pageNum, pageSize, results, warning);
+                out.write(om.writeValueAsBytes(Map.of("type", "done", "result", resp)));
+                out.write('\n');
+                out.flush();
+            } catch (Exception e) {
+                if (e instanceof UncheckedIOException u) throw u;
+                throw new RuntimeException(e);
+            }
+        };
+        return org.springframework.http.ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/x-ndjson; charset=utf-8")
+                .body(stream);
     }
 
     private static Comparator<UniqueResult> uniquesComparatorFor(String sortBy) {

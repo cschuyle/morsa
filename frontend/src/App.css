@@ -1112,14 +1112,40 @@
 
 .duplicates-search-loading {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-top: 1rem;
   padding: 1rem 0;
 }
 
-.duplicates-search-loading .search-spinner {
-  flex-shrink: 0;
+.search-compare-progress-wrap {
+  flex: 1;
+  min-width: 0;
+  max-width: 20rem;
+  height: 1.25rem;
+  background: #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.search-compare-progress-bar {
+  height: 100%;
+  background: #646cff;
+  border-radius: 4px;
+  transition: width 0.15s ease-out;
+}
+
+.search-compare-progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #333;
+  pointer-events: none;
 }
 
 .search-mode-toggle {

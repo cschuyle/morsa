@@ -51,6 +51,7 @@ function App() {
   const [uniquesSortDir, setUniquesSortDir] = useState('asc')
   const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
+  const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const queryRef = useRef(query)
   const skipCheckboxSearchRef = useRef(true)
   const abortControllerRef = useRef(null)
@@ -267,6 +268,37 @@ function App() {
     abortControllerRef.current?.abort()
   }
 
+  async function readCompareStream(url, signal, onProgress, onDone) {
+    const res = await fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal })
+    if (res.status === 401) { window.location.href = '/login'; throw new Error('Unauthorized') }
+    if (!res.ok) throw new Error(res.statusText)
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        if (!line.trim()) continue
+        try {
+          const data = JSON.parse(line)
+          if (data.type === 'progress') onProgress(data.current, data.total)
+          else if (data.type === 'done') onDone(data.result)
+        } catch (_) {}
+      }
+    }
+    if (buffer.trim()) {
+      try {
+        const data = JSON.parse(buffer)
+        if (data.type === 'progress') onProgress(data.current, data.total)
+        else if (data.type === 'done') onDone(data.result)
+      } catch (_) {}
+    }
+  }
+
   function fetchDuplicates(pageNum, sizeOverride = null) {
     const q = queryRef.current.trim() || '*'
     const size = sizeOverride ?? dupPageSize
@@ -286,8 +318,9 @@ function App() {
       maxMatches: '20',
     })
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
-    const url = `/api/search/duplicates?${params}`
-    const cached = queryCache.get(url)
+    const streamUrl = `/api/search/duplicates/stream?${params}`
+    const restUrl = `/api/search/duplicates?${params}`
+    const cached = queryCache.get(restUrl)
     if (cached) {
       setDuplicatesResult(cached)
       setDuplicatesPage(pageNum)
@@ -298,22 +331,24 @@ function App() {
     abortControllerRef.current = controller
     setSearching(true)
     setSearchError(null)
-    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
-      .then((res) => {
-        if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
-        if (!res.ok) throw new Error(res.statusText)
-        return res.json()
-      })
-      .then((data) => {
-        queryCache.set(url, data)
+    setCompareProgress({ current: 0, total: 0 })
+    readCompareStream(
+      streamUrl,
+      controller.signal,
+      (current, total) => setCompareProgress({ current, total }),
+      (data) => {
+        queryCache.set(restUrl, data)
         setDuplicatesResult(data)
         setDuplicatesPage(pageNum)
+        setCompareProgress({ current: 0, total: 0 })
         refreshStatusMessage()
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') setSearchError(err.message)
-      })
-      .finally(() => setSearching(false))
+      }
+    ).catch((err) => {
+      if (err.name !== 'AbortError') setSearchError(err.message)
+    }).finally(() => {
+      setSearching(false)
+      setCompareProgress({ current: 0, total: 0 })
+    })
   }
 
   function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null, sizeOverride = null) {
@@ -344,8 +379,9 @@ function App() {
       params.set('sortDir', sortDir)
     }
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
-    const url = `/api/search/uniques?${params}`
-    const cached = queryCache.get(url)
+    const streamUrl = `/api/search/uniques/stream?${params}`
+    const restUrl = `/api/search/uniques?${params}`
+    const cached = queryCache.get(restUrl)
     if (cached) {
       setUniquesResult(cached)
       setUniquesPage(pageNum)
@@ -356,22 +392,24 @@ function App() {
     abortControllerRef.current = controller
     setSearching(true)
     setSearchError(null)
-    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
-      .then((res) => {
-        if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
-        if (!res.ok) throw new Error(res.statusText)
-        return res.json()
-      })
-      .then((data) => {
-        queryCache.set(url, data)
+    setCompareProgress({ current: 0, total: 0 })
+    readCompareStream(
+      streamUrl,
+      controller.signal,
+      (current, total) => setCompareProgress({ current, total }),
+      (data) => {
+        queryCache.set(restUrl, data)
         setUniquesResult(data)
         setUniquesPage(pageNum)
+        setCompareProgress({ current: 0, total: 0 })
         refreshStatusMessage()
-      })
-      .catch((err) => {
-        if (err.name !== 'AbortError') setSearchError(err.message)
-      })
-      .finally(() => setSearching(false))
+      }
+    ).catch((err) => {
+      if (err.name !== 'AbortError') setSearchError(err.message)
+    }).finally(() => {
+      setSearching(false)
+      setCompareProgress({ current: 0, total: 0 })
+    })
   }
 
   function handleSearch(e) {
@@ -1067,8 +1105,16 @@ aria-label="Clear compare troves"
             )}
             {(searchMode === 'duplicates' || searchMode === 'uniques') && searching && (
               <div className="duplicates-search-loading" aria-live="polite">
-                <span className="search-spinner" aria-hidden="true" />
                 <span>{searchMode === 'duplicates' ? 'Finding duplicates…' : 'Finding uniques…'}</span>
+                {compareProgress.total > 0 && (
+                  <div className="search-compare-progress-wrap" aria-valuenow={compareProgress.current} aria-valuemin={0} aria-valuemax={compareProgress.total} role="progressbar" aria-label="Analysis progress">
+                    <div
+                      className="search-compare-progress-bar"
+                      style={{ width: `${(compareProgress.current / compareProgress.total) * 100}%` }}
+                    />
+                    <span className="search-compare-progress-text">{compareProgress.current} / {compareProgress.total}</span>
+                  </div>
+                )}
               </div>
             )}
             {searchMode === 'duplicates' && duplicatesResult != null && !searching && (() => {
