@@ -114,3 +114,15 @@
   width: 5rem;
   text-align: right;
 }
+
+.grid-table .col-thumb {
+  width: 3.5rem;
+}
+
+.search-thumb {
+  display: block;
+  max-width: 3rem;
+  max-height: 3rem;
+  object-fit: cover;
+  border-radius: 4px;
+}

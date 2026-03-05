@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import './SearchResultsGrid.css'
 
-const baseColumns = [
+const textColumns = [
   {
     id: 'title',
     accessorKey: 'title',
@@ -21,6 +21,26 @@ const baseColumns = [
     cell: (info) => info.getValue(),
   },
 ]
+
+const thumbnailColumn = {
+  id: 'thumb',
+  accessorKey: 'thumbnailUrl',
+  header: '',
+  cell: (info) => {
+    const row = info.row.original
+    const url = info.getValue()
+    const troveId = row?.troveId
+    if (!url || troveId !== 'little-prince') return null
+    return (
+      <img
+        src={url}
+        alt={row?.title || 'Thumbnail'}
+        className="search-thumb"
+        loading="lazy"
+      />
+    )
+  },
+}
 const scoreColumn = {
   id: 'score',
   accessorKey: 'score',
@@ -33,9 +53,17 @@ const scoreColumn = {
 
 export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
+  const hasThumbnails = useMemo(
+    () => Array.isArray(data) && data.some((row) => row && row.thumbnailUrl && row.troveId === 'little-prince'),
+    [data]
+  )
+  const baseColumns = useMemo(
+    () => (hasThumbnails ? [thumbnailColumn, ...textColumns] : textColumns),
+    [hasThumbnails]
+  )
   const columns = useMemo(
     () => (showScoreColumn ? [...baseColumns, scoreColumn] : baseColumns),
-    [showScoreColumn]
+    [baseColumns, showScoreColumn]
   )
   const sorting = useMemo(
     () => (sortBy ? [{ id: sortBy, desc: sortDir === 'desc' }] : []),
