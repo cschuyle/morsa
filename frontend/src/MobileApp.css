@@ -159,6 +159,22 @@
   background: #fff;
 }
 
+.mobile-filetype-trigger-wrap--filtered {
+  background: #ffe4cc;
+}
+
+.mobile-filetype-trigger-wrap--filtered .mobile-filetype-trigger {
+  background: #ffe4cc;
+}
+
+.mobile-filetype-trigger-wrap--filtered .mobile-filetype-trigger:hover {
+  background: #ffd4a8;
+}
+
+.mobile-filetype-trigger-wrap--filtered .mobile-filetype-clear:hover {
+  background: #ffd4a8;
+}
+
 .mobile-filetype-trigger {
   flex: 1;
   min-width: 0;

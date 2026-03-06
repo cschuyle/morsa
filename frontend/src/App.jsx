@@ -1059,9 +1059,15 @@ aria-label="Clear compare troves"
                 <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
                   {searching ? 'Searching…' : 'Go!'}
                 </button>
-                {searchMode === 'search' && allAvailableFileTypes.length >= 2 && (
+                {searchMode === 'search' && allAvailableFileTypes.length >= 2 && (() => {
+                  const upper = (s) => (s || '').toUpperCase()
+                  const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
+                  const selectedUpper = new Set([...fileTypeFilters].map(upper))
+                  const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
+                  const hasFileTypeFilter = fileTypeFilters.size > 0 && !allSelected
+                  return (
                   <div className="search-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
-                    <div className="search-filetype-trigger-wrap">
+                    <div className={`search-filetype-trigger-wrap${hasFileTypeFilter ? ' search-filetype-trigger-wrap--filtered' : ''}`}>
                       <button
                         type="button"
                         className="search-filetype-dropdown-trigger"
@@ -1073,10 +1079,6 @@ aria-label="Clear compare troves"
                         {fileTypeFilters.size === 0
                           ? 'File types: All'
                           : (() => {
-                              const upper = (s) => (s || '').toUpperCase()
-                              const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
-                              const selectedUpper = new Set([...fileTypeFilters].map(upper))
-                              const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
                               if (allSelected) return 'File types: All'
                               const groupNames = getFullySelectedGroupNames(fileTypeFilters, allAvailableFileTypes)
                               const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes) ?? [...fileTypeFilters].sort().join(', '))
@@ -1155,7 +1157,8 @@ aria-label="Clear compare troves"
                       </div>
                     )}
                   </div>
-                )}
+                  )
+                })()}
                 {searching && (
                   <>
                     <span className="search-spinner" aria-hidden="true" />

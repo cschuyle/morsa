@@ -938,9 +938,15 @@ onClick={() => {
                   sortBy={searchSortBy}
                   sortDir={searchSortDir}
                   onSortChange={(col, dir) => fetchSearch(0, col, dir)}
-                  afterFilterSlot={allAvailableFileTypes.length >= 2 ? (
+                  afterFilterSlot={allAvailableFileTypes.length >= 2 ? (() => {
+                    const upper = (s) => (s || '').toUpperCase()
+                    const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
+                    const selectedUpper = new Set([...fileTypeFilters].map(upper))
+                    const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
+                    const hasFileTypeFilter = fileTypeFilters.size > 0 && !allSelected
+                    return (
                     <div className="mobile-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
-                      <div className="mobile-filetype-trigger-wrap">
+                      <div className={`mobile-filetype-trigger-wrap${hasFileTypeFilter ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
                         <button
                           type="button"
                           className="mobile-filetype-trigger"
@@ -952,10 +958,6 @@ onClick={() => {
                           {fileTypeFilters.size === 0
                             ? 'Types: All'
                             : (() => {
-                                const upper = (s) => (s || '').toUpperCase()
-                                const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
-                                const selectedUpper = new Set([...fileTypeFilters].map(upper))
-                                const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
                                 if (allSelected) return 'Types: All'
                                 if (fileTypeFilters.size === 1) return `Only ${[...fileTypeFilters][0]}`
                                 const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
@@ -1035,7 +1037,7 @@ onClick={() => {
                         </div>
                       )}
                     </div>
-                  ) : null}
+                  ); })() ) : null}
                 />
               </div>
             )}
