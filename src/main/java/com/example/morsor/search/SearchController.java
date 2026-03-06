@@ -55,12 +55,14 @@ public class SearchController {
             try {
                 SecurityContextHolder.setContext(securityContext);
                 searchDataService.reloadData((current, total) -> {
-                    try {
-                        out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
-                        out.write('\n');
-                        out.flush();
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
+                    synchronized (out) {
+                        try {
+                            out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
+                            out.write('\n');
+                            out.flush();
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
                     }
                 });
                 searchCache.clear();

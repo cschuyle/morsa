@@ -56,6 +56,7 @@ import java.util.TreeSet;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -246,43 +247,32 @@ public class SearchDataService {
                 String key = bucketPrefix.isEmpty() ? troveId + ".json" : bucketPrefix + "/" + troveId + ".json";
                 toLoad.add(new TroveS3Key(troveId, key));
             }
-            if (progress != null && !toLoad.isEmpty()) {
-                for (int i = 0; i < toLoad.size(); i++) {
-                    TroveS3Key tk = toLoad.get(i);
-                    log.info("Fetching trove from S3: key={}", tk.key);
-                    try (InputStream in = s3.getObject(GetObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(tk.key)
-                            .build())) {
-                        JsonNode root2 = objectMapper.readTree(in);
-                        List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root2);
-                        log.info("Loaded trove \"{}\": {} records", tk.troveId, results.size());
-                        combined.addAll(results);
-                    } catch (Exception e) {
-                        log.error("Failed to load trove \"{}\" from S3 (key={}): {}", tk.troveId, tk.key, e.getMessage(), e);
-                    }
-                    progress.accept(i + 1, toLoad.size());
-                }
-            } else {
-                List<SearchResult> loaded = toLoad.parallelStream()
-                        .flatMap(tk -> {
-                            log.info("Fetching trove from S3: key={}", tk.key);
-                            try (InputStream in = s3.getObject(GetObjectRequest.builder()
-                                    .bucket(bucketName)
-                                    .key(tk.key)
-                                    .build())) {
-                                JsonNode root2 = objectMapper.readTree(in);
-                                List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root2);
-                                log.info("Loaded trove \"{}\": {} records", tk.troveId, results.size());
-                                return results.stream();
-                            } catch (Exception e) {
-                                log.error("Failed to load trove \"{}\" from S3 (key={}): {}", tk.troveId, tk.key, e.getMessage(), e);
-                                return Stream.<SearchResult>empty();
+            int totalTroves = toLoad.size();
+            AtomicInteger completed = progress != null ? new AtomicInteger(0) : null;
+            List<SearchResult> loaded = toLoad.parallelStream()
+                    .flatMap(tk -> {
+                        log.info("Fetching trove from S3: key={}", tk.key);
+                        try (InputStream in = s3.getObject(GetObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(tk.key)
+                                .build())) {
+                            JsonNode root2 = objectMapper.readTree(in);
+                            List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root2);
+                            log.info("Loaded trove \"{}\": {} records", tk.troveId, results.size());
+                            if (completed != null) {
+                                progress.accept(completed.incrementAndGet(), totalTroves);
                             }
-                        })
-                        .toList();
-                combined.addAll(loaded);
-            }
+                            return results.stream();
+                        } catch (Exception e) {
+                            log.error("Failed to load trove \"{}\" from S3 (key={}): {}", tk.troveId, tk.key, e.getMessage(), e);
+                            if (completed != null) {
+                                progress.accept(completed.incrementAndGet(), totalTroves);
+                            }
+                            return Stream.<SearchResult>empty();
+                        }
+                    })
+                    .toList();
+            combined.addAll(loaded);
             log.info("Trove load from S3 complete: {} total records", combined.size());
         } catch (Exception e) {
             log.error("Failed to load troves list from S3 (bucket={}): {}", bucketName, e.getMessage(), e);
