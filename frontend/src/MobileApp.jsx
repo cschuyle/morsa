@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
@@ -51,6 +51,7 @@ function MobileApp() {
   const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
+  const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
   const abortRef = useRef(null)
@@ -61,6 +62,17 @@ function MobileApp() {
   queryRef.current = query
 
   const isDupOrUniques = searchMode === 'duplicates' || searchMode === 'uniques'
+
+  useLayoutEffect(() => {
+    if (!fileTypeDropdownOpen) {
+      setFileTypePanelRect(null)
+      return
+    }
+    const el = fileTypeDropdownRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    setFileTypePanelRect({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+  }, [fileTypeDropdownOpen])
 
   // Restore query and trove selection from URL (bookmark / desktop↔mobile toggle).
   useEffect(() => {
@@ -515,7 +527,7 @@ function MobileApp() {
         <Link to="/mobile/about" className="mobile-nav-link">About</Link>
       </header>
 
-      <main className="mobile-main">
+      <main className={`mobile-main${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
         <div className="mobile-mode-tabs" role="tablist" aria-label="Search mode">
           <button
             type="button"
@@ -867,7 +879,7 @@ onClick={() => {
               <p className="mobile-no-results">No items.</p>
             )}
             {results.length > 0 && (
-              <div className="mobile-search-results-grid">
+              <div className={`mobile-search-results-grid${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
                 <SearchResultsGrid
                   data={results}
                   sortBy={searchSortBy}
@@ -886,12 +898,16 @@ onClick={() => {
                         >
                           {fileTypeFilters.size === 0
                             ? 'Types: All'
-                            : fileTypeFilters.size === 1
-                              ? `Only ${[...fileTypeFilters][0]}`
-                              : (() => {
-                                  const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
-                                  return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} types selected`
-                                })()}
+                            : (() => {
+                                const upper = (s) => (s || '').toUpperCase()
+                                const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
+                                const selectedUpper = new Set([...fileTypeFilters].map(upper))
+                                const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
+                                if (allSelected) return 'Types: All'
+                                if (fileTypeFilters.size === 1) return `Only ${[...fileTypeFilters][0]}`
+                                const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
+                                return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} types selected`
+                              })()}
                         </button>
                         {fileTypeFilters.size > 0 && (
                           <>
@@ -913,8 +929,13 @@ onClick={() => {
                           </>
                         )}
                       </div>
-                      {fileTypeDropdownOpen && (
-                        <div className="mobile-filetype-panel" role="listbox" aria-label="File type filter">
+                      {fileTypeDropdownOpen && fileTypePanelRect && (
+                        <div
+                          className="mobile-filetype-panel mobile-filetype-panel--fixed"
+                          role="listbox"
+                          aria-label="File type filter"
+                          style={{ position: 'fixed', top: fileTypePanelRect.top, left: fileTypePanelRect.left, width: fileTypePanelRect.width, zIndex: 1100 }}
+                        >
                           {groupFileTypes(allAvailableFileTypes).map(({ group, types }) => {
                             const allSelected = types.every((ft) => fileTypeFilters.has(ft))
                             const someSelected = types.some((ft) => fileTypeFilters.has(ft))

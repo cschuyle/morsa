@@ -1057,6 +1057,11 @@ aria-label="Clear compare troves"
                         {fileTypeFilters.size === 0
                           ? 'File types: All'
                           : (() => {
+                              const upper = (s) => (s || '').toUpperCase()
+                              const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
+                              const selectedUpper = new Set([...fileTypeFilters].map(upper))
+                              const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
+                              if (allSelected) return 'File types: All'
                               const groupNames = getFullySelectedGroupNames(fileTypeFilters, allAvailableFileTypes)
                               const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes) ?? [...fileTypeFilters].sort().join(', '))
                               return `Only ${label}`

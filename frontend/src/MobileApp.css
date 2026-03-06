@@ -44,6 +44,10 @@
   box-sizing: border-box;
 }
 
+.mobile-main.mobile-filetype-dropdown-open {
+  overflow-y: visible;
+}
+
 .mobile-search-form {
   display: flex;
   gap: 0.5rem;
@@ -218,6 +222,13 @@
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
+}
+
+/* Fixed positioning so dropdown is not clipped by scroll containers */
+.mobile-filetype-panel.mobile-filetype-panel--fixed {
+  position: fixed;
+  margin-top: 0;
+  max-height: min(12rem, calc(100vh - 2rem));
 }
 
 .mobile-filetype-group {
@@ -801,6 +812,12 @@
   margin-top: 1rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* When file type dropdown is open, allow it to extend below the result set without being clipped */
+.mobile-search-results-grid.mobile-filetype-dropdown-open {
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .mobile-search-results-grid .grid-table .col-thumb {
