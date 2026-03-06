@@ -24,6 +24,7 @@ function App() {
   const [pageSize, setPageSize] = useState(500)
   const [troveFilter, setTroveFilter] = useState('')
   const [showFilter, setShowFilter] = useState('all')
+  const [freezeTroveListOrder, setFreezeTroveListOrder] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sortBy, setSortBy] = useState(null)
   const [sortDir, setSortDir] = useState('asc')
@@ -255,7 +256,12 @@ function App() {
     return () => clearTimeout(t)
   }, [searchMode, selectedTroveIds])
 
+  useEffect(() => {
+    setFreezeTroveListOrder(false)
+  }, [searchMode])
+
   function toggleTrove(id) {
+    if (searchMode === 'search') setFreezeTroveListOrder(true)
     setSelectedTroveIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -265,6 +271,7 @@ function App() {
   }
 
   function selectAllTroves() {
+    if (searchMode === 'search') setFreezeTroveListOrder(true)
     setSelectedTroveIds(new Set(troves.map((t) => t.id)))
   }
 
@@ -277,6 +284,7 @@ function App() {
   }
 
   function handleOnlyClick(troveId) {
+    if (searchMode === 'search') setFreezeTroveListOrder(true)
     selectOnlyTrove(troveId)
     if (!query.trim()) {
       queryRef.current = '*'
@@ -463,6 +471,7 @@ function App() {
     }
     setSearchError(null)
     setDuplicatesResult(null)
+    setFreezeTroveListOrder(false)
     fetchSearch(0)
   }
 
@@ -528,10 +537,11 @@ function App() {
       searchMode === 'search' && selectedTroveIds.size === 0 && hasResults
         ? new Set(withCounts.filter((t) => t.resultCount > 0).map((t) => t.id))
         : selectedTroveIds
-    const selected = filtered.filter((t) => idsForSplit.has(t.id)).sort(sortByName)
-    const notSelected = filtered.filter((t) => !idsForSplit.has(t.id)).sort(sortByName)
+    const doSplit = searchMode !== 'search' || !freezeTroveListOrder
+    const selected = doSplit ? filtered.filter((t) => idsForSplit.has(t.id)).sort(sortByName) : []
+    const notSelected = doSplit ? filtered.filter((t) => !idsForSplit.has(t.id)).sort(sortByName) : [...filtered].sort(sortByName)
     return { selected, notSelected, displaySelectedTroveIds: idsForSplit }
-  }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds, searchMode])
+  }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds, searchMode, freezeTroveListOrder])
 
   const sortedDuplicateRows = useMemo(() => {
     const raw = Array.isArray(duplicatesResult?.rows) ? duplicatesResult.rows : []
@@ -999,7 +1009,7 @@ aria-label="Clear compare troves"
                   <input
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
                     placeholder="e.g. Greek, Prince, Albanian — or * for all"
                     className="search-query-input"
                     aria-label="Query"
@@ -1012,6 +1022,7 @@ aria-label="Clear compare troves"
                       onClick={() => {
                         setQuery('*')
                         queryRef.current = '*'
+                        setFreezeTroveListOrder(false)
                         if (searchMode === 'duplicates') {
                           if (primaryTroveId.trim() && selectedTroveIds.size > 0) {
                             setUniquesResult(null)
@@ -1035,6 +1046,7 @@ aria-label="Clear compare troves"
                       title="Clear"
                       onClick={() => {
                         setQuery('')
+                        setFreezeTroveListOrder(false)
                         setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
                         setDuplicatesResult(null)
                         setUniquesResult(null)

@@ -22,6 +22,7 @@ function MobileApp() {
   const [uniqPrimaryTroveId, setUniqPrimaryTroveId] = useState('')
   const [uniqCompareTroveIds, setUniqCompareTroveIds] = useState(() => new Set())
   const [trovePickerSubTab, setTrovePickerSubTab] = useState('primary') // 'primary' | 'compare' when dup/uniques
+  const [freezeTroveListOrder, setFreezeTroveListOrder] = useState(false)
   const primaryTroveId = searchMode === 'duplicates' ? dupPrimaryTroveId : uniqPrimaryTroveId
   const compareTroveIds = searchMode === 'duplicates' ? dupCompareTroveIds : uniqCompareTroveIds
   const setPrimaryTroveId = searchMode === 'duplicates' ? setDupPrimaryTroveId : setUniqPrimaryTroveId
@@ -394,7 +395,12 @@ function MobileApp() {
     return () => clearTimeout(t)
   }, [searchMode, selectedTroveIds])
 
+  useEffect(() => {
+    setFreezeTroveListOrder(false)
+  }, [searchMode])
+
   function toggleTrove(id) {
+    if (searchMode === 'search') setFreezeTroveListOrder(true)
     setSelectedTroveIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -441,6 +447,7 @@ function MobileApp() {
       setCompareTroveIds(new Set())
       setShowTrovePicker(false)
     } else {
+      setFreezeTroveListOrder(true)
       setSelectedTroveIds(new Set([troveId]))
       setPage(0)
       setShowTrovePicker(false)
@@ -473,6 +480,7 @@ function MobileApp() {
     if (!query.trim()) return
     setDuplicatesResult(null)
     setUniquesResult(null)
+    setFreezeTroveListOrder(false)
     fetchSearch(0)
     setPage(0)
   }
@@ -531,10 +539,11 @@ function MobileApp() {
   const sortByName = (a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
   const mobileSearchTrovesWithResults = useMemo(() => {
     if (searchMode !== 'search') return { selected: [], notSelected: [...filteredTroves].sort(sortByName) }
+    if (freezeTroveListOrder) return { selected: [], notSelected: [...filteredTroves].sort(sortByName) }
     const selected = [...filteredTroves.filter((t) => displaySelectedTroveIds.has(t.id))].sort(sortByName)
     const notSelected = [...filteredTroves.filter((t) => !displaySelectedTroveIds.has(t.id))].sort(sortByName)
     return { selected, notSelected }
-  }, [searchMode, filteredTroves, displaySelectedTroveIds])
+  }, [searchMode, filteredTroves, displaySelectedTroveIds, freezeTroveListOrder])
 
   return (
     <div className="mobile-app">
@@ -609,7 +618,7 @@ onClick={() => {
             <input
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
               placeholder="e.g. Greek, Prince, Albanian — or * for all"
               className="mobile-search-input"
               autoCapitalize="off"
@@ -624,6 +633,7 @@ onClick={() => {
                 onClick={() => {
                   setQuery('*')
                   queryRef.current = '*'
+                  setFreezeTroveListOrder(false)
                   setPage(0)
                   if (searchMode === 'duplicates') {
                     if (primaryTroveId.trim() && compareTroveIds.size > 0) {
@@ -648,6 +658,7 @@ onClick={() => {
                 title="Clear"
                 onClick={() => {
                   setQuery('')
+                  setFreezeTroveListOrder(false)
                   setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE })
                   setDuplicatesResult(null)
                   setUniquesResult(null)
