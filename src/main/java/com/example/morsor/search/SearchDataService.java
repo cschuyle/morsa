@@ -98,7 +98,12 @@ public class SearchDataService {
 
     @PostConstruct
     void loadData() {
-        log.info("SearchDataService.loadData() started");
+        reloadData();
+    }
+
+    /** Reload troves and search index from configured source (file or S3). Call after startup to refresh data. */
+    public void reloadData() {
+        log.info("SearchDataService.reloadData() started");
         Set<String> onlyIds = parseOnlyTroveIds(onlyTroveIds);
         if (!onlyIds.isEmpty()) {
             log.info("Loading only trove IDs: {}", onlyIds);
@@ -114,7 +119,7 @@ public class SearchDataService {
         }
         allResults = combined;
         buildLuceneIndex();
-        log.info("SearchDataService.loadData() finished: {} results, {} trove options", allResults.size(), getTroveOptions().size());
+        log.info("SearchDataService.reloadData() finished: {} results, {} trove options", allResults.size(), getTroveOptions().size());
     }
 
     /** When s3troves profile is active, fail fast if any required env var is missing. */

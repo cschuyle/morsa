@@ -38,6 +38,11 @@ public class SearchController {
         return searchDataService.getTroveOptions();
     }
 
+    @PostMapping("/troves/reload")
+    public void reloadTroves() {
+        searchDataService.reloadData();
+    }
+
     /** Status and cache stats for the UI; avoids dependency on actuator health contributor API. */
     @GetMapping("/status")
     public StatusResponse status() {
