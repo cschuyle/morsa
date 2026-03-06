@@ -748,7 +748,8 @@
 .search-filetype-dropdown-panel {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
+  left: auto;
   margin-top: 0.25rem;
   padding: 0.35rem 0;
   min-width: 8rem;
@@ -757,6 +758,38 @@
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
+}
+
+.search-filetype-group {
+  padding: 0 0 0.25rem;
+}
+
+.search-filetype-group:last-child {
+  padding-bottom: 0;
+}
+
+.search-filetype-group-header {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0.75rem 0.1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.search-filetype-group-header:hover {
+  background: #f0f0f0;
+}
+
+.search-filetype-group-header input {
+  margin-right: 0.5rem;
+}
+
+.search-filetype-group .search-filetype-option {
+  padding-left: 1.5rem;
 }
 
 .search-filetype-option {

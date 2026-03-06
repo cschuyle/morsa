@@ -4,6 +4,7 @@ import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { queryCache } from './queryCache'
 import { formatCount, formatCacheBytes } from './formatCount'
+import { groupFileTypes, getGroupNameIfFullySelected } from './fileTypeGroups'
 import { SearchResultsGrid } from './SearchResultsGrid'
 import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
@@ -48,6 +49,7 @@ function MobileApp() {
   const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
   const [reloadTrovesProgress, setReloadTrovesProgress] = useState({ current: 0, total: 0 })
   const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
+  const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
@@ -193,6 +195,13 @@ function MobileApp() {
     const cached = queryCache.get(url)
     if (cached) {
       setSearchResult(cached)
+      if (Array.isArray(cached?.availableFileTypes) && cached.availableFileTypes.length > 0) {
+        setAllAvailableFileTypes((prev) => {
+          const next = new Set(prev)
+          cached.availableFileTypes.forEach((t) => next.add(t))
+          return [...next].sort()
+        })
+      }
       return
     }
     setSearching(true)
@@ -204,6 +213,13 @@ function MobileApp() {
       .then((data) => {
         queryCache.set(url, data)
         setSearchResult(data)
+        if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
+          setAllAvailableFileTypes((prev) => {
+            const next = new Set(prev)
+            data.availableFileTypes.forEach((t) => next.add(t))
+            return [...next].sort()
+          })
+        }
         refreshStatusMessage()
       })
       .catch(() => setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE }))
@@ -857,7 +873,7 @@ onClick={() => {
                   sortBy={searchSortBy}
                   sortDir={searchSortDir}
                   onSortChange={(col, dir) => fetchSearch(0, col, dir)}
-                  afterFilterSlot={Array.isArray(searchResult?.availableFileTypes) && searchResult.availableFileTypes.length >= 2 ? (
+                  afterFilterSlot={allAvailableFileTypes.length >= 2 ? (
                     <div className="mobile-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
                       <div className="mobile-filetype-trigger-wrap">
                         <button
@@ -868,7 +884,14 @@ onClick={() => {
                           aria-expanded={fileTypeDropdownOpen}
                           aria-label="Filter by file type"
                         >
-                          {fileTypeFilters.size === 0 ? 'Types: All' : `Only ${[...fileTypeFilters].sort().join(', ')}`}
+                          {fileTypeFilters.size === 0
+                            ? 'Types: All'
+                            : fileTypeFilters.size === 1
+                              ? `Only ${[...fileTypeFilters][0]}`
+                              : (() => {
+                                  const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
+                                  return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} types selected`
+                                })()}
                         </button>
                         {fileTypeFilters.size > 0 && (
                           <>
@@ -892,23 +915,49 @@ onClick={() => {
                       </div>
                       {fileTypeDropdownOpen && (
                         <div className="mobile-filetype-panel" role="listbox" aria-label="File type filter">
-                          {searchResult.availableFileTypes.map((ft) => (
-                            <label key={ft} className="mobile-filetype-option">
-                              <input
-                                type="checkbox"
-                                checked={fileTypeFilters.has(ft)}
-                                onChange={() => {
-                                  const next = new Set(fileTypeFilters)
-                                  if (next.has(ft)) next.delete(ft)
-                                  else next.add(ft)
-                                  setFileTypeFilters(next)
-                                  setSearchParams(buildSearchParams(next), { replace: true })
-                                  fetchSearch(0, null, null, next)
-                                }}
-                              />
-                              {ft}
-                            </label>
-                          ))}
+                          {groupFileTypes(allAvailableFileTypes).map(({ group, types }) => {
+                            const allSelected = types.every((ft) => fileTypeFilters.has(ft))
+                            const someSelected = types.some((ft) => fileTypeFilters.has(ft))
+                            return (
+                            <div key={group ?? 'other'} className="mobile-filetype-group">
+                              {group != null && (
+                                <label className="mobile-filetype-group-header">
+                                  <input
+                                    type="checkbox"
+                                    ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
+                                    checked={allSelected}
+                                    onChange={() => {
+                                      const next = new Set(fileTypeFilters)
+                                      if (allSelected) types.forEach((t) => next.delete(t))
+                                      else types.forEach((t) => next.add(t))
+                                      setFileTypeFilters(next)
+                                      setSearchParams(buildSearchParams(next), { replace: true })
+                                      fetchSearch(0, null, null, next)
+                                    }}
+                                  />
+                                  {group}
+                                </label>
+                              )}
+                              {types.map((ft) => (
+                                <label key={ft} className="mobile-filetype-option">
+                                  <input
+                                    type="checkbox"
+                                    checked={fileTypeFilters.has(ft)}
+                                    onChange={() => {
+                                      const next = new Set(fileTypeFilters)
+                                      if (next.has(ft)) next.delete(ft)
+                                      else next.add(ft)
+                                      setFileTypeFilters(next)
+                                      setSearchParams(buildSearchParams(next), { replace: true })
+                                      fetchSearch(0, null, null, next)
+                                    }}
+                                  />
+                                  {ft}
+                                </label>
+                              ))}
+                            </div>
+                            )
+                          })}
                         </div>
                       )}
                     </div>

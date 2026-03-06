@@ -7,6 +7,7 @@ import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { queryCache } from './queryCache'
 import { formatCount, formatCacheBytes } from './formatCount'
+import { groupFileTypes, getGroupNameIfFullySelected } from './fileTypeGroups'
 import './App.css'
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
   const [uniquesSortBy, setUniquesSortBy] = useState(null)
   const [uniquesSortDir, setUniquesSortDir] = useState('asc')
   const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
+  const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
@@ -109,6 +111,13 @@ function App() {
     const cached = queryCache.get(url)
     if (cached) {
       setSearchResult(cached)
+      if (Array.isArray(cached?.availableFileTypes) && cached.availableFileTypes.length > 0) {
+        setAllAvailableFileTypes((prev) => {
+          const next = new Set(prev)
+          cached.availableFileTypes.forEach((t) => next.add(t))
+          return [...next].sort()
+        })
+      }
       return
     }
     abortControllerRef.current?.abort()
@@ -125,6 +134,13 @@ function App() {
       .then((data) => {
         queryCache.set(url, data)
         setSearchResult(data)
+        if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
+          setAllAvailableFileTypes((prev) => {
+            const next = new Set(prev)
+            data.availableFileTypes.forEach((t) => next.add(t))
+            return [...next].sort()
+          })
+        }
         refreshStatusMessage()
       })
       .catch((err) => {
@@ -1027,7 +1043,7 @@ aria-label="Clear compare troves"
                 <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
                   {searching ? 'Searching…' : 'Go!'}
                 </button>
-                {searchMode === 'search' && Array.isArray(searchResult?.availableFileTypes) && searchResult.availableFileTypes.length >= 2 && (
+                {searchMode === 'search' && allAvailableFileTypes.length >= 2 && (
                   <div className="search-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
                     <div className="search-filetype-trigger-wrap">
                       <button
@@ -1038,7 +1054,9 @@ aria-label="Clear compare troves"
                         aria-expanded={fileTypeDropdownOpen}
                         aria-label="Filter by file type"
                       >
-                        {fileTypeFilters.size === 0 ? 'File types: All' : `Only ${[...fileTypeFilters].sort().join(', ')}`}
+                        {fileTypeFilters.size === 0
+                          ? 'File types: All'
+                          : `Only ${getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes) ?? [...fileTypeFilters].sort().join(', ')}`}
                       </button>
                       {fileTypeFilters.size > 0 && (
                         <>
@@ -1066,23 +1084,49 @@ aria-label="Clear compare troves"
                         role="listbox"
                         aria-label="File type filter"
                       >
-                        {searchResult.availableFileTypes.map((ft) => (
-                          <label key={ft} className="search-filetype-option">
-                            <input
-                              type="checkbox"
-                              checked={fileTypeFilters.has(ft)}
-                              onChange={() => {
-                                const next = new Set(fileTypeFilters)
-                                if (next.has(ft)) next.delete(ft)
-                                else next.add(ft)
-                                setFileTypeFilters(next)
-                                setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next), { replace: true })
-                                fetchSearch(0, null, null, null, null, next)
-                              }}
-                            />
-                            {ft}
-                          </label>
-                        ))}
+                        {groupFileTypes(allAvailableFileTypes).map(({ group, types }) => {
+                          const allSelected = types.every((ft) => fileTypeFilters.has(ft))
+                          const someSelected = types.some((ft) => fileTypeFilters.has(ft))
+                          return (
+                          <div key={group ?? 'other'} className="search-filetype-group">
+                            {group != null && (
+                              <label className="search-filetype-group-header">
+                                <input
+                                  type="checkbox"
+                                  ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
+                                  checked={allSelected}
+                                  onChange={() => {
+                                    const next = new Set(fileTypeFilters)
+                                    if (allSelected) types.forEach((t) => next.delete(t))
+                                    else types.forEach((t) => next.add(t))
+                                    setFileTypeFilters(next)
+                                    setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next), { replace: true })
+                                    fetchSearch(0, null, null, null, null, next)
+                                  }}
+                                />
+                                {group}
+                              </label>
+                            )}
+                            {types.map((ft) => (
+                              <label key={ft} className="search-filetype-option">
+                                <input
+                                  type="checkbox"
+                                  checked={fileTypeFilters.has(ft)}
+                                  onChange={() => {
+                                    const next = new Set(fileTypeFilters)
+                                    if (next.has(ft)) next.delete(ft)
+                                    else next.add(ft)
+                                    setFileTypeFilters(next)
+                                    setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next), { replace: true })
+                                    fetchSearch(0, null, null, null, null, next)
+                                  }}
+                                />
+                                {ft}
+                              </label>
+                            ))}
+                          </div>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
