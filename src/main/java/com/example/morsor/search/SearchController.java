@@ -13,6 +13,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Comparator;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +44,39 @@ public class SearchController {
     public void reloadTroves() {
         searchDataService.reloadData();
         searchCache.clear();
+    }
+
+    /** Streams NDJSON progress (current, total) during reload; total may be 0 when unknown. Use for UI progress bar. */
+    @PostMapping(value = "/troves/reload/stream", produces = "application/x-ndjson")
+    public ResponseEntity<StreamingResponseBody> reloadTrovesStream() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        ObjectMapper om = this.objectMapper;
+        StreamingResponseBody stream = out -> {
+            try {
+                SecurityContextHolder.setContext(securityContext);
+                searchDataService.reloadData((current, total) -> {
+                    try {
+                        out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
+                        out.write('\n');
+                        out.flush();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+                searchCache.clear();
+                out.write(om.writeValueAsBytes(Map.of("type", "done")));
+                out.write('\n');
+                out.flush();
+            } catch (Exception e) {
+                if (e instanceof UncheckedIOException u) throw u;
+                throw new RuntimeException(e);
+            } finally {
+                SecurityContextHolder.clearContext();
+            }
+        };
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/x-ndjson; charset=utf-8")
+                .body(stream);
     }
 
     /** Status and cache stats for the UI; avoids dependency on actuator health contributor API. */

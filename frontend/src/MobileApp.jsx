@@ -45,6 +45,8 @@ function MobileApp() {
   const [statusMessage, setStatusMessage] = useState('')
   const [cacheEntries, setCacheEntries] = useState(0)
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
+  const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
+  const [reloadTrovesProgress, setReloadTrovesProgress] = useState({ current: 0, total: 0 })
   const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const queryRef = useRef(query)
@@ -969,20 +971,78 @@ onClick={() => {
             <button
               type="button"
               className="mobile-footer-link mobile-clear-cache-btn"
-              onClick={() => {
+              onClick={async () => {
+                setReloadTrovesInProgress(true)
+                setReloadTrovesProgress({ current: 0, total: 0 })
                 const headers = { ...getApiAuthHeaders() }
                 const token = getCsrfToken()
                 if (token) headers['X-XSRF-TOKEN'] = token
-                fetch('/api/troves/reload', { method: 'POST', credentials: 'include', headers })
-                  .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) return fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } }).then((r) => r.ok ? r.json() : []) })
-                  .then((data) => { if (Array.isArray(data)) setTroves(data); refreshStatusMessage() })
-                  .catch(() => {})
+                try {
+                  const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers })
+                  if (res.status === 401) { window.location.href = '/login'; return }
+                  if (!res.ok || !res.body) {
+                    setReloadTrovesInProgress(false)
+                    return
+                  }
+                  const reader = res.body.getReader()
+                  const decoder = new TextDecoder()
+                  let buffer = ''
+                  while (true) {
+                    const { value, done } = await reader.read()
+                    if (done) break
+                    buffer += decoder.decode(value, { stream: true })
+                    const lines = buffer.split('\n')
+                    buffer = lines.pop() ?? ''
+                    for (const line of lines) {
+                      if (!line.trim()) continue
+                      try {
+                        const data = JSON.parse(line)
+                        if (data.type === 'progress') setReloadTrovesProgress({ current: data.current ?? 0, total: data.total ?? 0 })
+                        else if (data.type === 'done') {
+                          const r = await fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+                          if (r.ok) { const arr = await r.json(); if (Array.isArray(arr)) setTroves(arr) }
+                          refreshStatusMessage()
+                        }
+                      } catch (_) {}
+                    }
+                  }
+                } catch (_) {}
+                setReloadTrovesProgress({ current: 0, total: 0 })
+                setReloadTrovesInProgress(false)
               }}
             >
               Reload Troves
             </button>
           </p>
         )}
+      {reloadTrovesInProgress && (
+        <div className="reload-troves-overlay" role="dialog" aria-modal="true" aria-label="Reloading troves">
+          <div className="reload-troves-popup">
+            <p className="reload-troves-title">
+              {reloadTrovesProgress.total > 0
+                ? `Reloading ${reloadTrovesProgress.total} troves`
+                : 'Reloading troves'}
+            </p>
+            <div className={`reload-troves-progress-wrap ${reloadTrovesProgress.total === 0 ? 'reload-troves-progress-indeterminate-wrap' : ''}`}>
+              {reloadTrovesProgress.total > 0 ? (
+                <>
+                  <div className="reload-troves-progress-track">
+                    <div
+                      className="reload-troves-progress-fill"
+                      style={{ width: `${Math.round((reloadTrovesProgress.current / reloadTrovesProgress.total) * 100)}%` }}
+                    />
+                    <span className="reload-troves-progress-percent">
+                      {Math.round((reloadTrovesProgress.current / reloadTrovesProgress.total) * 100)}%
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="reload-troves-progress-bar reload-troves-progress-indeterminate" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
         <div className="mobile-footer-row">
           <Link to={location.search ? `/?${location.search.slice(1)}` : '/'} className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop site</Link>
           <button
