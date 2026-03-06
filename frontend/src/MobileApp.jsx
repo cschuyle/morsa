@@ -510,6 +510,15 @@ function MobileApp() {
   const results = searchResult?.results ?? []
   const count = searchResult?.count ?? 0
   const totalPages = Math.ceil(count / MOBILE_PAGE_SIZE) || 0
+  const displaySelectedTroveIds = useMemo(() => {
+    if (searchMode !== 'search' || selectedTroveIds.size > 0) return selectedTroveIds
+    if (!Array.isArray(results) || results.length === 0) return selectedTroveIds
+    const troveCounts = searchResult?.troveCounts
+    if (troveCounts != null && typeof troveCounts === 'object') {
+      return new Set(Object.keys(troveCounts).filter((id) => (troveCounts[id] ?? 0) > 0))
+    }
+    return new Set(results.map((r) => r?.troveId).filter(Boolean))
+  }, [searchMode, selectedTroveIds, searchResult?.troveCounts, results])
   const troveLabel = isDupOrUniques
     ? (primaryTroveId
         ? <><strong>Primary:</strong> {troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · {compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId) ? <strong>Self-compare</strong> : <><strong>Compare:</strong> {formatCount(compareTroveIds.size)}</>}</>
@@ -519,6 +528,13 @@ function MobileApp() {
     const q = trovePickerFilter.trim().toLowerCase()
     return !q || (t.name && t.name.toLowerCase().includes(q))
   })
+  const sortByName = (a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+  const mobileSearchTrovesWithResults = useMemo(() => {
+    if (searchMode !== 'search') return { selected: [], notSelected: [...filteredTroves].sort(sortByName) }
+    const selected = [...filteredTroves.filter((t) => displaySelectedTroveIds.has(t.id))].sort(sortByName)
+    const notSelected = [...filteredTroves.filter((t) => !displaySelectedTroveIds.has(t.id))].sort(sortByName)
+    return { selected, notSelected }
+  }, [searchMode, filteredTroves, displaySelectedTroveIds])
 
   return (
     <div className="mobile-app">
@@ -859,15 +875,29 @@ onClick={() => {
                         </label>
                       </li>
                     ))
-                  : filteredTroves.map((t) => (
-                      <li key={t.id} className="mobile-trove-item">
-                        <label className="mobile-trove-label">
-                          <input type="checkbox" checked={selectedTroveIds.has(t.id)} onChange={() => toggleTrove(t.id)} />
-                          <span>{t.name}</span>
-                        </label>
-                        <button type="button" className="mobile-trove-only-link" onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }} aria-label={`Search only ${t.name}`} title="Select only this trove">only</button>
-                      </li>
-                    ))
+                  : (() => {
+                      const { selected, notSelected } = mobileSearchTrovesWithResults
+                      const renderTrove = (t) => (
+                        <li key={t.id} className={`mobile-trove-item${selectedTroveIds.has(t.id) ? ' mobile-trove-item--selected' : ''}`}>
+                          <label className="mobile-trove-label">
+                            <input type="checkbox" checked={selectedTroveIds.has(t.id)} onChange={() => toggleTrove(t.id)} />
+                            <span>{t.name}</span>
+                          </label>
+                          <button type="button" className="mobile-trove-only-link" onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }} aria-label={`Search only ${t.name}`} title="Select only this trove">only</button>
+                        </li>
+                      )
+                      return (
+                        <>
+                          {selected.map(renderTrove)}
+                          {selected.length > 0 && notSelected.length > 0 && (
+                            <li className="mobile-trove-list-separator" aria-hidden="true">
+                              <hr className="mobile-trove-separator" />
+                            </li>
+                          )}
+                          {notSelected.map(renderTrove)}
+                        </>
+                      )
+                    })()
               }
             </ul>
           </div>

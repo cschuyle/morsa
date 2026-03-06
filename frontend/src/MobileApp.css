@@ -442,6 +442,23 @@
   gap: 0.4rem;
 }
 
+.mobile-trove-item.mobile-trove-item--selected {
+  background: #e8eeff;
+}
+
+.mobile-trove-list-separator {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.mobile-trove-list-separator .mobile-trove-separator {
+  margin: 0.25rem 0.5rem;
+  border: none;
+  border-top: 1px solid #ddd;
+}
+
 .mobile-trove-label {
   display: flex;
   align-items: center;

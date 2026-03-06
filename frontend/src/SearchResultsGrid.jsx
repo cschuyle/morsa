@@ -22,6 +22,33 @@ const textColumns = [
   },
 ]
 
+function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles) {
+  const labels = new Set()
+  if (pdfs.length > 0) labels.add('PDF')
+  imageUrls.forEach((u) => {
+    const m = u.match(/\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i)
+    if (m) labels.add(m[1].toUpperCase())
+  })
+  ebooks.forEach((u) => {
+    const m = u.match(/\.(mobi|epub)(\?|$)/i)
+    if (m) labels.add(m[1].toUpperCase())
+  })
+  videos.forEach((u) => {
+    const m = u.match(/\.(mp4|m4v|avi|mov|mkv|webm|wmv|flv)(\?|$)/i)
+    if (m) labels.add(m[1].toUpperCase())
+  })
+  audios.forEach((u) => {
+    const m = u.match(/\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i)
+    if (m) labels.add(m[1].toUpperCase())
+  })
+  otherFiles.forEach((u) => {
+    const m = u.match(/\.([a-z0-9]+)(\?|$)/i)
+    labels.add(m ? m[1].toUpperCase() : 'Other')
+  })
+  const list = [...labels].sort()
+  return list.length > 0 ? `Files: ${list.join(', ')}` : null
+}
+
 function thumbnailColumnDef(onThumbnailClick) {
   return {
     id: 'thumb',
@@ -41,10 +68,12 @@ function thumbnailColumnDef(onThumbnailClick) {
       const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
       const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
       if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
+      const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles)
       return (
         <button
           type="button"
           className="search-thumb-btn"
+          title={fileTypeTooltip ?? undefined}
           onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles })}
           aria-label="View full size"
         >

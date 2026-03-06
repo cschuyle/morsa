@@ -501,14 +501,14 @@ function App() {
     )
   }, [troves, primaryTroveFilter])
 
-  const { selected: selectedTroves, notSelected: notSelectedTroves } = useMemo(() => {
-    const hasResults = searchResult?.results != null && Array.isArray(searchResult.results)
+  const { selected: selectedTroves, notSelected: notSelectedTroves, displaySelectedTroveIds } = useMemo(() => {
+    const hasResults = searchResult?.results != null && Array.isArray(searchResult.results) && searchResult.results.length > 0
     const troveCounts = searchResult?.troveCounts != null && typeof searchResult.troveCounts === 'object'
       ? searchResult.troveCounts
       : null
     const withCounts = troves.map((t) => ({
       ...t,
-      resultCount: hasResults
+      resultCount: searchResult?.results != null && Array.isArray(searchResult.results)
         ? (troveCounts != null ? (troveCounts[t.id] ?? 0) : searchResult.results.filter((r) => r.troveId === t.id).length)
         : 0,
     }))
@@ -524,10 +524,14 @@ function App() {
       filtered = filtered.filter((t) => !selectedTroveIds.has(t.id))
     }
     const sortByName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-    const selected = filtered.filter((t) => selectedTroveIds.has(t.id)).sort(sortByName)
-    const notSelected = filtered.filter((t) => !selectedTroveIds.has(t.id)).sort(sortByName)
-    return { selected, notSelected }
-  }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds])
+    const idsForSplit =
+      searchMode === 'search' && selectedTroveIds.size === 0 && hasResults
+        ? new Set(withCounts.filter((t) => t.resultCount > 0).map((t) => t.id))
+        : selectedTroveIds
+    const selected = filtered.filter((t) => idsForSplit.has(t.id)).sort(sortByName)
+    const notSelected = filtered.filter((t) => !idsForSplit.has(t.id)).sort(sortByName)
+    return { selected, notSelected, displaySelectedTroveIds: idsForSplit }
+  }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds, searchMode])
 
   const sortedDuplicateRows = useMemo(() => {
     const raw = Array.isArray(duplicatesResult?.rows) ? duplicatesResult.rows : []
@@ -853,7 +857,7 @@ aria-label="Clear compare troves"
             {selectedTroves.map((t) => (
               <li
                 key={t.id}
-                className={`trove-item trove-item--selected ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''}`}
+                className={`trove-item ${selectedTroveIds.has(t.id) ? 'trove-item--selected' : ''} ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''}`}
               >
                 <label className="trove-checkbox">
                   <input
