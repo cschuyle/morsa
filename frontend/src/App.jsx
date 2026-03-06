@@ -58,6 +58,7 @@ function App() {
   const queryRef = useRef(query)
   const skipCheckboxSearchRef = useRef(true)
   const abortControllerRef = useRef(null)
+  const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
   const PAGE_SIZE_OPTIONS = [10, 25, 100, 500, 1000, 5000, 10000]
   queryRef.current = query
@@ -1577,11 +1578,13 @@ aria-label="Clear compare troves"
               onClick={async () => {
                 setReloadTrovesInProgress(true)
                 setReloadTrovesProgress({ current: 0, total: 0 })
+                const controller = new AbortController()
+                reloadAbortControllerRef.current = controller
                 const headers = { ...getApiAuthHeaders() }
                 const token = getCsrfToken()
                 if (token) headers['X-XSRF-TOKEN'] = token
                 try {
-                  const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers })
+                  const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers, signal: controller.signal })
                   if (res.status === 401) { window.location.href = '/login'; return }
                   if (!res.ok || !res.body) {
                     setReloadTrovesInProgress(false)
@@ -1646,6 +1649,15 @@ aria-label="Clear compare troves"
               ) : (
                 <div className="reload-troves-progress-bar reload-troves-progress-indeterminate" />
               )}
+            </div>
+            <div className="reload-troves-actions">
+              <button
+                type="button"
+                className="reload-troves-cancel-btn"
+                onClick={() => reloadAbortControllerRef.current?.abort()}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

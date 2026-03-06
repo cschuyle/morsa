@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import java.util.List;
@@ -51,20 +52,23 @@ public class SearchController {
     public ResponseEntity<StreamingResponseBody> reloadTrovesStream() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         ObjectMapper om = this.objectMapper;
+        AtomicBoolean cancelled = new AtomicBoolean(false);
         StreamingResponseBody stream = out -> {
             try {
                 SecurityContextHolder.setContext(securityContext);
                 searchDataService.reloadData((current, total) -> {
+                    if (cancelled.get()) return;
                     synchronized (out) {
                         try {
                             out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
                             out.write('\n');
                             out.flush();
                         } catch (IOException e) {
-                            throw new UncheckedIOException(e);
+                            cancelled.set(true);
                         }
                     }
-                });
+                }, cancelled);
+                if (cancelled.get()) return;
                 searchCache.clear();
                 out.write(om.writeValueAsBytes(Map.of("type", "done")));
                 out.write('\n');

@@ -52,6 +52,7 @@ function MobileApp() {
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
   const abortRef = useRef(null)
+  const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
@@ -974,11 +975,13 @@ onClick={() => {
               onClick={async () => {
                 setReloadTrovesInProgress(true)
                 setReloadTrovesProgress({ current: 0, total: 0 })
+                const controller = new AbortController()
+                reloadAbortControllerRef.current = controller
                 const headers = { ...getApiAuthHeaders() }
                 const token = getCsrfToken()
                 if (token) headers['X-XSRF-TOKEN'] = token
                 try {
-                  const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers })
+                  const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers, signal: controller.signal })
                   if (res.status === 401) { window.location.href = '/login'; return }
                   if (!res.ok || !res.body) {
                     setReloadTrovesInProgress(false)
@@ -1039,6 +1042,15 @@ onClick={() => {
               ) : (
                 <div className="reload-troves-progress-bar reload-troves-progress-indeterminate" />
               )}
+            </div>
+            <div className="reload-troves-actions">
+              <button
+                type="button"
+                className="reload-troves-cancel-btn"
+                onClick={() => reloadAbortControllerRef.current?.abort()}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

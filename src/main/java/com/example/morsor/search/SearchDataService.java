@@ -56,6 +56,7 @@ import java.util.TreeSet;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -104,15 +105,16 @@ public class SearchDataService {
 
     /** Reload troves and search index from configured source (file or S3). Call after startup to refresh data. */
     public void reloadData() {
-        reloadData(null);
+        reloadData(null, null);
     }
 
     /**
      * Reload troves with optional progress callback. Progress is (current, total) where total is the number of
      * troves to load; total may be 0 when unknown (e.g. some deployments). When total is known (e.g. classpath
      * or S3 manifest, or postgres profile with a count), the UI can show percentage completion.
+     * If cancelled is set (e.g. client disconnected), the loaded data is not applied and existing data is left unchanged.
      */
-    public void reloadData(BiConsumer<Integer, Integer> progress) {
+    public void reloadData(BiConsumer<Integer, Integer> progress, AtomicBoolean cancelled) {
         log.info("SearchDataService.reloadData() started");
         Set<String> onlyIds = parseOnlyTroveIds(onlyTroveIds);
         if (!onlyIds.isEmpty()) {
@@ -127,8 +129,12 @@ public class SearchDataService {
         } else {
             loadFromClasspath(combined, onlyIds, progress);
         }
+        if (cancelled != null && cancelled.get()) {
+            log.info("Reload cancelled (client disconnected); existing data unchanged");
+            return;
+        }
+        buildLuceneIndex(combined);
         allResults = combined;
-        buildLuceneIndex();
         log.info("SearchDataService.reloadData() finished: {} results, {} trove options", allResults.size(), getTroveOptions().size());
     }
 
@@ -158,8 +164,16 @@ public class SearchDataService {
         return s == null || s.isBlank();
     }
 
-    private void buildLuceneIndex() {
-        if (allResults.isEmpty()) {
+    private static boolean isInterruptedOrAborted(Throwable t) {
+        for (Throwable x = t; x != null; x = x.getCause()) {
+            if (x.getMessage() != null && x.getMessage().contains("Thread was interrupted")) return true;
+        }
+        return false;
+    }
+
+    /** Build Lucene index from the given list and set luceneDirectory/luceneSearcher. Used so reload can build from new data before replacing allResults. */
+    private void buildLuceneIndex(List<SearchResult> from) {
+        if (from == null || from.isEmpty()) {
             log.info("Lucene index skipped: no data");
             return;
         }
@@ -171,8 +185,8 @@ public class SearchDataService {
                 final String contentField = "content";
                 final String troveIdField = "troveId";
                 final String idxField = "idx";
-                for (int i = 0; i < allResults.size(); i++) {
-                    SearchResult r = allResults.get(i);
+                for (int i = 0; i < from.size(); i++) {
+                    SearchResult r = from.get(i);
                     Document doc = new Document();
                     String title = r.title() != null ? r.title() : "";
                     String snippet = r.snippet() != null ? r.snippet() : "";
@@ -185,7 +199,7 @@ public class SearchDataService {
             }
             luceneDirectory = dir;
             luceneSearcher = new IndexSearcher(DirectoryReader.open(luceneDirectory));
-            log.info("Lucene index built: {} documents", allResults.size());
+            log.info("Lucene index built: {} documents", from.size());
         } catch (IOException e) {
             log.error("Failed to build Lucene index: {}", e.getMessage(), e);
         }
@@ -264,7 +278,11 @@ public class SearchDataService {
                             }
                             return results.stream();
                         } catch (Exception e) {
-                            log.error("Failed to load trove \"{}\" from S3 (key={}): {}", tk.troveId, tk.key, e.getMessage(), e);
+                            if (isInterruptedOrAborted(e)) {
+                                log.debug("Trove load skipped (interrupted): {}", e.getMessage());
+                            } else {
+                                log.error("Failed to load trove \"{}\" from S3 (key={}): {}", tk.troveId, tk.key, e.getMessage(), e);
+                            }
                             if (completed != null) {
                                 progress.accept(completed.incrementAndGet(), totalTroves);
                             }

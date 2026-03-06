@@ -1457,3 +1457,24 @@
   border-radius: 4px;
   animation: search-compare-progress-indeterminate 1.2s ease-in-out infinite;
 }
+
+.reload-troves-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reload-troves-cancel-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  color: #fff;
+  background: #c00;
+  border: 1px solid #a00;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reload-troves-cancel-btn:hover {
+  background: #a00;
+  border-color: #800;
+}
