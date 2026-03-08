@@ -53,6 +53,7 @@ function MobileApp() {
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
+  const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery'
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
   const abortRef = useRef(null)
@@ -933,11 +934,33 @@ onClick={() => {
             )}
             {results.length > 0 && (
               <div className={`mobile-search-results-grid${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
+                <div className="mobile-view-mode-row">
+                  <span className="mobile-view-mode-toggle" role="group" aria-label="Results view">
+                    <button
+                      type="button"
+                      className={`mobile-view-mode-btn ${searchResultsViewMode === 'list' ? 'mobile-view-mode-btn--active' : ''}`}
+                      onClick={() => setSearchResultsViewMode('list')}
+                      aria-pressed={searchResultsViewMode === 'list'}
+                    >
+                      List
+                    </button>
+                    <button
+                      type="button"
+                      className={`mobile-view-mode-btn ${searchResultsViewMode === 'gallery' ? 'mobile-view-mode-btn--active' : ''}`}
+                      onClick={() => setSearchResultsViewMode('gallery')}
+                      aria-pressed={searchResultsViewMode === 'gallery'}
+                    >
+                      Gallery
+                    </button>
+                  </span>
+                </div>
                 <SearchResultsGrid
                   data={results}
                   sortBy={searchSortBy}
                   sortDir={searchSortDir}
                   onSortChange={(col, dir) => fetchSearch(0, col, dir)}
+                  showScoreColumn={query.trim() !== '*'}
+                  viewMode={searchResultsViewMode}
                   afterFilterSlot={allAvailableFileTypes.length >= 2 ? (() => {
                     const upper = (s) => (s || '').toUpperCase()
                     const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
