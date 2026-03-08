@@ -10,7 +10,7 @@ import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
 import './MobileApp.css'
 
-const MOBILE_PAGE_SIZE = 25
+const MOBILE_PAGE_SIZE = 100
 const DUP_UNIQUES_PAGE_SIZE = 50
 
 function MobileApp() {
