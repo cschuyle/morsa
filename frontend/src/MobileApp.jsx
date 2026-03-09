@@ -702,7 +702,7 @@ onClick={() => {
               type="search"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
-              onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = '' } }}
+              onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = ''; setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE }) } }}
               placeholder="e.g. Greek, Prince, Albanian — or * for all"
               className="mobile-search-input"
               autoCapitalize="off"
