@@ -25,6 +25,7 @@ function App() {
   const [troveFilter, setTroveFilter] = useState('')
   const [showFilter, setShowFilter] = useState('all')
   const [freezeTroveListOrder, setFreezeTroveListOrder] = useState(false)
+  const [boostTroveId, setBoostTroveId] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sortBy, setSortBy] = useState(null)
   const [sortDir, setSortDir] = useState('asc')
@@ -100,6 +101,7 @@ function App() {
       size: String(size),
     })
     troveIds.forEach((id) => params.append('trove', id))
+    if (boostTroveId) params.set('boostTrove', boostTroveId)
     if (fileTypesToUse && fileTypesToUse.size > 0) params.set('fileTypes', [...fileTypesToUse].sort().join(','))
     if (sortByOverride !== undefined || sortDirOverride !== undefined) {
       setSortBy(nextSortBy || null)
@@ -285,12 +287,21 @@ function App() {
   }
 
   function handleOnlyClick(troveId) {
-    if (searchMode === 'search') setFreezeTroveListOrder(true)
-    selectOnlyTrove(troveId)
-    if (!query.trim()) {
-      queryRef.current = '*'
-      setQuery('*')
-      fetchSearch(0, null, new Set([troveId]))
+    if (searchMode === 'search') {
+      setFreezeTroveListOrder(true)
+      setBoostTroveId(troveId)
+      if (!query.trim()) {
+        queryRef.current = '*'
+        setQuery('*')
+      }
+      fetchSearch(0)
+    } else {
+      selectOnlyTrove(troveId)
+      if (!query.trim()) {
+        queryRef.current = '*'
+        setQuery('*')
+        fetchSearch(0, null, new Set([troveId]))
+      }
     }
   }
 
@@ -888,10 +899,10 @@ aria-label="Clear compare troves"
                 {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
                   <button
                     type="button"
-                    className="trove-only-link"
+                    className={`trove-only-link${searchMode === 'search' && boostTroveId === t.id ? ' trove-only-link--boost-active' : ''}`}
                     onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
-                    aria-label={`Search only ${t.name}`}
-                    title="Only this trove"
+                    aria-label={searchMode === 'search' ? (boostTroveId === t.id ? `Boost on for ${t.name} (results rank higher)` : `Boost ${t.name} in search results`) : `Search only ${t.name}`}
+                    title={searchMode === 'search' ? (boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results') : 'Only this trove'}
                   >
                     <img src="/target.png" alt="" className="trove-only-icon" />
                     <span className="trove-booster" aria-hidden="true">↑</span>
@@ -922,10 +933,10 @@ aria-label="Clear compare troves"
                 {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
                   <button
                     type="button"
-                    className="trove-only-link"
+                    className={`trove-only-link${searchMode === 'search' && boostTroveId === t.id ? ' trove-only-link--boost-active' : ''}`}
                     onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
-                    aria-label={`Search only ${t.name}`}
-                    title="Only this trove"
+                    aria-label={searchMode === 'search' ? (boostTroveId === t.id ? `Boost on for ${t.name} (results rank higher)` : `Boost ${t.name} in search results`) : `Search only ${t.name}`}
+                    title={searchMode === 'search' ? (boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results') : 'Only this trove'}
                   >
                     <img src="/target.png" alt="" className="trove-only-icon" />
                     <span className="trove-booster" aria-hidden="true">↑</span>

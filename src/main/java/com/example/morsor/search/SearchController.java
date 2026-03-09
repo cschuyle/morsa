@@ -108,6 +108,7 @@ public class SearchController {
     @GetMapping("/search")
     public SearchResponse search(
             @RequestParam(required = false) List<String> trove,
+            @RequestParam(required = false) String boostTrove,
             @RequestParam(required = false, defaultValue = "") String query,
             @RequestParam(required = false) String fileTypes,
             @RequestParam(required = false, defaultValue = "0") int page,
@@ -116,11 +117,12 @@ public class SearchController {
             @RequestParam(required = false, defaultValue = "asc") String sortDir) {
         page = Math.max(0, page);
         size = Math.min(MAX_PAGE_SIZE, Math.max(1, size));
+        String boostVal = boostTrove != null && !boostTrove.isBlank() ? boostTrove.trim() : "";
         String cacheKey = "s:" + (query != null ? query.trim() : "") + ":"
-                + (trove != null ? trove.stream().filter(t -> t != null).sorted().collect(Collectors.joining(",")) : "");
+                + (trove != null ? trove.stream().filter(t -> t != null).sorted().collect(Collectors.joining(",")) : "") + ":b:" + boostVal;
         String queryVal = query != null ? query.trim() : "";
         boolean isWildcard = "*".equals(queryVal) || queryVal.isEmpty();
-        SearchCache.CacheResult<ScoredSearchResult> cacheResult = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query));
+        SearchCache.CacheResult<ScoredSearchResult> cacheResult = searchCache.getOrCompute(cacheKey, () -> searchDataService.search(trove, query, boostVal.isEmpty() ? null : boostVal));
         List<ScoredSearchResult> scored = cacheResult.data();
         List<SearchResultWithScore> all = scored.stream()
                 .map(ss -> new SearchResultWithScore(ss.result(), isWildcard ? null : ss.score()))

@@ -524,9 +524,14 @@
 }
 
 .mobile-trove-only-link .trove-booster {
-  color: #c00;
+  color: #888;
   font-size: 1rem;
   line-height: 1;
+}
+
+.mobile-trove-only-link--boost-active .trove-booster {
+  color: #c00;
+  font-weight: bold;
 }
 
 .mobile-result-count {

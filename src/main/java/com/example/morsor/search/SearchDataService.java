@@ -15,11 +15,13 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BoostQuery;
 import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermInSetQuery;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
@@ -331,11 +333,19 @@ public class SearchDataService {
         }
     }
 
+    /** Boost factor for the preferred (booster) trove so its hits outrank others. */
+    private static final float TROVE_BOOST_FACTOR = 5.0f;
+
     public List<ScoredSearchResult> search(List<String> troveIds, String query) {
+        return search(troveIds, query, null);
+    }
+
+    public List<ScoredSearchResult> search(List<String> troveIds, String query, String boostTroveId) {
         Set<String> troveIdSet = troveIds == null ? Set.of() : troveIds.stream()
                 .map(t -> t == null ? null : t.trim())
                 .filter(t -> t != null && !t.isEmpty())
                 .collect(Collectors.toUnmodifiableSet());
+        String boostId = boostTroveId != null && !boostTroveId.isBlank() ? boostTroveId.trim() : null;
         String queryTrimmed = query == null ? "" : query.trim();
         boolean matchAll = "*".equals(queryTrimmed);
         boolean noTextQuery = queryTrimmed.isEmpty() || matchAll;
@@ -345,7 +355,9 @@ public class SearchDataService {
             if (!troveIdSet.isEmpty()) {
                 stream = stream.filter(r -> r.troveId() != null && troveIdSet.contains(r.troveId()));
             }
-            return stream.map(r -> new ScoredSearchResult(r, 0.0)).toList();
+            List<ScoredSearchResult> list = stream.map(r -> new ScoredSearchResult(r, 0.0)).toList();
+            if (boostId != null) sortWithBoostTroveFirst(list, boostId);
+            return list;
         }
 
         // Regex delimited by slashes: match full title+snippet with Java Pattern (not per-term Lucene regex)
@@ -365,6 +377,7 @@ public class SearchDataService {
                             })
                             .map(r -> new ScoredSearchResult(r, 1.0))
                             .toList();
+                    if (boostId != null) sortWithBoostTroveFirst(out, boostId);
                     return out;
                 } catch (Exception e) {
                     log.debug("Invalid regex \"{}\", falling back: {}", patternStr, e.getMessage());
@@ -373,7 +386,9 @@ public class SearchDataService {
         }
 
         if (luceneSearcher == null) {
-            return searchFallbackScored(troveIdSet, queryTrimmed);
+            List<ScoredSearchResult> fallback = searchFallbackScored(troveIdSet, queryTrimmed);
+            if (boostId != null) sortWithBoostTroveFirst(fallback, boostId);
+            return fallback;
         }
         try {
             BooleanQuery.Builder bq = new BooleanQuery.Builder();
@@ -388,6 +403,9 @@ public class SearchDataService {
                 textQuery = parser.parse(QueryParser.escape(queryTrimmed));
             }
             bq.add(textQuery, BooleanClause.Occur.MUST);
+            if (boostId != null) {
+                bq.add(new BoostQuery(new TermQuery(new Term("troveId", boostId)), TROVE_BOOST_FACTOR), BooleanClause.Occur.SHOULD);
+            }
             TopDocs topDocs = luceneSearcher.search(bq.build(), allResults.size());
             List<ScoredSearchResult> out = new ArrayList<>(topDocs.scoreDocs.length);
             StoredFields storedFields = luceneSearcher.storedFields();
@@ -404,10 +422,14 @@ public class SearchDataService {
             return out;
         } catch (ParseException e) {
             log.debug("Lucene parse failed for query \"{}\", falling back to substring match: {}", queryTrimmed, e.getMessage());
-            return searchFallbackScored(troveIdSet, queryTrimmed);
+            List<ScoredSearchResult> fallback = searchFallbackScored(troveIdSet, queryTrimmed);
+            if (boostId != null) sortWithBoostTroveFirst(fallback, boostId);
+            return fallback;
         } catch (IOException e) {
             log.warn("Lucene search failed: {}, falling back to substring match", e.getMessage());
-            return searchFallbackScored(troveIdSet, queryTrimmed);
+            List<ScoredSearchResult> fallback = searchFallbackScored(troveIdSet, queryTrimmed);
+            if (boostId != null) sortWithBoostTroveFirst(fallback, boostId);
+            return fallback;
         }
     }
 
@@ -419,6 +441,17 @@ public class SearchDataService {
      */
     private Query buildFuzzyQuery(String queryTrimmed) throws IOException {
         return SearchQueryBuilder.buildQuery(queryTrimmed, luceneAnalyzer, CONTENT_FIELD);
+    }
+
+    /** Sort so that results from the boosted trove come first (for no-text and regex paths). */
+    private static void sortWithBoostTroveFirst(List<ScoredSearchResult> list, String boostTroveId) {
+        if (list == null || boostTroveId == null) return;
+        list.sort((a, b) -> {
+            boolean aBoost = boostTroveId.equals(a.result().troveId());
+            boolean bBoost = boostTroveId.equals(b.result().troveId());
+            if (aBoost == bBoost) return 0;
+            return aBoost ? -1 : 1;
+        });
     }
 
     private List<SearchResult> searchFallback(Set<String> troveIdSet, String queryTrimmed) {
