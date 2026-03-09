@@ -7,6 +7,8 @@ import {
 } from '@tanstack/react-table'
 import './SearchResultsGrid.css'
 
+const AMAZON_PLACEHOLDER_THUMB = 'https://m.media-amazon.com/images/I/01RmK+J4pJL._SS135_.gif'
+
 const textColumns = [
   {
     id: 'title',
@@ -87,6 +89,8 @@ function thumbnailColumnDef(onThumbnailClick) {
       const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
       const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
       const isLittlePrince = itemType === 'littlePrinceItem'
+      const thumbIsPlaceholder = url && String(url).trim() === AMAZON_PLACEHOLDER_THUMB
+      const showLinkIconInsteadOfThumb = isLittlePrince && (!url || thumbIsPlaceholder)
       const showLinkIconOnly = isLittlePrince && !url && itemUrl
       if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
       const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl)
@@ -105,18 +109,18 @@ function thumbnailColumnDef(onThumbnailClick) {
           onClick={() => canClick && onThumbnailClick(payload)}
           aria-label={showLinkIconOnly ? 'Open link' : 'View full size'}
         >
-          {largeUrl && url && (
+          {largeUrl && url && !thumbIsPlaceholder && (
             <span className="search-thumb-pop-icon" aria-hidden="true">↗</span>
           )}
-          {url ? (
+          {showLinkIconInsteadOfThumb ? (
+            linkIcon
+          ) : url ? (
             <img
               src={url}
               alt=""
               className="search-thumb"
               loading="lazy"
             />
-          ) : showLinkIconOnly ? (
-            linkIcon
           ) : null}
         </button>
       )
@@ -324,9 +328,10 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
             filteredRowsForGallery.map((row, idx) => {
               const payload = getLightboxPayload(row)
               const thumbUrl = row?.thumbnailUrl
+              const thumbIsPlaceholder = thumbUrl && String(thumbUrl).trim() === AMAZON_PLACEHOLDER_THUMB
               const itemUrl = row?.itemUrl && String(row.itemUrl).trim() ? row.itemUrl.trim() : null
-              const hasImage = thumbUrl && row?.itemType === 'littlePrinceItem'
-              const showLinkIconOnly = row?.itemType === 'littlePrinceItem' && !thumbUrl && itemUrl
+              const hasImage = thumbUrl && !thumbIsPlaceholder && row?.itemType === 'littlePrinceItem'
+              const showLinkIcon = row?.itemType === 'littlePrinceItem' && (!thumbUrl || thumbIsPlaceholder)
               const title = row?.title ?? ''
               const trove = row?.trove ?? ''
               const galleryLinkIcon = (
@@ -353,7 +358,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   <span className="search-results-gallery-card-image">
                     {hasImage ? (
                       <img src={thumbUrl} alt="" loading="lazy" />
-                    ) : showLinkIconOnly ? (
+                    ) : showLinkIcon ? (
                       galleryLinkIcon
                     ) : (
                       <span className="search-results-gallery-card-placeholder" aria-hidden="true">

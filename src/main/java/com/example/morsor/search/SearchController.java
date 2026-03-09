@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class SearchController {
 
+    private static final String AMAZON_PLACEHOLDER_THUMB = "https://m.media-amazon.com/images/I/01RmK+J4pJL._SS135_.gif";
+
     private final SearchDataService searchDataService;
     private final SearchCache searchCache;
     private final ObjectMapper objectMapper;
@@ -413,7 +415,14 @@ public class SearchController {
             case "score" -> Comparator.comparing(
                     SearchResultWithScore::score,
                     Comparator.nullsLast(Comparator.naturalOrder()));
+            case "thumb" -> Comparator.comparing(SearchController::hasRealThumbnail).reversed();
             default -> null;
         };
+    }
+
+    /** True if the result has a real thumbnail (non-blank and not the Amazon placeholder). Rows with real thumbnails sort before pop-out-only rows (asc = real first, pop-out last). */
+    private static boolean hasRealThumbnail(SearchResultWithScore r) {
+        String u = r.result().thumbnailUrl();
+        return u != null && !u.isBlank() && !AMAZON_PLACEHOLDER_THUMB.equals(u.trim());
     }
 }
