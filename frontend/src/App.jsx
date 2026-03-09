@@ -599,7 +599,7 @@ function App() {
     }
     const idsForSplit =
       searchMode === 'search' && hasResults
-        ? new Set(withCounts.filter((t) => t.resultCount > 0 || selectedTroveIds.has(t.id)).map((t) => t.id))
+        ? new Set(withCounts.filter((t) => t.resultCount > 0 || selectedTroveIds.has(t.id) || (boostTroveId != null && t.id === boostTroveId)).map((t) => t.id))
         : selectedTroveIds
     const doSplit = searchMode !== 'search' || !freezeTroveListOrder || (searchMode === 'search' && hasResults)
     const selectedSortWhenResults =
@@ -607,6 +607,8 @@ function App() {
         if ((a.resultCount ?? 0) > 0 && (b.resultCount ?? 0) === 0) return -1
         if ((a.resultCount ?? 0) === 0 && (b.resultCount ?? 0) > 0) return 1
         if ((a.resultCount ?? 0) > 0 && (b.resultCount ?? 0) > 0) return sortByHitsDesc(a, b)
+        if (boostTroveId != null && a.id === boostTroveId && b.id !== boostTroveId) return -1
+        if (boostTroveId != null && b.id === boostTroveId && a.id !== boostTroveId) return 1
         return sortByName(a, b)
       }
     const selectedSort = doSplit && hasResults ? selectedSortWhenResults : sortByName
