@@ -33,12 +33,15 @@ function getLightboxPayload(row) {
   const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
   const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
   const imageUrl = row.largeImageUrl || (imageUrls.length > 0 ? imageUrls[0] : null)
-  if (!imageUrl && pdfs.length === 0 && imageUrls.length === 0 && ebooks.length === 0 && videos.length === 0 && audios.length === 0 && otherFiles.length === 0) return null
-  return { imageUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles }
+  const itemUrl = row.itemUrl && String(row.itemUrl).trim() ? row.itemUrl.trim() : null
+  const hasContent = imageUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
+  if (!hasContent) return null
+  return { imageUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
 }
 
-function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles) {
+function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl) {
   const labels = new Set()
+  if (itemUrl) labels.add('URL')
   if (pdfs.length > 0) labels.add('PDF')
   imageUrls.forEach((u) => {
     const m = u.match(/\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i)
@@ -61,7 +64,7 @@ function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles)
     labels.add(m ? m[1].toUpperCase() : 'Other')
   })
   const list = [...labels].sort()
-  return list.length > 0 ? `Files: ${list.join(', ')}` : null
+  return list.length > 0 ? `Media: ${list.join(', ')}` : null
 }
 
 function thumbnailColumnDef(onThumbnailClick) {
@@ -74,6 +77,7 @@ function thumbnailColumnDef(onThumbnailClick) {
       const url = info.getValue()
       const itemType = row?.itemType
       const largeUrl = row?.largeImageUrl
+      const itemUrl = row?.itemUrl && String(row.itemUrl).trim() ? row.itemUrl.trim() : null
       const files = Array.isArray(row?.files) ? row.files : []
       const pdfs = files.filter((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
       const imageUrls = files.filter((u) => typeof u === 'string' && /\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i.test(u))
@@ -83,13 +87,15 @@ function thumbnailColumnDef(onThumbnailClick) {
       const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
       const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
       if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
-      const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles)
+      const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl)
+      const payload = { imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
+      const canClick = largeUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
       return (
         <button
           type="button"
           className="search-thumb-btn"
           title={fileTypeTooltip ?? undefined}
-          onClick={() => (largeUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0) && onThumbnailClick({ imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles })}
+          onClick={() => canClick && onThumbnailClick(payload)}
           aria-label="View full size"
         >
           {largeUrl && (
@@ -133,7 +139,13 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
     [data]
   )
   const baseColumns = useMemo(
-    () => (hasThumbnails ? [thumbnailColumnDef(setLightbox), ...textColumns] : textColumns),
+    () => (hasThumbnails ? [thumbnailColumnDef((payload) => {
+      if (payload.itemUrl && !payload.imageUrl) {
+        window.open(payload.itemUrl, '_blank', 'noopener,noreferrer')
+        return
+      }
+      setLightbox(payload)
+    }), ...textColumns] : textColumns),
     [hasThumbnails]
   )
   const columns = useMemo(
@@ -275,6 +287,11 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   </a>
                 )
               })}
+            {lightbox.itemUrl && (
+              <a href={lightbox.itemUrl} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                URL
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -304,7 +321,14 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   key={row.id ?? idx}
                   type="button"
                   className="search-results-gallery-card"
-                  onClick={() => payload && setLightbox(payload)}
+                  onClick={() => {
+                    if (!payload) return
+                    if (payload.itemUrl && !payload.imageUrl) {
+                      window.open(payload.itemUrl, '_blank', 'noopener,noreferrer')
+                      return
+                    }
+                    setLightbox(payload)
+                  }}
                   disabled={!payload}
                   title={payload ? 'View full size' : title}
                 >

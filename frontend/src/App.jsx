@@ -1060,7 +1060,7 @@ aria-label="Clear compare troves"
                 <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
                   {searching ? 'Searching…' : 'Go!'}
                 </button>
-                {searchMode === 'search' && allAvailableFileTypes.length >= 2 && (() => {
+                {searchMode === 'search' && allAvailableFileTypes.length >= 1 && (() => {
                   const upper = (s) => (s || '').toUpperCase()
                   const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
                   const selectedUpper = new Set([...fileTypeFilters].map(upper))
@@ -1078,9 +1078,9 @@ aria-label="Clear compare troves"
                         aria-label="Filter by file type"
                       >
                         {fileTypeFilters.size === 0
-                          ? 'File types: All'
+                          ? 'Media: All'
                           : (() => {
-                              if (allSelected) return 'File types: All'
+                              if (allSelected) return 'Media: All'
                               const groupNames = getFullySelectedGroupNames(fileTypeFilters, allAvailableFileTypes)
                               const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes) ?? [...fileTypeFilters].sort().join(', '))
                               return `Only ${label}`

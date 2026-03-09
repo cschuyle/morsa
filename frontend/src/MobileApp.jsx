@@ -961,7 +961,7 @@ onClick={() => {
                   onSortChange={(col, dir) => fetchSearch(0, col, dir)}
                   showScoreColumn={query.trim() !== '*'}
                   viewMode={searchResultsViewMode}
-                  afterFilterSlot={allAvailableFileTypes.length >= 2 ? (() => {
+                  afterFilterSlot={allAvailableFileTypes.length >= 1 ? (() => {
                     const upper = (s) => (s || '').toUpperCase()
                     const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
                     const selectedUpper = new Set([...fileTypeFilters].map(upper))
@@ -979,9 +979,9 @@ onClick={() => {
                           aria-label="Filter by file type"
                         >
                           {fileTypeFilters.size === 0
-                            ? 'Types: All'
+                            ? 'Media: All'
                             : (() => {
-                                if (allSelected) return 'Types: All'
+                                if (allSelected) return 'Media: All'
                                 if (fileTypeFilters.size === 1) return `Only ${[...fileTypeFilters][0]}`
                                 const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
                                 return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} types selected`

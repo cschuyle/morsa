@@ -157,9 +157,11 @@ public class SearchController {
         return new SearchResponse(total, pageResults, page, size, troveCounts, availableFileTypes, warning);
     }
 
-    /** Returns true if the result has at least one file whose extension is in the set (disjunction: any match). */
+    /** Returns true if the result has at least one file whose extension is in the set (disjunction: any match), or has itemUrl when "URL" is requested. */
     private static boolean hasFileWithAnyExtension(SearchResult result, Set<String> extensions) {
-        if (result.files() == null || extensions == null || extensions.isEmpty()) return false;
+        if (extensions == null || extensions.isEmpty()) return false;
+        if (extensions.contains("URL") && result.itemUrl() != null && !result.itemUrl().isBlank()) return true;
+        if (result.files() == null) return false;
         for (String url : result.files()) {
             if (url != null) {
                 String ext = extractExtension(url);
@@ -183,6 +185,7 @@ public class SearchController {
     private static List<String> collectFileTypes(List<SearchResultWithScore> results) {
         Set<String> types = new TreeSet<>();
         for (SearchResultWithScore r : results) {
+            if (r.result().itemUrl() != null && !r.result().itemUrl().isBlank()) types.add("URL");
             if (r.result().files() != null) {
                 for (String url : r.result().files()) {
                     String ext = extractExtension(url);
