@@ -600,8 +600,10 @@ function App() {
     const idsForSplit =
       searchMode === 'search' && hasResults
         ? new Set(withCounts.filter((t) => t.resultCount > 0 || selectedTroveIds.has(t.id) || (boostTroveId != null && t.id === boostTroveId)).map((t) => t.id))
-        : selectedTroveIds
-    const doSplit = searchMode !== 'search' || !freezeTroveListOrder || (searchMode === 'search' && hasResults)
+        : searchMode === 'search'
+          ? new Set([...selectedTroveIds, ...(boostTroveId != null ? [boostTroveId] : [])])
+          : selectedTroveIds
+    const doSplit = searchMode !== 'search' || !freezeTroveListOrder || (searchMode === 'search' && (hasResults || selectedTroveIds.size > 0 || boostTroveId != null))
     const selectedSortWhenResults =
       (a, b) => {
         if ((a.resultCount ?? 0) > 0 && (b.resultCount ?? 0) === 0) return -1
@@ -611,7 +613,12 @@ function App() {
         if (boostTroveId != null && b.id === boostTroveId && a.id !== boostTroveId) return 1
         return sortByName(a, b)
       }
-    const selectedSort = doSplit && hasResults ? selectedSortWhenResults : sortByName
+    const selectedSortNoResults = (a, b) => {
+      if (boostTroveId != null && a.id === boostTroveId && b.id !== boostTroveId) return -1
+      if (boostTroveId != null && b.id === boostTroveId && a.id !== boostTroveId) return 1
+      return sortByName(a, b)
+    }
+    const selectedSort = doSplit && hasResults ? selectedSortWhenResults : doSplit && searchMode === 'search' ? selectedSortNoResults : sortByName
     const selected = doSplit ? filtered.filter((t) => idsForSplit.has(t.id)).sort(selectedSort) : []
     const notSelected = doSplit ? filtered.filter((t) => !idsForSplit.has(t.id)).sort(sortByName) : [...filtered].sort(sortByName)
     return { selected, notSelected, displaySelectedTroveIds: idsForSplit }
