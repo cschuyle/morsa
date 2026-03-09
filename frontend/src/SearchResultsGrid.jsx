@@ -56,8 +56,9 @@ function getLightboxPayload(row) {
   return { imageUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
 }
 
-function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl) {
+function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, hasLargeImage) {
   const labels = new Set()
+  if (itemUrl && hasLargeImage) labels.add('URL')
   if (pdfs.length > 0) labels.add('PDF')
   imageUrls.forEach((u) => {
     const m = u.match(/\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i)
@@ -80,7 +81,7 @@ function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles,
     labels.add(m ? m[1].toUpperCase() : 'Other')
   })
   const list = [...labels].sort()
-  if (itemUrl) {
+  if (itemUrl && !hasLargeImage) {
     const mediaPart = list.length > 0 ? ` · Media: ${list.join(', ')}` : ''
     return `Link: ${itemUrl}${mediaPart}`
   }
@@ -111,7 +112,7 @@ function thumbnailColumnDef(onThumbnailClick) {
       const showLinkIconInsteadOfThumb = isLittlePrince && (!url || thumbIsPlaceholder)
       const showLinkIconOnly = isLittlePrince && !url && itemUrl
       if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
-      const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl)
+      const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, !!largeUrl)
       const payload = { imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
       const canClick = largeUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
       const linkIcon = (
