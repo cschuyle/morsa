@@ -863,8 +863,12 @@ aria-label="Clear compare troves"
                   <div className="search-trove-summary-row">
                     <p className="trove-picker-summary search-trove-summary-text" aria-live="polite">
                       {selectedTroveIds.size === 0
-                        ? 'All troves will be searched'
-                        : `${formatCount(selectedTroveIds.size)} of ${formatCount(troves.length)} selected`}
+                        ? 'All troves will be searched.'
+                        : `${formatCount(selectedTroveIds.size)} of ${formatCount(troves.length)} selected.`}
+                      {boostTroveId && (() => {
+                        const name = troves.find((t) => t.id === boostTroveId)?.name ?? boostTroveId
+                        return name ? ` ${name} will be boosted.` : null
+                      })()}
                     </p>
                     <button
                       type="button"

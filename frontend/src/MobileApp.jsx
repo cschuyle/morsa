@@ -892,6 +892,17 @@ onClick={() => {
                 Done
               </button>
             </div>
+            {!isDupOrUniques && (
+              <p className="trove-picker-summary mobile-trove-picker-summary" aria-live="polite">
+                {selectedTroveIds.size === 0
+                  ? 'All troves will be searched.'
+                  : `${formatCount(selectedTroveIds.size)} of ${formatCount(troves.length)} selected.`}
+                {boostTroveId && (() => {
+                  const name = troves.find((t) => t.id === boostTroveId)?.name ?? boostTroveId
+                  return name ? ` ${name} will be boosted.` : null
+                })()}
+              </p>
+            )}
             <div className="mobile-trove-clear-row">
               <button type="button" onClick={clearTroves} className="mobile-trove-clear">Clear all</button>
               {searchMode === 'duplicates' && (
