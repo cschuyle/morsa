@@ -9,6 +9,12 @@ import './SearchResultsGrid.css'
 
 const AMAZON_PLACEHOLDER_THUMB = 'https://m.media-amazon.com/images/I/01RmK+J4pJL._SS135_.gif'
 
+function isPlaceholderThumb(url) {
+  if (!url || !String(url).trim()) return false
+  const u = String(url).trim()
+  return u === AMAZON_PLACEHOLDER_THUMB || u.includes('/no_image')
+}
+
 function PopOutIcon({ className }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="currentColor" aria-hidden="true">
@@ -98,7 +104,7 @@ function thumbnailColumnDef(onThumbnailClick) {
       const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
       const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
       const isLittlePrince = itemType === 'littlePrinceItem'
-      const thumbIsPlaceholder = url && String(url).trim() === AMAZON_PLACEHOLDER_THUMB
+      const thumbIsPlaceholder = isPlaceholderThumb(url)
       const showLinkIconInsteadOfThumb = isLittlePrince && (!url || thumbIsPlaceholder)
       const showLinkIconOnly = isLittlePrince && !url && itemUrl
       if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
@@ -337,7 +343,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
             filteredRowsForGallery.map((row, idx) => {
               const payload = getLightboxPayload(row)
               const thumbUrl = row?.thumbnailUrl
-              const thumbIsPlaceholder = thumbUrl && String(thumbUrl).trim() === AMAZON_PLACEHOLDER_THUMB
+              const thumbIsPlaceholder = isPlaceholderThumb(thumbUrl)
               const itemUrl = row?.itemUrl && String(row.itemUrl).trim() ? row.itemUrl.trim() : null
               const hasImage = thumbUrl && !thumbIsPlaceholder && row?.itemType === 'littlePrinceItem'
               const showLinkIcon = row?.itemType === 'littlePrinceItem' && (!thumbUrl || thumbIsPlaceholder)

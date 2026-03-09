@@ -420,9 +420,11 @@ public class SearchController {
         };
     }
 
-    /** True if the result has a real thumbnail (non-blank and not the Amazon placeholder). Rows with real thumbnails sort before pop-out-only rows (asc = real first, pop-out last). */
+    /** True if the result has a real thumbnail (non-blank, not the Amazon placeholder, and does not contain "/no_image"). Rows with real thumbnails sort before pop-out-only rows (asc = real first, pop-out last). */
     private static boolean hasRealThumbnail(SearchResultWithScore r) {
         String u = r.result().thumbnailUrl();
-        return u != null && !u.isBlank() && !AMAZON_PLACEHOLDER_THUMB.equals(u.trim());
+        return u != null && !u.isBlank()
+                && !AMAZON_PLACEHOLDER_THUMB.equals(u.trim())
+                && !u.contains("/no_image");
     }
 }
