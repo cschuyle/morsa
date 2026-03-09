@@ -154,6 +154,22 @@ docker push artifact-repo-username/morsor:latest
 
 That should get you on your way to deploying on a webhost which can host Docker images.
 
+## Deploying the Docker image to a container registry
+
+The script `deploy-container-to-registry.sh` builds the image and pushes it to a registry. You can configure it with these environment variables (all prefixed with `MOOCHO_`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MOOCHO_REGISTRY` | `cschuyle/morsor` | Image repository used for tagging and push (e.g. `myregistry.io/user/morsor`). |
+| `MOOCHO_VERSION` | `latest` | Image tag (e.g. `1.0.0` or `latest`). |
+| `MOOCHO_ARCHITECTURE` | *(unset)* | Docker build platform (e.g. `linux/amd64`, `linux/arm64`). If unset or empty, `docker build` is run without `--platform` (host default). |
+
+Example:
+
+```bash
+MOOCHO_REGISTRY=myregistry.io/me/morsor MOOCHO_VERSION=1.2.3 MOOCHO_ARCHITECTURE=linux/amd64 ./deploy-container-to-registry.sh
+```
+
 
 # Working with Postgres locally
 
