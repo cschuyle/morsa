@@ -508,6 +508,20 @@
   background: transparent;
 }
 
+.trove-only-actions {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.trove-only-actions .trove-only-link {
+  margin-right: 0;
+  padding-left: 0.15rem;
+  padding-right: 0.15rem;
+  gap: 0;
+}
+
 .trove-only-link {
   flex-shrink: 0;
   display: inline-flex;

@@ -474,7 +474,19 @@ function MobileApp() {
     }
   }
 
-  function handleOnlyClick(troveId) {
+  function handleBoostClick(troveId) {
+    if (!isDupOrUniques) {
+      setFreezeTroveListOrder(true)
+      setBoostTroveId((prev) => (prev === troveId ? null : troveId))
+      if (!query.trim()) {
+        queryRef.current = '*'
+        setQuery('*')
+      }
+      setPage(0)
+    }
+  }
+
+  function handleTargetClick(troveId) {
     if (isDupOrUniques) {
       if (!query.trim()) {
         queryRef.current = '*'
@@ -485,13 +497,14 @@ function MobileApp() {
       setShowTrovePicker(false)
     } else {
       setFreezeTroveListOrder(true)
-      setBoostTroveId((prev) => (prev === troveId ? null : troveId))
+      setSelectedTroveIds(new Set([troveId]))
+      setSearchParams(buildSearchParams(null, new Set([troveId])), { replace: true })
       if (!query.trim()) {
         queryRef.current = '*'
         setQuery('*')
       }
       setPage(0)
-      setShowTrovePicker(false)
+      fetchSearch(0)
     }
   }
 
@@ -976,7 +989,10 @@ onClick={() => {
                               </span>
                             </label>
                             {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
-                              <button type="button" className={`mobile-trove-only-link${boostTroveId === t.id ? ' mobile-trove-only-link--boost-active' : ''}`} onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }} aria-label={boostTroveId === t.id ? `Boost on for ${t.name}` : `Boost ${t.name} in search results`} title={boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results'}><img src="/target.png" alt="" className="mobile-trove-only-icon" /><span className="trove-booster" aria-hidden="true">↑</span></button>
+                              <span className="mobile-trove-only-actions">
+                                <button type="button" className="mobile-trove-only-link" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }} aria-label={`Search only ${t.name}`} title="Only this trove"><img src="/target.png" alt="" className="mobile-trove-only-icon" /></button>
+                                <button type="button" className={`mobile-trove-only-link mobile-trove-only-link--boost${boostTroveId === t.id ? ' mobile-trove-only-link--boost-active' : ''}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleBoostClick(t.id) }} aria-label={boostTroveId === t.id ? `Boost on for ${t.name}` : `Boost ${t.name} in search results`} title={boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results'}><span className="trove-booster" aria-hidden="true">↑</span></button>
+                              </span>
                             )}
                           </li>
                         )

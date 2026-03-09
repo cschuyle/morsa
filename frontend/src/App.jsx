@@ -331,22 +331,24 @@ function App() {
     setSelectedTroveIds(new Set([id]))
   }
 
-  function handleOnlyClick(troveId) {
-    if (searchMode === 'search') {
-      setFreezeTroveListOrder(true)
-      setBoostTroveId((prev) => (prev === troveId ? null : troveId))
-      if (!query.trim()) {
-        queryRef.current = '*'
-        setQuery('*')
-      }
-    } else {
-      selectOnlyTrove(troveId)
-      if (!query.trim()) {
-        queryRef.current = '*'
-        setQuery('*')
-        fetchSearch(0, null, new Set([troveId]))
-      }
+  function handleBoostClick(troveId) {
+    if (searchMode !== 'search') return
+    setFreezeTroveListOrder(true)
+    setBoostTroveId((prev) => (prev === troveId ? null : troveId))
+    if (!query.trim()) {
+      queryRef.current = '*'
+      setQuery('*')
     }
+  }
+
+  function handleTargetClick(troveId) {
+    setFreezeTroveListOrder(true)
+    selectOnlyTrove(troveId)
+    if (!query.trim()) {
+      queryRef.current = '*'
+      setQuery('*')
+    }
+    if (searchMode === 'search') fetchSearch(0, null, new Set([troveId]))
   }
 
   function cancelSearch() {
@@ -957,16 +959,28 @@ aria-label="Clear compare troves"
                   </span>
                 </label>
                 {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
-                  <button
-                    type="button"
-                    className={`trove-only-link${searchMode === 'search' && boostTroveId === t.id ? ' trove-only-link--boost-active' : ''}`}
-                    onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
-                    aria-label={searchMode === 'search' ? (boostTroveId === t.id ? `Boost on for ${t.name} (results rank higher)` : `Boost ${t.name} in search results`) : `Search only ${t.name}`}
-                    title={searchMode === 'search' ? (boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results') : 'Only this trove'}
-                  >
-                    <img src="/target.png" alt="" className="trove-only-icon" />
-                    <span className="trove-booster" aria-hidden="true">↑</span>
-                  </button>
+                  <span className="trove-only-actions">
+                    <button
+                      type="button"
+                      className="trove-only-link"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }}
+                      aria-label={`Search only ${t.name}`}
+                      title="Only this trove"
+                    >
+                      <img src="/target.png" alt="" className="trove-only-icon" />
+                    </button>
+                    {searchMode === 'search' && (
+                      <button
+                        type="button"
+                        className={`trove-only-link trove-only-link--boost${boostTroveId === t.id ? ' trove-only-link--boost-active' : ''}`}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleBoostClick(t.id) }}
+                        aria-label={boostTroveId === t.id ? `Boost on for ${t.name} (results rank higher)` : `Boost ${t.name} in search results`}
+                        title={boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results'}
+                      >
+                        <span className="trove-booster" aria-hidden="true">↑</span>
+                      </button>
+                    )}
+                  </span>
                 )}
               </li>
             ))}
@@ -991,16 +1005,28 @@ aria-label="Clear compare troves"
                   </span>
                 </label>
                 {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
-                  <button
-                    type="button"
-                    className={`trove-only-link${searchMode === 'search' && boostTroveId === t.id ? ' trove-only-link--boost-active' : ''}`}
-                    onClick={(e) => { e.preventDefault(); handleOnlyClick(t.id) }}
-                    aria-label={searchMode === 'search' ? (boostTroveId === t.id ? `Boost on for ${t.name} (results rank higher)` : `Boost ${t.name} in search results`) : `Search only ${t.name}`}
-                    title={searchMode === 'search' ? (boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results') : 'Only this trove'}
-                  >
-                    <img src="/target.png" alt="" className="trove-only-icon" />
-                    <span className="trove-booster" aria-hidden="true">↑</span>
-                  </button>
+                  <span className="trove-only-actions">
+                    <button
+                      type="button"
+                      className="trove-only-link"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }}
+                      aria-label={`Search only ${t.name}`}
+                      title="Only this trove"
+                    >
+                      <img src="/target.png" alt="" className="trove-only-icon" />
+                    </button>
+                    {searchMode === 'search' && (
+                      <button
+                        type="button"
+                        className={`trove-only-link trove-only-link--boost${boostTroveId === t.id ? ' trove-only-link--boost-active' : ''}`}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleBoostClick(t.id) }}
+                        aria-label={boostTroveId === t.id ? `Boost on for ${t.name} (results rank higher)` : `Boost ${t.name} in search results`}
+                        title={boostTroveId === t.id ? 'Boost on — results from this trove rank higher' : 'Boost this trove in search results'}
+                      >
+                        <span className="trove-booster" aria-hidden="true">↑</span>
+                      </button>
+                    )}
+                  </span>
                 )}
               </li>
             ))}
