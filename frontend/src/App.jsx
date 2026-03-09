@@ -308,6 +308,18 @@ function App() {
 
   function clearTroves() {
     setSelectedTroveIds(new Set())
+    setBoostTroveId(null)
+    setSearchParams(buildSearchParams(
+      searchMode,
+      query,
+      searchMode === 'search' ? new Set() : searchSelectedTroveIds,
+      dupPrimaryTroveId,
+      searchMode === 'duplicates' ? new Set() : dupCompareTroveIds,
+      uniqPrimaryTroveId,
+      searchMode === 'uniques' ? new Set() : uniqCompareTroveIds,
+      fileTypeFilters,
+      null
+    ), { replace: true })
   }
 
   function selectOnlyTrove(id) {

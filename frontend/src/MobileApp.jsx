@@ -112,14 +112,15 @@ function MobileApp() {
     }
   }, [searchParams, troves])
 
-  function buildSearchParams(fileTypesSet = null) {
+  function buildSearchParams(fileTypesSet = null, searchTrovesOverride = null, boostOverride = undefined) {
     const next = new URLSearchParams()
     if (searchMode !== 'search') next.set('mode', searchMode)
     const qTrim = (query ?? '').trim()
     if (qTrim) next.set('q', qTrim)
     if (searchMode === 'search') {
-      Array.from(selectedTroveIds).map((id) => urlTroveId(id, troves) ?? id).filter(Boolean).forEach((id) => next.append('trove', id))
-      const boostId = boostTroveId ? (urlTroveId(boostTroveId, troves) ?? boostTroveId) : null
+      const trovesToUse = searchTrovesOverride !== null ? searchTrovesOverride : selectedTroveIds
+      Array.from(trovesToUse).map((id) => urlTroveId(id, troves) ?? id).filter(Boolean).forEach((id) => next.append('trove', id))
+      const boostId = boostOverride === undefined ? (boostTroveId ? (urlTroveId(boostTroveId, troves) ?? boostTroveId) : null) : (boostOverride ? (urlTroveId(boostOverride, troves) ?? boostOverride) : null)
       if (boostId) next.set('boost', boostId)
       const ft = fileTypesSet ?? fileTypeFilters
       ft.forEach((f) => next.append('fileTypes', f))
@@ -465,8 +466,11 @@ function MobileApp() {
     if (isDupOrUniques) {
       setPrimaryTroveId('')
       setCompareTroveIds(new Set())
+      setSearchParams(buildSearchParamsForMode(searchMode, '', new Set()), { replace: true })
     } else {
       setSelectedTroveIds(new Set())
+      setBoostTroveId(null)
+      setSearchParams(buildSearchParams(null, new Set(), null), { replace: true })
     }
   }
 
