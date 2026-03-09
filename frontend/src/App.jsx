@@ -894,6 +894,7 @@ aria-label="Clear compare troves"
                     title="Only this trove"
                   >
                     <img src="/target.png" alt="" className="trove-only-icon" />
+                    <span className="trove-booster" aria-hidden="true">↑</span>
                   </button>
                 )}
               </li>
@@ -927,6 +928,7 @@ aria-label="Clear compare troves"
                     title="Only this trove"
                   >
                     <img src="/target.png" alt="" className="trove-only-icon" />
+                    <span className="trove-booster" aria-hidden="true">↑</span>
                   </button>
                 )}
               </li>

@@ -498,6 +498,9 @@
 
 .mobile-trove-only-link {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
   background: none;
   border: none;
   padding: 0.25rem 0.4rem;
@@ -518,6 +521,12 @@
   width: 1.5rem;
   height: 1.5rem;
   object-fit: contain;
+}
+
+.mobile-trove-only-link .trove-booster {
+  color: #c00;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .mobile-result-count {
