@@ -15,9 +15,17 @@ export function RequireAuth({ children }) {
           window.location.href = '/login'
           return
         }
-        setStatus('ok')
+        if (res.ok) {
+          setStatus('ok')
+          return
+        }
+        setStatus('redirecting')
+        window.location.href = '/login'
       })
-      .catch(() => setStatus('ok'))
+      .catch(() => {
+        setStatus('redirecting')
+        window.location.href = '/login'
+      })
   }, [])
   if (status !== 'ok') return null
   return children
