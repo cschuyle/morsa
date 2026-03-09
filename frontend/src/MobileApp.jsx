@@ -541,10 +541,18 @@ function MobileApp() {
   const mobileSearchTrovesWithResults = useMemo(() => {
     if (searchMode !== 'search') return { selected: [], notSelected: [...filteredTroves].sort(sortByName) }
     if (freezeTroveListOrder) return { selected: [], notSelected: [...filteredTroves].sort(sortByName) }
-    const selected = [...filteredTroves.filter((t) => displaySelectedTroveIds.has(t.id))].sort(sortByName)
+    const troveCounts = searchResult?.troveCounts != null && typeof searchResult.troveCounts === 'object' ? searchResult.troveCounts : null
+    const sortByHitsDesc =
+      troveCounts != null
+        ? (a, b) => {
+            const c = (troveCounts[b.id] ?? 0) - (troveCounts[a.id] ?? 0)
+            return c !== 0 ? c : sortByName(a, b)
+          }
+        : sortByName
+    const selected = [...filteredTroves.filter((t) => displaySelectedTroveIds.has(t.id))].sort(sortByHitsDesc)
     const notSelected = [...filteredTroves.filter((t) => !displaySelectedTroveIds.has(t.id))].sort(sortByName)
     return { selected, notSelected }
-  }, [searchMode, filteredTroves, displaySelectedTroveIds, freezeTroveListOrder])
+  }, [searchMode, filteredTroves, displaySelectedTroveIds, freezeTroveListOrder, searchResult?.troveCounts])
 
   return (
     <div className="mobile-app">

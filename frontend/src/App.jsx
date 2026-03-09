@@ -533,13 +533,18 @@ function App() {
     } else if (showFilter === 'notSelected') {
       filtered = filtered.filter((t) => !selectedTroveIds.has(t.id))
     }
-    const sortByName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    const sortByName = (a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+    const sortByHitsDesc = (a, b) => {
+      const c = (b.resultCount ?? 0) - (a.resultCount ?? 0)
+      return c !== 0 ? c : sortByName(a, b)
+    }
     const idsForSplit =
       searchMode === 'search' && selectedTroveIds.size === 0 && hasResults
         ? new Set(withCounts.filter((t) => t.resultCount > 0).map((t) => t.id))
         : selectedTroveIds
     const doSplit = searchMode !== 'search' || !freezeTroveListOrder
-    const selected = doSplit ? filtered.filter((t) => idsForSplit.has(t.id)).sort(sortByName) : []
+    const selectedSort = doSplit && hasResults ? sortByHitsDesc : sortByName
+    const selected = doSplit ? filtered.filter((t) => idsForSplit.has(t.id)).sort(selectedSort) : []
     const notSelected = doSplit ? filtered.filter((t) => !idsForSplit.has(t.id)).sort(sortByName) : [...filtered].sort(sortByName)
     return { selected, notSelected, displaySelectedTroveIds: idsForSplit }
   }, [troves, searchResult, troveFilter, showFilter, selectedTroveIds, searchMode, freezeTroveListOrder])
