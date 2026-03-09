@@ -186,6 +186,23 @@
   border-radius: 4px;
 }
 
+.search-thumb-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.8rem;
+  height: 4.8rem;
+  border-radius: 4px;
+  background: rgba(100, 108, 255, 0.08);
+}
+
+.search-thumb-link-icon-img {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
 .search-thumb-lightbox {
   position: fixed;
   inset: 0;
@@ -346,6 +363,22 @@
   color: #888;
   font-size: 2.5rem;
   font-weight: 600;
+}
+
+.search-results-gallery-card-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 160px;
+  background: rgba(100, 108, 255, 0.08);
+}
+
+.search-results-gallery-card-link-icon-img {
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
 }
 
 .search-results-gallery-card-title,

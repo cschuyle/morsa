@@ -86,27 +86,38 @@ function thumbnailColumnDef(onThumbnailClick) {
       const audios = files.filter((u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u))
       const known = new Set([...pdfs, ...imageUrls, ...ebooks, ...videos, ...audios])
       const otherFiles = files.filter((u) => typeof u === 'string' && !known.has(u))
-      if (!url || itemType !== 'littlePrinceItem') return <span aria-hidden="true">&nbsp;</span>
+      const isLittlePrince = itemType === 'littlePrinceItem'
+      const showLinkIconOnly = isLittlePrince && !url && itemUrl
+      if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
       const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl)
       const payload = { imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
       const canClick = largeUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
+      const linkIcon = (
+        <span className="search-thumb-link-icon" aria-hidden="true">
+          <img src="/pop-out-line.svg" alt="" className="search-thumb-link-icon-img" />
+        </span>
+      )
       return (
         <button
           type="button"
           className="search-thumb-btn"
           title={fileTypeTooltip ?? undefined}
           onClick={() => canClick && onThumbnailClick(payload)}
-          aria-label="View full size"
+          aria-label={showLinkIconOnly ? 'Open link' : 'View full size'}
         >
-          {largeUrl && (
+          {largeUrl && url && (
             <span className="search-thumb-pop-icon" aria-hidden="true">↗</span>
           )}
-          <img
-            src={url}
-            alt=""
-            className="search-thumb"
-            loading="lazy"
-          />
+          {url ? (
+            <img
+              src={url}
+              alt=""
+              className="search-thumb"
+              loading="lazy"
+            />
+          ) : showLinkIconOnly ? (
+            linkIcon
+          ) : null}
         </button>
       )
     },
@@ -135,7 +146,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
   }, [lightbox, closeLightbox])
 
   const hasThumbnails = useMemo(
-    () => Array.isArray(data) && data.some((row) => row && row.thumbnailUrl && row.itemType === 'littlePrinceItem'),
+    () => Array.isArray(data) && data.some((row) => row && row.itemType === 'littlePrinceItem' && (row.thumbnailUrl || (row.itemUrl && String(row.itemUrl).trim()))),
     [data]
   )
   const baseColumns = useMemo(
@@ -313,9 +324,16 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
             filteredRowsForGallery.map((row, idx) => {
               const payload = getLightboxPayload(row)
               const thumbUrl = row?.thumbnailUrl
+              const itemUrl = row?.itemUrl && String(row.itemUrl).trim() ? row.itemUrl.trim() : null
               const hasImage = thumbUrl && row?.itemType === 'littlePrinceItem'
+              const showLinkIconOnly = row?.itemType === 'littlePrinceItem' && !thumbUrl && itemUrl
               const title = row?.title ?? ''
               const trove = row?.trove ?? ''
+              const galleryLinkIcon = (
+                <span className="search-results-gallery-card-link-icon" aria-hidden="true">
+                  <img src="/pop-out-line.svg" alt="" className="search-results-gallery-card-link-icon-img" />
+                </span>
+              )
               return (
                 <button
                   key={row.id ?? idx}
@@ -335,6 +353,8 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   <span className="search-results-gallery-card-image">
                     {hasImage ? (
                       <img src={thumbUrl} alt="" loading="lazy" />
+                    ) : showLinkIconOnly ? (
+                      galleryLinkIcon
                     ) : (
                       <span className="search-results-gallery-card-placeholder" aria-hidden="true">
                         {title ? title.charAt(0).toUpperCase() : '?'}
