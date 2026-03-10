@@ -1146,7 +1146,7 @@ onClick={() => {
                                 if (allSelected) return 'Media: All'
                                 if (fileTypeFilters.size === 1) return `Only ${[...fileTypeFilters][0]}`
                                 const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
-                                return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} types selected`
+                                return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} filetypes`
                               })()}
                         </button>
                         {fileTypeFilters.size > 0 && (
