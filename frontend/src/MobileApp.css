@@ -317,6 +317,7 @@
   padding: 0.25rem 0.75rem;
   cursor: pointer;
   font-size: 0.9rem;
+  color: #555;
 }
 
 .mobile-filetype-option:hover {
@@ -1109,6 +1110,17 @@
   line-height: 1.2;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-audio-sash {
+  top: 1.6rem;
+  right: -0.7rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-audio-sash svg {
+  width: 14.4px;
+  height: 14.4px;
 }
 
 .mobile-dup-uniques-results {

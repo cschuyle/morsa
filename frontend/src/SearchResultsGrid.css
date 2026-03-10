@@ -386,6 +386,30 @@
   pointer-events: none;
 }
 
+.search-results-gallery-card-audio-sash {
+  position: absolute;
+  top: 1.85rem;
+  right: -1.05rem;
+  left: auto;
+  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  background: rgba(65, 105, 225, 0.65);
+  color: #ffd700;
+  transform: rotate(45deg);
+  transform-origin: top right;
+  pointer-events: none;
+}
+
+.search-results-gallery-card-audio-sash svg {
+  display: block;
+  width: 16.8px;
+  height: 16.8px;
+  transform: rotate(-45deg);
+}
+
 .search-results-gallery-card-image img {
   display: block;
   width: 100%;

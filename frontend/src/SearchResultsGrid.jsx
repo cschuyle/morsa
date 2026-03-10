@@ -370,6 +370,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               const trove = row?.trove ?? ''
               const files = Array.isArray(row?.files) ? row.files : []
               const hasPdf = files.some((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
+              const hasAudio = files.some((u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u))
               const galleryLinkIcon = (
                 <span className="search-results-gallery-card-link-icon" aria-hidden="true">
                   <PopOutIcon className="search-results-gallery-card-link-icon-img" />
@@ -404,6 +405,15 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                     )}
                     {showPdfSashInGallery && hasPdf && (
                       <span className="search-results-gallery-card-pdf-sash" aria-hidden="true">PDF</span>
+                    )}
+                    {showPdfSashInGallery && hasAudio && (
+                      <span className="search-results-gallery-card-audio-sash" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon fill="currentColor" stroke="none" points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                        </svg>
+                      </span>
                     )}
                   </span>
                   <span className="search-results-gallery-card-title">{title || '\u00A0'}</span>
