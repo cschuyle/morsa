@@ -69,6 +69,7 @@ function MobileApp() {
   const skipSearchRef = useRef(true)
   const skipFileTypeSearchRef = useRef(false)
   const skipViewModeSearchRef = useRef(false)
+  const lastFileTypeOrViewSearchRef = useRef(0)
   const abortRef = useRef(null)
   const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
@@ -460,6 +461,7 @@ function MobileApp() {
       skipViewModeSearchRef.current = false
       return
     }
+    if (Date.now() - lastFileTypeOrViewSearchRef.current < 600) return
     const t = setTimeout(() => {
       const pageParam = Number(searchParams.get('page'))
       const initialPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0
@@ -932,6 +934,7 @@ onClick={() => {
                   className={`mobile-view-mode-btn ${searchResultsViewMode === 'list' ? 'mobile-view-mode-btn--active' : ''}`}
                   onClick={() => {
                     skipViewModeSearchRef.current = true
+                    lastFileTypeOrViewSearchRef.current = Date.now()
                     setSearchResultsViewMode('list')
                   }}
                   aria-pressed={searchResultsViewMode === 'list'}
@@ -943,6 +946,7 @@ onClick={() => {
                   className={`mobile-view-mode-btn ${searchResultsViewMode === 'gallery' ? 'mobile-view-mode-btn--active' : ''}`}
                   onClick={() => {
                     skipViewModeSearchRef.current = true
+                    lastFileTypeOrViewSearchRef.current = Date.now()
                     setSearchResultsViewMode('gallery')
                   }}
                   aria-pressed={searchResultsViewMode === 'gallery'}
@@ -1239,6 +1243,7 @@ onClick={() => {
                               onClick={(e) => {
                                 e.stopPropagation()
                                 skipFileTypeSearchRef.current = true
+                                lastFileTypeOrViewSearchRef.current = Date.now()
                                 setFileTypeFilters(new Set())
                                 setSearchParams(buildSearchParams(new Set()), { replace: true })
                                 fetchSearch(0, null, null, new Set())
@@ -1265,6 +1270,7 @@ onClick={() => {
                               onClick={(e) => {
                                 e.preventDefault()
                                 skipFileTypeSearchRef.current = true
+                                lastFileTypeOrViewSearchRef.current = Date.now()
                                 const next = new Set(displayFileTypes)
                                 setFileTypeFilters(next)
                                 setSearchParams(buildSearchParams(next), { replace: true })
@@ -1280,6 +1286,7 @@ onClick={() => {
                               onClick={(e) => {
                                 e.preventDefault()
                                 skipFileTypeSearchRef.current = true
+                                lastFileTypeOrViewSearchRef.current = Date.now()
                                 const next = new Set()
                                 setFileTypeFilters(next)
                                 setSearchParams(buildSearchParams(next), { replace: true })
@@ -1302,6 +1309,7 @@ onClick={() => {
                                     checked={allSelectedGroup}
                                     onChange={() => {
                                       skipFileTypeSearchRef.current = true
+                                      lastFileTypeOrViewSearchRef.current = Date.now()
                                       const next = new Set(fileTypeFilters)
                                       if (allSelectedGroup) types.forEach((t) => next.delete(t))
                                       else types.forEach((t) => next.add(t))
@@ -1320,6 +1328,7 @@ onClick={() => {
                                     checked={fileTypeFilters.has(ft)}
                                     onChange={() => {
                                       skipFileTypeSearchRef.current = true
+                                      lastFileTypeOrViewSearchRef.current = Date.now()
                                       const next = new Set(fileTypeFilters)
                                       if (next.has(ft)) next.delete(ft)
                                       else next.add(ft)

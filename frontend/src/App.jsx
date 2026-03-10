@@ -68,6 +68,7 @@ function App() {
   const skipCheckboxSearchRef = useRef(true)
   const skipFileTypeSearchRef = useRef(false)
   const skipViewModeSearchRef = useRef(false)
+  const lastFileTypeOrViewSearchRef = useRef(0)
   const abortControllerRef = useRef(null)
   const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
@@ -301,6 +302,7 @@ function App() {
       skipViewModeSearchRef.current = false
       return
     }
+    if (Date.now() - lastFileTypeOrViewSearchRef.current < 600) return
     const t = setTimeout(() => {
       const q = queryRef.current
       if (!q.trim()) {
@@ -1271,6 +1273,7 @@ aria-label="Clear compare troves"
                           onClick={(e) => {
                             e.stopPropagation()
                             skipFileTypeSearchRef.current = true
+                            lastFileTypeOrViewSearchRef.current = Date.now()
                             setFileTypeFilters(new Set())
                             setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, new Set(), boostTroveId, searchResultsViewMode), { replace: true })
                             fetchSearch(0, null, null, null, null, new Set())
@@ -1296,6 +1299,7 @@ aria-label="Clear compare troves"
                             onClick={(e) => {
                               e.preventDefault()
                               skipFileTypeSearchRef.current = true
+                              lastFileTypeOrViewSearchRef.current = Date.now()
                               const next = new Set(allAvailableFileTypes)
                               setFileTypeFilters(next)
                               setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode), { replace: true })
@@ -1311,6 +1315,7 @@ aria-label="Clear compare troves"
                             onClick={(e) => {
                               e.preventDefault()
                               skipFileTypeSearchRef.current = true
+                              lastFileTypeOrViewSearchRef.current = Date.now()
                               const next = new Set()
                               setFileTypeFilters(next)
                               setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode), { replace: true })
@@ -1333,6 +1338,7 @@ aria-label="Clear compare troves"
                                   checked={allSelected}
                                   onChange={() => {
                                     skipFileTypeSearchRef.current = true
+                                    lastFileTypeOrViewSearchRef.current = Date.now()
                                     const next = new Set(fileTypeFilters)
                                     if (allSelected) types.forEach((t) => next.delete(t))
                                     else types.forEach((t) => next.add(t))
@@ -1351,6 +1357,7 @@ aria-label="Clear compare troves"
                                   checked={fileTypeFilters.has(ft)}
                                   onChange={() => {
                                     skipFileTypeSearchRef.current = true
+                                    lastFileTypeOrViewSearchRef.current = Date.now()
                                     const next = new Set(fileTypeFilters)
                                     if (next.has(ft)) next.delete(ft)
                                     else next.add(ft)
@@ -1716,6 +1723,7 @@ aria-label="Clear compare troves"
                         className={`view-mode-btn ${searchResultsViewMode === 'list' ? 'view-mode-btn--active' : ''}`}
                         onClick={() => {
                           skipViewModeSearchRef.current = true
+                          lastFileTypeOrViewSearchRef.current = Date.now()
                           setSearchResultsViewMode('list')
                         }}
                         aria-pressed={searchResultsViewMode === 'list'}
@@ -1727,6 +1735,7 @@ aria-label="Clear compare troves"
                         className={`view-mode-btn ${searchResultsViewMode === 'gallery' ? 'view-mode-btn--active' : ''}`}
                         onClick={() => {
                           skipViewModeSearchRef.current = true
+                          lastFileTypeOrViewSearchRef.current = Date.now()
                           setSearchResultsViewMode('gallery')
                         }}
                         aria-pressed={searchResultsViewMode === 'gallery'}
