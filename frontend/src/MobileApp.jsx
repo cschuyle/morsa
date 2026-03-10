@@ -194,7 +194,7 @@ function MobileApp() {
       .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; return res.json() })
       .then((data) => {
         if (!data) return
-        const base = data.status === 'UP' ? 'Server is live' : `Server: ${data.status}`
+        const base = data.status === 'UP' ? 'Server OK' : `Server: ${data.status}`
         const cache = data.cache
         const cacheMsg = (() => {
           if (cache == null || typeof cache.estimatedBytes !== 'number' || !Number.isFinite(cache.estimatedBytes)) return ''
@@ -208,7 +208,7 @@ function MobileApp() {
         setStatusMessage(base + cacheMsg)
         setCacheEntries(cache != null && typeof cache.entries === 'number' ? cache.entries : 0)
       })
-      .catch(() => setStatusMessage('Server unreachable'))
+      .catch(() => setStatusMessage('Server AWOL'))
   }
 
   function fetchSearch(pageNum, sortByOverride = null, sortDirOverride = null, fileTypesOverride = undefined) {
