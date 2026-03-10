@@ -1317,7 +1317,7 @@ aria-label="Clear compare troves"
                               fetchSearch(0, null, null, null, null, next)
                             }}
                           >
-                            None
+                            Meh
                           </button>
                         </div>
                         {groupFileTypes(allAvailableFileTypes).map(({ group, types }) => {

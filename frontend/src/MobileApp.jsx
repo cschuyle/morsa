@@ -1286,7 +1286,7 @@ onClick={() => {
                                 fetchSearch(0, null, null, next)
                               }}
                             >
-                              None
+                              Meh
                             </button>
                           </div>
                           {groupFileTypes(displayFileTypes).map(({ group, types }) => {
