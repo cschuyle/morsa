@@ -13,6 +13,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+::selection {
+  background: rgba(100, 108, 255, 0.25);
+  color: inherit;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
