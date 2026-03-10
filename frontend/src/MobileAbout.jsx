@@ -1,41 +1,29 @@
 import { Link } from 'react-router-dom'
 import { getCsrfToken } from './getCsrfToken'
+import AboutContent from './AboutContent'
+import './App.css'
 import './MobileApp.css'
 
 function MobileAbout() {
   return (
     <div className="mobile-app">
-      <header className="mobile-header">
-        <Link to="/mobile" className="mobile-brand">Morsor</Link>
-        <Link to="/mobile/about" className="mobile-nav-link">About</Link>
-      </header>
+      <svg className="about-viewport-border-svg" aria-hidden="true">
+        <defs>
+          <filter id="about-frame-fade" x="-0.05" y="-0.05" width="1.1" height="1.1">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.003" />
+          </filter>
+          <mask id="about-frame-mask" maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+            <rect width="1" height="1" fill="white" />
+            <rect x="0.015" y="0.015" width="0.97" height="0.97" rx="0.01" ry="0.01" fill="black" filter="url(#about-frame-fade)" />
+          </mask>
+        </defs>
+      </svg>
+      <div className="about-viewport-border" aria-hidden="true" />
       <main className="mobile-main mobile-about-main">
-        <div className="mobile-main-inner">
-        <article className="mobile-about-content">
-          <h1>Morsor</h1>
-          <p>A list of lists navigator</p>
-          <h2>Why?</h2>
-          <p>
-            The REAL goal: Vibe-code the whole thing. This is my first experience vibe-coding.
-          </p>
-          <p>But, as for what the app DOES:</p>
-          <p>
-            I&apos;m a list-maker. I have a few dozen lists which I want to be able to easily browse, search
-            and do some analysis on. That&apos;s what the app does.
-          </p>
-          <h2>What&apos;s the name?</h2>
-          <p>This is a re-write of a previous app I built, called Moocho.me.</p>
-          <p>I like Walruses. I speak Spanish. Morsa is Walrus in Spanish.</p>
-          <p>Moocho and Morsa both start with M. I used Cursor for this. Morsa + Cursor = Morsor.</p>
-          <p>I like Lord of the Rings. There is a distance of 1 between Mordor and Morsor (Levenshtein, or between keys on a keyboard).</p>
-          <h2>Features</h2>
-          <ul>
-            <li>Search all troves (lists), or a subset.</li>
-            <li>Find duplicate or unique items across troves.</li>
-          </ul>
-          <h2>Where do I get the data?</h2>
-          <p>Scripts and manual slogging.</p>
-        </article>
+        <div className="about-page">
+          <article className="about-content">
+            <AboutContent />
+          </article>
         </div>
       </main>
       <footer className="mobile-footer">

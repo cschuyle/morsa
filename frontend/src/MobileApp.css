@@ -738,6 +738,16 @@
   padding: 1rem;
 }
 
+/* Same layout as desktop About: border + about-page + about-content (styles from App.css) */
+.mobile-about-main .about-page {
+  margin-top: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.mobile-about-main .about-content {
+  color: #abb2bf;
+}
+
 .mobile-about-content {
   max-width: 40em;
 }
