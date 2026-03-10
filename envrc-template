@@ -27,3 +27,14 @@ export MOOCHO_BUCKET_NAME=blah
 # Login session timeout (Spring Boot duration; default 12h).
 # Example values: 30m, 12h, 1d
 #export MOOCHO_SESSION_TIMEOUT=12h
+
+# Docker image settings
+
+# Docker build platform (e.g. linux/amd64, linux/arm64). If unset or empty, docker build is run without --platform (host default).
+#export MOOCHO_ARCHITECTURE=linux/amd64
+
+# Docker image repository and name (e.g. namespace/morsor). If unset or empty, docker image is not tagged and pushed.
+#export MOOCHO_REGISTRY=namespace/morsor
+
+# Docker image version (e.g. 1.0.0, latest). If unset or empty, docker image is not tagged and pushed.
+#export MOOCHO_VERSION=latest
