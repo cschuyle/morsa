@@ -1164,7 +1164,7 @@ aria-label="Clear compare troves"
                     value={query}
                     onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
                     onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = ''; setSearchResult({ count: 0, results: [], page: 0, size: pageSize }) } }}
-                    placeholder="e.g. Greek, Prince, Albanian — or * for all"
+                    placeholder="e.g. Greek, Prince, Albanian, Alien — or * for all"
                     className="search-query-input"
                     aria-label="Query"
                   />

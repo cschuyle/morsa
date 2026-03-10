@@ -6,6 +6,10 @@
   box-sizing: border-box;
 }
 
+#root:has(.desktop-app) {
+  padding-top: 0.5rem;
+}
+
 /* Desktop app: fit header + search in viewport without page scroll */
 .desktop-app {
   display: flex;
@@ -14,6 +18,7 @@
   max-height: calc(100vh - 4rem);
   overflow: hidden;
   box-sizing: border-box;
+  background-color: #4b5260;
 }
 
 @media (max-width: 1920px) {
@@ -91,8 +96,20 @@
   color: #6633cc;
 }
 
+.desktop-app .app-title {
+  padding: 0 0 0.2rem;
+  margin-bottom: 0;
+  margin-top: 0;
+  line-height: 1.15;
+  background: linear-gradient(to bottom, #000 0%, #000 58%, #2d3139 85%, #4b5260 100%);
+}
+
 .desktop-app .app-title .search-title-brand {
-  font-size: 3.15rem;
+  font-size: 2.6rem;
+}
+
+.desktop-app .app-title .sidebar-title-note {
+  font-size: 1.1rem;
 }
 
 .app-title .sidebar-title-note {
@@ -127,6 +144,12 @@
   align-items: stretch;
   gap: 0.25rem;
   flex-shrink: 0;
+}
+
+.desktop-app .app-footer {
+  padding: 0.4rem 0 0.15rem;
+  margin-top: 0;
+  background: linear-gradient(to top, #000 0%, #000 58%, #2d3139 85%, #4b5260 100%);
 }
 
 .app-footer-row {
@@ -367,11 +390,30 @@
   width: 320px;
   min-width: 320px;
   padding: 1.5rem 1.75rem 1.5rem 1.5rem;
-  background: #ffaa44;
+  background: #1a1a1a;
+  border: 2px solid #ffaa44;
   position: sticky;
   top: 1rem;
   border-radius: 8px;
-  color: #252525;
+  color: #e0e0e0;
+}
+
+/* Visible gradient frame: 4 linear strips (orange → transparent) so no oval */
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to bottom, #ffaa44 0%, transparent 6px),
+    linear-gradient(to top, #ffaa44 0%, transparent 6px),
+    linear-gradient(to right, #ffaa44 0%, transparent 6px),
+    linear-gradient(to left, #ffaa44 0%, transparent 6px);
+  background-size: 100% 6px, 100% 6px, 6px 100%, 6px 100%;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  background-repeat: no-repeat;
 }
 
 .desktop-app .sidebar-wrapper .sidebar {
@@ -470,6 +512,10 @@
   margin: 0 0 0.75rem;
   font-size: 0.875rem;
   color: #444;
+}
+
+.sidebar .sidebar-selection-message {
+  color: #b8b8b8;
 }
 
 /* Trove picker panel (desktop sidebar) */
@@ -699,9 +745,29 @@
 
 .card {
   padding: 2em;
-  background: #ffaa44;
+  background: #1a1a1a;
+  border: 2px solid #ffaa44;
   border-radius: 8px;
-  color: #252525;
+  color: #e0e0e0;
+  position: relative;
+}
+
+/* Visible gradient frame: 4 linear strips (orange → transparent) so no oval */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(to bottom, #ffaa44 0%, transparent 6px),
+    linear-gradient(to top, #ffaa44 0%, transparent 6px),
+    linear-gradient(to right, #ffaa44 0%, transparent 6px),
+    linear-gradient(to left, #ffaa44 0%, transparent 6px);
+  background-size: 100% 6px, 100% 6px, 6px 100%, 6px 100%;
+  background-position: 0 0, 0 100%, 0 0, 100% 0;
+  background-repeat: no-repeat;
 }
 
 .search-section.card {
