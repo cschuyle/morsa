@@ -1007,6 +1007,36 @@
   max-height: 3.6rem;
 }
 
+/* Mobile gallery: tiles 1/2 size (height and width) */
+.mobile-search-results-grid .search-results-gallery {
+  grid-template-columns: repeat(auto-fill, minmax(92.5px, 1fr));
+  gap: 0.5rem;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-placeholder {
+  min-height: 80px;
+  font-size: 1.25rem;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-link-icon {
+  min-height: 53.33px;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-link-icon-img {
+  width: 1rem;
+  height: 1rem;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-title,
+.mobile-search-results-grid .search-results-gallery-card-trove {
+  padding: 0.2rem 0.3rem;
+  font-size: 0.65rem;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-trove {
+  font-size: 0.6rem;
+}
+
 .mobile-dup-uniques-results {
   margin-top: 1rem;
   overflow-x: auto;
