@@ -1367,7 +1367,7 @@ onClick={() => {
         </div>
       )}
         <div className="mobile-footer-row">
-          <Link to={location.search ? `/?${location.search.slice(1)}` : '/'} className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop site</Link>
+          <Link to={location.search ? `/?${location.search.slice(1)}` : '/'} className="mobile-footer-link" onClick={() => sessionStorage.setItem('morsorPreferDesktop', 'true')}>Desktop</Link>
           <button
             type="button"
             className="mobile-footer-link mobile-footer-logout-btn"
@@ -1380,7 +1380,7 @@ onClick={() => {
                 .catch(() => { window.location.href = '/login' })
             }}
           >
-            Log Out
+            Logout
           </button>
         </div>
       </footer>
