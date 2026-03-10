@@ -3,17 +3,20 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: #282c34;
   font-size: 16px;
+  color: #252525;
 }
 
 .mobile-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: 0 0.5rem;
   padding: 0.75rem 1rem;
-  background: #fff;
-  border-bottom: 1px solid #eee;
+  background: #ffaa44;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0 0 8px 8px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -25,9 +28,10 @@
 }
 
 .mobile-brand {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.25rem;
-  color: #213547;
+  font-family: "Nunito", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  color: #6b8cff;
   text-decoration: none;
 }
 
@@ -42,6 +46,10 @@
   padding: 1rem;
   max-width: 100%;
   box-sizing: border-box;
+  background: #ffaa44;
+  color: #252525;
+  border-radius: 8px;
+  margin: 0 0.5rem 0.5rem;
 }
 
 .mobile-main.mobile-filetype-dropdown-open {
@@ -73,8 +81,13 @@
   border-radius: 0;
   font-size: 1rem;
   background: transparent;
+  color: #252525;
   -webkit-appearance: none;
   appearance: none;
+}
+
+.mobile-search-input::placeholder {
+  color: #888;
 }
 
 .mobile-search-input:focus {
@@ -160,19 +173,20 @@
 }
 
 .mobile-filetype-trigger-wrap--filtered {
-  background: #ffe4cc;
+  background: #ffaa44;
 }
 
 .mobile-filetype-trigger-wrap--filtered .mobile-filetype-trigger {
-  background: #ffe4cc;
+  background: #ffaa44;
+  color: #252525;
 }
 
 .mobile-filetype-trigger-wrap--filtered .mobile-filetype-trigger:hover {
-  background: #ffd4a8;
+  background: #ff9944;
 }
 
 .mobile-filetype-trigger-wrap--filtered .mobile-filetype-clear:hover {
-  background: #ffd4a8;
+  background: #ff9944;
 }
 
 .mobile-filetype-trigger {
@@ -187,6 +201,7 @@
   border: none;
   border-radius: 0;
   background: transparent;
+  color: #252525;
   cursor: pointer;
   white-space: nowrap;
   text-align: left;
@@ -304,7 +319,7 @@
 
 .mobile-troves-label {
   font-size: 0.9rem;
-  color: #555;
+  color: #444;
 }
 
 .mobile-troves-btn {
@@ -325,14 +340,15 @@
   bottom: auto;
   max-height: 70vh;
   padding-top: max(calc(env(safe-area-inset-top, 0px) + 1rem), 2rem);
-  background: #fff;
-  border-radius: 0 0 12px 12px;
+  background: #ffaa44;
+  border-radius: 0 0 8px 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 20;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   animation: mobile-trove-picker-slide-in 0.25s ease-out;
+  color: #252525;
 }
 
 /* On compare tabs, move filter box down so it sits below the Primary/Compare tabs */
@@ -354,7 +370,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .mobile-trove-filter-row {
@@ -382,6 +398,11 @@
   border-radius: 0;
   font-size: 1rem;
   background: transparent;
+  color: #252525;
+}
+
+.mobile-trove-picker-filter::placeholder {
+  color: #888;
 }
 
 .mobile-trove-filter-clear {
@@ -632,10 +653,14 @@
 
 .mobile-footer {
   padding: 1rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ffaa44;
+  color: #252525;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  border-radius: 8px 8px 0 0;
+  margin: 0 0.5rem 0 0.5rem;
 }
 
 .mobile-status-message {
@@ -744,7 +769,7 @@
 }
 
 .mobile-mode-tab--active {
-  background: #fff;
+  background: #ff8800;
   color: #213547;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
@@ -774,7 +799,7 @@
 }
 
 .mobile-primary-compare-tab--active {
-  background: #fff;
+  background: #ff8800;
   color: #213547;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -799,7 +824,7 @@
 .mobile-search-hint {
   margin: 0 0 0.75rem;
   font-size: 0.9rem;
-  color: #555;
+  color: #444;
 }
 
 .mobile-search-loading {
@@ -917,13 +942,13 @@
 }
 
 .mobile-view-mode-btn--active {
-  background: #646cff;
-  color: #fff;
+  background: #ff8800;
+  color: #213547;
 }
 
 .mobile-view-mode-btn--active:hover {
-  background: #5358d8;
-  color: #fff;
+  background: #e67a00;
+  color: #213547;
 }
 
 /* Toolbar: filter box then file type picker to its right, single row */
@@ -939,6 +964,11 @@
   flex: 1;
   min-width: 0;
   max-width: none;
+  color: #252525;
+}
+
+.mobile-search-results-grid .grid-filter-input::placeholder {
+  color: #888;
 }
 
 /* When file type dropdown is open, allow it to extend below the result set without being clipped */
