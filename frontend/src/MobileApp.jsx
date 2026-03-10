@@ -1073,6 +1073,7 @@ onClick={() => {
                   showScoreColumn={query.trim() !== '*'}
                   viewMode={searchResultsViewMode}
                   hideTroveInGallery={selectedTroveIds.size === 1}
+                  showPdfSashInGallery
                   afterFilterSlot={allAvailableFileTypes.length >= 1 ? (() => {
                     const upper = (s) => (s || '').toUpperCase()
                     const availableUpper = new Set((allAvailableFileTypes || []).map(upper))

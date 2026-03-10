@@ -1047,6 +1047,28 @@
   overflow: hidden;
 }
 
+/* PDF diagonal sash in upper left of gallery card image (mobile only) */
+.mobile-search-results-grid .search-results-gallery-card-image {
+  position: relative;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-pdf-sash {
+  position: absolute;
+  top: 1.6rem;
+  left: -0.7rem;
+  padding: 0.12rem 1.2rem;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  transform: rotate(-45deg);
+  transform-origin: top left;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .mobile-dup-uniques-results {
   margin-top: 1rem;
   overflow-x: auto;

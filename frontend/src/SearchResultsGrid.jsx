@@ -156,7 +156,7 @@ const scoreColumn = {
   },
 }
 
-export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false }) {
+export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false, showPdfSashInGallery = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
   const [lightbox, setLightbox] = useState(null)
 
@@ -363,6 +363,8 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               const showLinkIcon = row?.itemType === 'littlePrinceItem' && (!thumbUrl || thumbIsPlaceholder)
               const title = row?.title ?? ''
               const trove = row?.trove ?? ''
+              const files = Array.isArray(row?.files) ? row.files : []
+              const hasPdf = files.some((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
               const galleryLinkIcon = (
                 <span className="search-results-gallery-card-link-icon" aria-hidden="true">
                   <PopOutIcon className="search-results-gallery-card-link-icon-img" />
@@ -393,6 +395,9 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                       <span className="search-results-gallery-card-placeholder" aria-hidden="true">
                         {title ? title.charAt(0).toUpperCase() : '?'}
                       </span>
+                    )}
+                    {showPdfSashInGallery && hasPdf && (
+                      <span className="search-results-gallery-card-pdf-sash" aria-hidden="true">PDF</span>
                     )}
                   </span>
                   <span className="search-results-gallery-card-title">{title || '\u00A0'}</span>
