@@ -1037,6 +1037,16 @@
   font-size: 0.6rem;
 }
 
+/* Single trove: title can wrap up to 3 lines */
+.mobile-search-results-grid .search-results-gallery-card--title-wraps .search-results-gallery-card-title {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
 .mobile-dup-uniques-results {
   margin-top: 1rem;
   overflow-x: auto;

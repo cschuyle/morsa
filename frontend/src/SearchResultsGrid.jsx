@@ -156,7 +156,7 @@ const scoreColumn = {
   },
 }
 
-export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list' }) {
+export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
   const [lightbox, setLightbox] = useState(null)
 
@@ -372,7 +372,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                 <button
                   key={row.id ?? idx}
                   type="button"
-                  className="search-results-gallery-card"
+                  className={`search-results-gallery-card${hideTroveInGallery ? ' search-results-gallery-card--title-wraps' : ''}`}
                   onClick={() => {
                     if (!payload) return
                     if (payload.itemUrl && !payload.imageUrl) {
@@ -396,7 +396,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                     )}
                   </span>
                   <span className="search-results-gallery-card-title">{title || '\u00A0'}</span>
-                  <span className="search-results-gallery-card-trove">{trove || '\u00A0'}</span>
+                  {!hideTroveInGallery && <span className="search-results-gallery-card-trove">{trove || '\u00A0'}</span>}
                 </button>
               )
             })
