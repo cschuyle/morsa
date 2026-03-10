@@ -138,7 +138,7 @@ docker run -p 8080:8080 \
 After you run the image, open [http://localhost:8080](http://localhost:8080).
 
 
-## Deplpoying as a Docker image
+## Deploying as a Docker image
 
 Build and Push Docker Image all at once
 ```
