@@ -1623,6 +1623,7 @@ aria-label="Clear compare troves"
                       onSortChange={handleGridSortChange}
                       showScoreColumn={query.trim() !== '*'}
                       viewMode={searchResultsViewMode}
+                      showPdfSashInGallery
                     />
                   </>
                 )
@@ -1781,6 +1782,7 @@ aria-label="Clear compare troves"
                     showScoreColumn={query.trim() !== '*'}
                     viewMode={searchResultsViewMode}
                     hideTroveInGallery={selectedTroveIds.size === 1}
+                    showPdfSashInGallery
                   />
                 </>
               )
