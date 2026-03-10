@@ -686,6 +686,11 @@
   outline-offset: 1px;
 }
 
+/* Mobile About: hide the full-viewport orange SVG border overlay so Safari doesn't cover content */
+.mobile-app .about-viewport-border {
+  display: none;
+}
+
 .mobile-footer {
   flex-shrink: 0;
   padding: 1rem;
