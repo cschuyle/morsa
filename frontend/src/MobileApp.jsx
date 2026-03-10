@@ -97,6 +97,8 @@ function MobileApp() {
       setSelectedTroveIds(new Set(troveIds))
       const boost = searchParams.get('boost')
       setBoostTroveId(boost != null && boost !== '' ? (urlTroveId(boost, troves) ?? boost) : null)
+      const view = searchParams.get('view')
+      setSearchResultsViewMode(view === 'gallery' ? 'gallery' : 'list')
     } else {
       setSearchMode(mode)
       const primary = searchParams.get('primary') ?? ''
@@ -124,6 +126,7 @@ function MobileApp() {
       if (boostId) next.set('boost', boostId)
       const ft = fileTypesSet ?? fileTypeFilters
       ft.forEach((f) => next.append('fileTypes', f))
+      next.set('view', searchResultsViewMode === 'gallery' ? 'gallery' : 'list')
     } else if (searchMode === 'duplicates') {
       const primaryId = dupPrimaryTroveId ? (urlTroveId(dupPrimaryTroveId, troves) ?? dupPrimaryTroveId) : null
       if (primaryId) next.set('primary', primaryId)
@@ -145,6 +148,7 @@ function MobileApp() {
       Array.from(selectedTroveIds).map((id) => urlTroveId(id, troves) ?? id).filter(Boolean).forEach((id) => next.append('trove', id))
       const boostId = boostTroveId ? (urlTroveId(boostTroveId, troves) ?? boostTroveId) : null
       if (boostId) next.set('boost', boostId)
+      next.set('view', searchResultsViewMode === 'gallery' ? 'gallery' : 'list')
     } else {
       const primaryId = primary ? (urlTroveId(primary, troves) ?? primary) : null
       if (primaryId) next.set('primary', primaryId)
@@ -172,7 +176,7 @@ function MobileApp() {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true })
     }
-  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchParams])
+  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchParams])
 
   useEffect(() => {
     if (!fileTypeDropdownOpen) return
