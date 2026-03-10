@@ -54,7 +54,10 @@ function App() {
   const [uniquesSortBy, setUniquesSortBy] = useState(null)
   const [uniquesSortDir, setUniquesSortDir] = useState('asc')
   const [searchPageInput, setSearchPageInput] = useState('')
-  const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
+  const [fileTypeFilters, setFileTypeFilters] = useState(() => {
+    const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
+    return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim()))
+  })
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery' (desktop only)
@@ -252,7 +255,11 @@ function App() {
     if (urlHasPrimaryOrCompare && stateHasNone) return
     const urlHasQuery = searchParams.get('q') != null && searchParams.get('q') !== ''
     const urlHasTrove = searchParams.getAll('trove').length > 0
-    const searchStateNotSynced = (urlHasQuery && (!query || (query ?? '').trim() === '')) || (urlHasTrove && searchSelectedTroveIds.size === 0)
+    const urlHasFileTypes = searchParams.getAll('fileTypes').length > 0
+    const searchStateNotSynced =
+      (urlHasQuery && (!query || (query ?? '').trim() === '')) ||
+      (urlHasTrove && searchSelectedTroveIds.size === 0) ||
+      (urlHasFileTypes && fileTypeFilters.size === 0)
     if (searchMode === 'search' && searchStateNotSynced) return
     const next = buildSearchParams(
       searchMode,
@@ -292,7 +299,9 @@ function App() {
       }
       const pageParam = Number(searchParams.get('page'))
       const initialPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0
-      fetchSearch(initialPage)
+      const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+      const fileTypesToUse = fileTypeFilters.size > 0 ? undefined : (urlFileTypes.size > 0 ? urlFileTypes : undefined)
+      fetchSearch(initialPage, null, null, null, null, fileTypesToUse)
     }, 400)
     return () => clearTimeout(t)
   }, [searchMode, selectedTroveIds, searchParams, pageSize])
@@ -1214,11 +1223,13 @@ aria-label="Clear compare troves"
                   {searching ? 'Searching…' : 'Go!'}
                 </button>
                 {searchMode === 'search' && allAvailableFileTypes.length >= 1 && (() => {
+                  const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+                  const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
                   const upper = (s) => (s || '').toUpperCase()
                   const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
-                  const selectedUpper = new Set([...fileTypeFilters].map(upper))
+                  const selectedUpper = new Set([...fileTypesForLabel].map(upper))
                   const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
-                  const hasFileTypeFilter = fileTypeFilters.size > 0 && !allSelected
+                  const hasFileTypeFilter = fileTypesForLabel.size > 0 && !allSelected
                   return (
                   <div className="search-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
                     <div className={`search-filetype-trigger-wrap${hasFileTypeFilter ? ' search-filetype-trigger-wrap--filtered' : ''}`}>
@@ -1230,16 +1241,15 @@ aria-label="Clear compare troves"
                         aria-expanded={fileTypeDropdownOpen}
                         aria-label="Filter by file type"
                       >
-                        {fileTypeFilters.size === 0
+                        {fileTypesForLabel.size === 0
                           ? 'Media: All'
                           : (() => {
-                              if (allSelected) return 'Media: All'
-                              const groupNames = getFullySelectedGroupNames(fileTypeFilters, allAvailableFileTypes)
-                              const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes) ?? [...fileTypeFilters].sort().join(', '))
+                              const groupNames = getFullySelectedGroupNames(fileTypesForLabel, allAvailableFileTypes)
+                              const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
                               return `Only ${label}`
                             })()}
                       </button>
-                      {fileTypeFilters.size > 0 && (
+                      {fileTypesForLabel.size > 0 && (
                         <>
                           <span className="search-filetype-divider" aria-hidden="true" />
                           <button

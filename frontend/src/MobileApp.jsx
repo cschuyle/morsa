@@ -51,7 +51,10 @@ function MobileApp() {
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
   const [reloadTrovesProgress, setReloadTrovesProgress] = useState({ current: 0, total: 0 })
-  const [fileTypeFilters, setFileTypeFilters] = useState(() => new Set())
+  const [fileTypeFilters, setFileTypeFilters] = useState(() => {
+    const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
+    return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim()))
+  })
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
@@ -172,12 +175,14 @@ function MobileApp() {
     const urlHasPrimaryOrCompare = searchParams.get('primary') || searchParams.getAll('compare').length > 0
     const urlHasQuery = searchParams.get('q') != null && searchParams.get('q') !== ''
     const urlHasTrove = searchParams.getAll('trove').length > 0
+    const urlHasFileTypes = searchParams.getAll('fileTypes').length > 0
     const stateNotYetSynced =
       (urlHasDupUniquesMode && searchMode === 'search') ||
       (urlHasPrimaryOrCompare && searchMode === 'duplicates' && !dupPrimaryTroveId && dupCompareTroveIds.size === 0) ||
       (urlHasPrimaryOrCompare && searchMode === 'uniques' && !uniqPrimaryTroveId && uniqCompareTroveIds.size === 0) ||
       (urlHasQuery && (query ?? '') === '') ||
-      (urlHasTrove && searchMode === 'search' && selectedTroveIds.size === 0)
+      (urlHasTrove && searchMode === 'search' && selectedTroveIds.size === 0) ||
+      (urlHasFileTypes && searchMode === 'search' && fileTypeFilters.size === 0)
     if (stateNotYetSynced) return
     const next = buildSearchParams()
     if (next.toString() !== searchParams.toString()) {
@@ -440,7 +445,9 @@ function MobileApp() {
       const pageParam = Number(searchParams.get('page'))
       const initialPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0
       setPage(initialPage)
-      fetchSearch(initialPage)
+      const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+      const fileTypesToUse = fileTypeFilters.size > 0 ? undefined : (urlFileTypes.size > 0 ? urlFileTypes : undefined)
+      fetchSearch(initialPage, null, null, fileTypesToUse)
     }, 300)
     return () => clearTimeout(t)
   }, [searchMode, selectedTroveIds, searchParams])
@@ -1124,11 +1131,13 @@ onClick={() => {
                   hideTroveInGallery={selectedTroveIds.size === 1}
                   showPdfSashInGallery
                   afterFilterSlot={allAvailableFileTypes.length >= 1 ? (() => {
+                    const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+                    const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
                     const upper = (s) => (s || '').toUpperCase()
                     const availableUpper = new Set((allAvailableFileTypes || []).map(upper))
-                    const selectedUpper = new Set([...fileTypeFilters].map(upper))
+                    const selectedUpper = new Set([...fileTypesForLabel].map(upper))
                     const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
-                    const hasFileTypeFilter = fileTypeFilters.size > 0 && !allSelected
+                    const hasFileTypeFilter = fileTypesForLabel.size > 0 && !allSelected
                     return (
                     <div className="mobile-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
                       <div className={`mobile-filetype-trigger-wrap${hasFileTypeFilter ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
@@ -1140,16 +1149,15 @@ onClick={() => {
                           aria-expanded={fileTypeDropdownOpen}
                           aria-label="Filter by file type"
                         >
-                          {fileTypeFilters.size === 0
+                          {fileTypesForLabel.size === 0
                             ? 'Media: All'
                             : (() => {
-                                if (allSelected) return 'Media: All'
-                                if (fileTypeFilters.size === 1) return `Only ${[...fileTypeFilters][0]}`
-                                const groupName = getGroupNameIfFullySelected(fileTypeFilters, allAvailableFileTypes)
-                                return groupName ? `Only ${groupName}` : `${fileTypeFilters.size} filetypes`
+                                if (fileTypesForLabel.size === 1) return `Only ${[...fileTypesForLabel][0]}`
+                                const groupName = getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes)
+                                return groupName ? `Only ${groupName}` : `${fileTypesForLabel.size} filetypes`
                               })()}
                         </button>
-                        {fileTypeFilters.size > 0 && (
+                        {fileTypesForLabel.size > 0 && (
                           <>
                             <span className="mobile-filetype-divider" aria-hidden="true" />
                             <button
