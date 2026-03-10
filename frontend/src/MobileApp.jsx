@@ -642,6 +642,7 @@ function MobileApp() {
       </header>
 
       <main className={`mobile-main${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
+        <div className="mobile-main-inner">
         <div className="mobile-mode-tabs" role="tablist" aria-label="Search mode">
           <button
             type="button"
@@ -1195,6 +1196,7 @@ onClick={() => {
             />
           </div>
         )}
+        </div>
       </main>
 
       <footer className="mobile-footer">

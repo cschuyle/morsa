@@ -10,6 +10,7 @@ function MobileAbout() {
         <Link to="/mobile/about" className="mobile-nav-link">About</Link>
       </header>
       <main className="mobile-main mobile-about-main">
+        <div className="mobile-main-inner">
         <article className="mobile-about-content">
           <h1>Morsor</h1>
           <p>A list of lists navigator</p>
@@ -35,6 +36,7 @@ function MobileAbout() {
           <h2>Where do I get the data?</h2>
           <p>Scripts and manual slogging.</p>
         </article>
+        </div>
       </main>
       <footer className="mobile-footer">
         <Link to="/mobile" className="mobile-footer-link">Back to search</Link>
