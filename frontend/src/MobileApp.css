@@ -1113,14 +1113,16 @@
 }
 
 .mobile-search-results-grid .search-results-gallery-card-audio-sash {
-  top: 1.6rem;
-  right: -0.7rem;
-  padding: 0.2rem 0.4rem;
+  width: 90px;
+  top: 2.2rem;
+  right: -1.25rem;
+  padding: 0.12rem 0.28rem;
 }
 
 .mobile-search-results-grid .search-results-gallery-card-audio-sash img {
-  width: 7.2px;
-  height: 7.2px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(-45deg) translate(5px, 5px);
 }
 
 .mobile-dup-uniques-results {

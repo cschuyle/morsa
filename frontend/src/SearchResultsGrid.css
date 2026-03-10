@@ -469,3 +469,9 @@
   font-size: 0.75rem;
   padding-top: 0;
 }
+
+/* Mobile app gallery: audio sash position (wrapper .mobile-search-results-grid is from MobileApp) */
+.mobile-search-results-grid .search-results-gallery-card-audio-sash {
+  top: 2.2rem;
+  right: -1.25rem;
+}
