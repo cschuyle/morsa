@@ -89,14 +89,16 @@
   font-size: inherit;
   font-weight: inherit;
   flex-shrink: 0;
+  color: #6b8cff;
 }
 
 .app-title .search-title-brand {
-  font-size: 2.775rem;
+  font-size: 3.15rem;
 }
 
 .app-title .sidebar-title-note {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
+  color: #8fa3e0;
 }
 
 .app-layout {
@@ -292,7 +294,8 @@
 
 .sidebar-wrapper--open .sidebar-toggle {
   top: -1rem;
-  right: 1rem;
+  right: 0.75rem;
+  color: #333;
 }
 
 .sidebar-toggle {
@@ -306,7 +309,7 @@
   padding: 0;
   border: none;
   background: transparent;
-  color: #333;
+  color: #6b8cff;
   font-size: 3.125rem;
   cursor: pointer;
   position: absolute;
@@ -333,10 +336,12 @@
   flex-shrink: 0;
   width: 320px;
   min-width: 320px;
-  padding: 1.25rem 1rem;
+  padding: 1.5rem 1.75rem 1.5rem 1.5rem;
   background: #fff5f0;
   position: sticky;
   top: 1rem;
+  border-radius: 8px;
+  color: #252525;
 }
 
 .desktop-app .sidebar-wrapper .sidebar {
@@ -352,7 +357,7 @@
 
 .sidebar-title-note {
   font-size: 1rem;
-  color: #888;
+  color: #666;
   font-style: italic;
   font-weight: 400;
 }
@@ -432,7 +437,7 @@
 .sidebar-selection-message {
   margin: 0 0 0.75rem;
   font-size: 0.875rem;
-  color: #555;
+  color: #444;
 }
 
 /* Trove picker panel (desktop sidebar) */
@@ -441,20 +446,20 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .trove-picker-heading {
   margin: 0 0 0.25rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #222;
 }
 
 .trove-picker-summary {
   margin: 0 0 0.75rem;
   font-size: 0.875rem;
-  color: #555;
+  color: #444;
 }
 
 .trove-picker-tabs {
@@ -472,7 +477,7 @@
   border-radius: 6px 6px 0 0;
   margin-bottom: -1px;
   background: #e8e8e8;
-  color: #555;
+  color: #444;
   font-size: 0.9rem;
   cursor: pointer;
   font-family: inherit;
@@ -480,12 +485,12 @@
 
 .trove-picker-tab:hover:not(.trove-picker-tab--active) {
   background: #e0e0e0;
-  color: #333;
+  color: #222;
 }
 
 .trove-picker-tab--active {
   background: #fff;
-  color: #213547;
+  color: #252525;
   font-weight: 500;
   border-bottom: 1px solid #fff;
 }
@@ -500,14 +505,14 @@
   border-radius: 6px;
   background: #fff;
   font-size: 0.85rem;
-  color: #555;
+  color: #444;
   cursor: pointer;
 }
 
 .trove-picker-clear:hover {
   background: #f5f5f5;
   border-color: #999;
-  color: #333;
+  color: #222;
 }
 
 .trove-picker-select {
@@ -663,6 +668,8 @@
 .card {
   padding: 2em;
   background: #fff5f0;
+  border-radius: 8px;
+  color: #252525;
 }
 
 .search-section.card {
@@ -676,9 +683,9 @@
 }
 
 .search-title-brand {
-  font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  font-family: "Nunito", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   font-weight: 800;
-  font-size: 1.85rem;
+  font-size: 2.1rem;
   letter-spacing: -0.02em;
   margin-right: 0.65em;
 }

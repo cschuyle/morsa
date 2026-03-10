@@ -80,6 +80,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  color: #252525;
 }
 
 .grid-table th,
@@ -128,7 +129,7 @@
 .grid-table .grid-empty {
   padding: 2rem;
   text-align: center;
-  color: #666;
+  color: #555;
 }
 
 .grid-table .col-trove {
