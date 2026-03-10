@@ -337,7 +337,7 @@
   width: 320px;
   min-width: 320px;
   padding: 1.5rem 1.75rem 1.5rem 1.5rem;
-  background: #fff5f0;
+  background: #ffaa44;
   position: sticky;
   top: 1rem;
   border-radius: 8px;
@@ -667,7 +667,7 @@
 
 .card {
   padding: 2em;
-  background: #fff5f0;
+  background: #ffaa44;
   border-radius: 8px;
   color: #252525;
 }
@@ -1394,11 +1394,11 @@
 }
 
 .search-mode-toggle button.active {
-  background: #fff5f0;
+  background: #ffaa44;
   color: #213547;
   font-weight: 500;
   border-color: #ccc;
-  border-bottom: 1px solid #fff5f0;
+  border-bottom: 1px solid #ffaa44;
 }
 
 .primary-trove-select-wrap {
