@@ -1125,6 +1125,18 @@
   transform: rotate(-45deg) translate(5px, 5px);
 }
 
+.mobile-search-results-grid .search-results-gallery-card-video-sash {
+  width: 90px;
+  bottom: 2.45rem;
+  right: -1.5rem;
+  padding: 0.12rem 0.28rem;
+}
+
+.mobile-search-results-grid .search-results-gallery-card-video-sash img {
+  width: 12px;
+  height: 12px;
+}
+
 .mobile-dup-uniques-results {
   margin-top: 1rem;
   overflow-x: auto;

@@ -371,6 +371,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               const files = Array.isArray(row?.files) ? row.files : []
               const hasPdf = files.some((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
               const hasAudio = files.some((u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u))
+              const hasVideo = files.some((u) => typeof u === 'string' && /\.(mp4|webm|mov|avi|mkv|m4v|ogv|wmv)(\?|$)/i.test(u))
               const galleryLinkIcon = (
                 <span className="search-results-gallery-card-link-icon" aria-hidden="true">
                   <PopOutIcon className="search-results-gallery-card-link-icon-img" />
@@ -409,6 +410,11 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                     {showPdfSashInGallery && hasAudio && (
                       <span className="search-results-gallery-card-audio-sash" aria-hidden="true">
                         <img src="/audio.png" alt="" />
+                      </span>
+                    )}
+                    {showPdfSashInGallery && hasVideo && (
+                      <span className="search-results-gallery-card-video-sash" aria-hidden="true">
+                        <img src="/video.svg" alt="" />
                       </span>
                     )}
                   </span>
