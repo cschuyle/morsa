@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import AboutContent from './AboutContent'
+import { APP_VERSION } from './version'
 import './App.css'
 
 function About() {
@@ -24,6 +25,7 @@ function About() {
       </div>
       <hr className="backend-status-divider" />
       <footer className="app-footer">
+        <span className="app-footer-text">Version {APP_VERSION}</span>
         <Link to="/" className="app-footer-link">Go back</Link>
       </footer>
     </>
