@@ -4,7 +4,7 @@ A list of lists navigator
 
 ## Why?
 
-The REAL goal: Vibe-code the whole thing. This is my first experience vibe-coding.
+The REAL goal: Vibe-code the whole thing. This is an experiment doing 99.999% vibe-coding for a nontrivial app.
 
 But, as for what the app DOES:
 
