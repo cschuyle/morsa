@@ -99,6 +99,8 @@ function MobileApp() {
       setBoostTroveId(boost != null && boost !== '' ? (urlTroveId(boost, troves) ?? boost) : null)
       const view = searchParams.get('view')
       setSearchResultsViewMode(view === 'gallery' ? 'gallery' : 'list')
+      const pageParam = Number(searchParams.get('page'))
+      setPage(Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0)
     } else {
       setSearchMode(mode)
       const primary = searchParams.get('primary') ?? ''
@@ -127,6 +129,10 @@ function MobileApp() {
       const ft = fileTypesSet ?? fileTypeFilters
       ft.forEach((f) => next.append('fileTypes', f))
       next.set('view', searchResultsViewMode === 'gallery' ? 'gallery' : 'list')
+      const existingPage = searchParams.get('page')
+      if (existingPage != null) next.set('page', existingPage)
+      const existingSize = searchParams.get('size')
+      if (existingSize != null) next.set('size', existingSize)
     } else if (searchMode === 'duplicates') {
       const primaryId = dupPrimaryTroveId ? (urlTroveId(dupPrimaryTroveId, troves) ?? dupPrimaryTroveId) : null
       if (primaryId) next.set('primary', primaryId)
@@ -157,7 +163,7 @@ function MobileApp() {
     return next
   }
 
-  // Persist current tab, query, and trove selection to URL.
+  // Persist current tab, query, trove selection, view, and search pagination to URL.
   // Skip writing when URL has params we haven't applied yet (e.g. initial load or desktop→mobile with query string).
   useEffect(() => {
     const urlMode = searchParams.get('mode')
@@ -176,7 +182,7 @@ function MobileApp() {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true })
     }
-  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchParams])
+  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, page, searchParams])
 
   useEffect(() => {
     if (!fileTypeDropdownOpen) return
@@ -423,9 +429,14 @@ function MobileApp() {
       skipSearchRef.current = false
       return
     }
-    const t = setTimeout(() => fetchSearch(0), 300)
+    const t = setTimeout(() => {
+      const pageParam = Number(searchParams.get('page'))
+      const initialPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0
+      setPage(initialPage)
+      fetchSearch(initialPage)
+    }, 300)
     return () => clearTimeout(t)
-  }, [searchMode, selectedTroveIds])
+  }, [searchMode, selectedTroveIds, searchParams])
 
   useEffect(() => {
     setFreezeTroveListOrder(false)
@@ -545,13 +556,21 @@ function MobileApp() {
     setDuplicatesResult(null)
     setUniquesResult(null)
     setFreezeTroveListOrder(false)
-    fetchSearch(0)
     setPage(0)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('page', '1')
+    nextParams.set('size', String(MOBILE_PAGE_SIZE))
+    setSearchParams(nextParams, { replace: true })
+    fetchSearch(0)
   }
 
   function goToPage(nextPage) {
     fetchSearch(nextPage)
     setPage(nextPage)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('page', String(nextPage + 1))
+    nextParams.set('size', String(MOBILE_PAGE_SIZE))
+    setSearchParams(nextParams, { replace: true })
   }
 
   const sortedDuplicateRows = useMemo(() => {

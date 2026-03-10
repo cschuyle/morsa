@@ -200,6 +200,10 @@ function App() {
       setBoostTroveId(boost != null && boost !== '' ? (urlTroveId(boost, troves) ?? boost) : null)
       const view = searchParams.get('view')
       setSearchResultsViewMode(view === 'gallery' ? 'gallery' : 'list')
+      const sizeParam = Number(searchParams.get('size'))
+      if (Number.isFinite(sizeParam) && sizeParam > 0) {
+        setPageSize(sizeParam)
+      }
     } else if (mode === 'duplicates') {
       const primary = searchParams.get('primary')
       setDupPrimaryTroveId(primary != null ? (urlTroveId(primary, troves) ?? primary) : '')
@@ -223,6 +227,10 @@ function App() {
       const ft = fileTypesSet ?? fileTypeFilters
       if (ft && ft.size > 0) ft.forEach((f) => next.append('fileTypes', f))
       next.set('view', view === 'gallery' ? 'gallery' : 'list')
+      const existingPage = searchParams.get('page')
+      if (existingPage != null) next.set('page', existingPage)
+      const existingSize = searchParams.get('size')
+      if (existingSize != null) next.set('size', existingSize)
     } else if (mode === 'duplicates') {
       const primaryId = dupPrimary ? (urlTroveId(dupPrimary, troves) ?? dupPrimary) : null
       if (primaryId) next.set('primary', primaryId)
@@ -235,7 +243,7 @@ function App() {
     return next
   }
 
-  // Persist current tab, query, and trove selection to URL (bookmarkable).
+  // Persist current tab, query, trove selection, view, and search pagination to URL (bookmarkable).
   // Skip overwriting when the URL has params we haven't applied yet (pasted URL, desktop↔mobile toggle).
   useEffect(() => {
     const urlHasPrimaryOrCompare = searchParams.get('primary') || searchParams.getAll('compare').length > 0
@@ -260,7 +268,7 @@ function App() {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true })
     }
-  }, [query, searchMode, searchSelectedTroveIds, primaryTroveId, dupCompareTroveIds, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode])
+  }, [query, searchMode, searchSelectedTroveIds, primaryTroveId, dupCompareTroveIds, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, pageSize])
 
   useEffect(() => {
     if (searchMode !== 'search') return
@@ -274,10 +282,12 @@ function App() {
         setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
         return
       }
-      fetchSearch(0)
+      const pageParam = Number(searchParams.get('page'))
+      const initialPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0
+      fetchSearch(initialPage)
     }, 400)
     return () => clearTimeout(t)
-  }, [searchMode, selectedTroveIds])
+  }, [searchMode, selectedTroveIds, searchParams, pageSize])
 
   useEffect(() => {
     setFreezeTroveListOrder(false)
@@ -537,6 +547,10 @@ function App() {
     const newSize = Number(e.target.value)
     setPageSize(newSize)
     if (searchResult != null && query.trim()) fetchSearch(0, newSize)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('size', String(newSize))
+    nextParams.set('page', '1')
+    setSearchParams(nextParams, { replace: true })
   }
   function handleDupPageSizeChange(e) {
     const newSize = Number(e.target.value)
@@ -551,6 +565,9 @@ function App() {
 
   function goToPage(nextPage) {
     fetchSearch(nextPage)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('page', String(nextPage + 1))
+    setSearchParams(nextParams, { replace: true })
   }
 
   function handleGridSortChange(newSortBy, newSortDir) {
