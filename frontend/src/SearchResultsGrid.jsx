@@ -113,7 +113,7 @@ function thumbnailColumnDef(onThumbnailClick) {
       const showLinkIconOnly = isLittlePrince && !url && itemUrl
       if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
       const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, !!largeUrl)
-      const payload = { imageUrl: largeUrl, pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
+      const payload = { imageUrl: largeUrl, title: row?.title ?? '', pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl }
       const canClick = largeUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
       const linkIcon = (
         <span className="search-thumb-link-icon" aria-hidden="true">
@@ -273,6 +273,11 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
         >
           <button type="button" className="search-thumb-lightbox-close" onClick={closeLightbox} aria-label="Close">×</button>
           <div className="search-thumb-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            {lightbox.title && (
+              <div className="search-thumb-lightbox-title">
+                {lightbox.title}
+              </div>
+            )}
             {lightbox.imageUrl && (
               <img src={lightbox.imageUrl} alt="" />
             )}
@@ -377,11 +382,12 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   className={`search-results-gallery-card${hideTroveInGallery ? ' search-results-gallery-card--title-wraps' : ''}`}
                   onClick={() => {
                     if (!payload) return
-                    if (payload.itemUrl && !payload.imageUrl) {
-                      window.open(payload.itemUrl, '_blank', 'noopener,noreferrer')
+                    const next = { ...payload, title }
+                    if (next.itemUrl && !next.imageUrl) {
+                      window.open(next.itemUrl, '_blank', 'noopener,noreferrer')
                       return
                     }
-                    setLightbox(payload)
+                    setLightbox(next)
                   }}
                   disabled={!payload}
                   title={payload ? 'View full size' : title}

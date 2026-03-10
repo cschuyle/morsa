@@ -826,19 +826,20 @@
 }
 
 .search-filetype-trigger-wrap--filtered {
-  background: #ffe4cc;
+  background: #ff8800;
 }
 
 .search-filetype-trigger-wrap--filtered .search-filetype-dropdown-trigger {
-  background: #ffe4cc;
+  background: #ff8800;
+  color: #213547;
 }
 
 .search-filetype-trigger-wrap--filtered .search-filetype-dropdown-trigger:hover {
-  background: #ffd4a8;
+  background: #e67a00;
 }
 
 .search-filetype-trigger-wrap--filtered .search-filetype-clear:hover {
-  background: #ffd4a8;
+  background: #e67a00;
 }
 
 .search-filetype-dropdown-trigger {

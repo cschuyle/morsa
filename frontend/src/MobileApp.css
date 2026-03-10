@@ -191,20 +191,20 @@
 }
 
 .mobile-filetype-trigger-wrap--filtered {
-  background: #ffaa44;
+  background: #ff8800;
 }
 
 .mobile-filetype-trigger-wrap--filtered .mobile-filetype-trigger {
-  background: #ffaa44;
-  color: #252525;
+  background: #ff8800;
+  color: #213547;
 }
 
 .mobile-filetype-trigger-wrap--filtered .mobile-filetype-trigger:hover {
-  background: #ff9944;
+  background: #e67a00;
 }
 
 .mobile-filetype-trigger-wrap--filtered .mobile-filetype-clear:hover {
-  background: #ff9944;
+  background: #e67a00;
 }
 
 .mobile-filetype-trigger {
