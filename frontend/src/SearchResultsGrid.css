@@ -10,7 +10,7 @@
 
 .search-results-grid .back-to-top-btn {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 5rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;

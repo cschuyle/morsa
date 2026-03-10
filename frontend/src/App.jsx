@@ -649,7 +649,7 @@ function App() {
   }, [duplicatesResult?.rows, duplicatesSortBy, duplicatesSortDir])
 
   return (
-    <>
+    <div className="desktop-app">
       <h1 className="app-title">
         <span className="search-title-brand">Morsor</span> <span className="sidebar-title-note">More lists than you needed</span>
       </h1>
@@ -1740,94 +1740,98 @@ aria-label="Clear compare troves"
       </div>
       <hr className="backend-status-divider" />
       <footer className="app-footer">
-        <Link to="/about" className="app-footer-link">About</Link>
-        <button
-          type="button"
-          className="app-footer-link app-footer-logout-btn"
-          onClick={() => {
-            const token = getCsrfToken()
-            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
-            if (token) headers['X-XSRF-TOKEN'] = token
-            fetch('/logout', { method: 'POST', credentials: 'include', headers })
-              .then(() => { window.location.href = '/login' })
-              .catch(() => { window.location.href = '/login' })
-          }}
-        >
-          Log Out
-        </button>
-        <Link to={`/mobile${location.search}`} className="app-footer-link" onClick={() => sessionStorage.removeItem('morsorPreferDesktop')}>Mobile</Link>
-        {message && (
-          <p className="backend-message" data-status={message.startsWith('Status: Backend is up') ? 'up' : 'down'}>
-            {message}
-            {cacheEntries > 0 && (
-              <>
-                {' · '}
-                <button
-                  type="button"
-                  className="app-footer-link app-footer-clear-cache"
-                  onClick={() => {
-                    const headers = { ...getApiAuthHeaders() }
-                    const token = getCsrfToken()
-                    if (token) headers['X-XSRF-TOKEN'] = token
-                    fetch('/api/cache/clear', { method: 'POST', credentials: 'include', headers })
-                      .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) refreshStatusMessage() })
-                      .catch(() => {})
-                  }}
-                >
-                  Clear Cache
-                </button>
-              </>
-            )}
-            {' · '}
-            <button
-              type="button"
-              className="app-footer-link app-footer-clear-cache"
-              onClick={async () => {
-                setReloadTrovesInProgress(true)
-                setReloadTrovesProgress({ current: 0, total: 0 })
-                const controller = new AbortController()
-                reloadAbortControllerRef.current = controller
-                const headers = { ...getApiAuthHeaders() }
-                const token = getCsrfToken()
-                if (token) headers['X-XSRF-TOKEN'] = token
-                try {
-                  const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers, signal: controller.signal })
-                  if (res.status === 401) { window.location.href = '/login'; return }
-                  if (!res.ok || !res.body) {
-                    setReloadTrovesInProgress(false)
-                    return
-                  }
-                  const reader = res.body.getReader()
-                  const decoder = new TextDecoder()
-                  let buffer = ''
-                  while (true) {
-                    const { value, done } = await reader.read()
-                    if (done) break
-                    buffer += decoder.decode(value, { stream: true })
-                    const lines = buffer.split('\n')
-                    buffer = lines.pop() ?? ''
-                    for (const line of lines) {
-                      if (!line.trim()) continue
-                      try {
-                        const data = JSON.parse(line)
-                        if (data.type === 'progress') setReloadTrovesProgress({ current: data.current ?? 0, total: data.total ?? 0 })
-                        else if (data.type === 'done') {
-                          const r = await fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
-                          if (r.ok) { const arr = await r.json(); if (Array.isArray(arr)) setTroves(arr) }
-                          refreshStatusMessage()
-                        }
-                      } catch (_) {}
+        <div className="app-footer-row">
+          <Link to="/about" className="app-footer-link">About</Link>
+          <Link to={`/mobile${location.search}`} className="app-footer-link" onClick={() => sessionStorage.removeItem('morsorPreferDesktop')}>Mobile</Link>
+        </div>
+        <div className="app-footer-row">
+          {message ? (
+            <p className="backend-message" data-status={message.startsWith('Status: Backend is up') ? 'up' : 'down'}>
+              {message}
+              {cacheEntries > 0 && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    className="app-footer-link app-footer-clear-cache"
+                    onClick={() => {
+                      const headers = { ...getApiAuthHeaders() }
+                      const token = getCsrfToken()
+                      if (token) headers['X-XSRF-TOKEN'] = token
+                      fetch('/api/cache/clear', { method: 'POST', credentials: 'include', headers })
+                        .then((res) => { if (res.status === 401) { window.location.href = '/login'; return }; if (res.ok) refreshStatusMessage() })
+                        .catch(() => {})
+                    }}
+                  >
+                    Clear Cache
+                  </button>
+                </>
+              )}
+              {' · '}
+              <button
+                type="button"
+                className="app-footer-link app-footer-clear-cache"
+                onClick={async () => {
+                  setReloadTrovesInProgress(true)
+                  setReloadTrovesProgress({ current: 0, total: 0 })
+                  const controller = new AbortController()
+                  reloadAbortControllerRef.current = controller
+                  const headers = { ...getApiAuthHeaders() }
+                  const token = getCsrfToken()
+                  if (token) headers['X-XSRF-TOKEN'] = token
+                  try {
+                    const res = await fetch('/api/troves/reload/stream', { method: 'POST', credentials: 'include', headers, signal: controller.signal })
+                    if (res.status === 401) { window.location.href = '/login'; return }
+                    if (!res.ok || !res.body) {
+                      setReloadTrovesInProgress(false)
+                      return
                     }
-                  }
-                } catch (_) {}
-                setReloadTrovesProgress({ current: 0, total: 0 })
-                setReloadTrovesInProgress(false)
-              }}
-            >
-              Reload Troves
-            </button>
-          </p>
-        )}
+                    const reader = res.body.getReader()
+                    const decoder = new TextDecoder()
+                    let buffer = ''
+                    while (true) {
+                      const { value, done } = await reader.read()
+                      if (done) break
+                      buffer += decoder.decode(value, { stream: true })
+                      const lines = buffer.split('\n')
+                      buffer = lines.pop() ?? ''
+                      for (const line of lines) {
+                        if (!line.trim()) continue
+                        try {
+                          const data = JSON.parse(line)
+                          if (data.type === 'progress') setReloadTrovesProgress({ current: data.current ?? 0, total: data.total ?? 0 })
+                          else if (data.type === 'done') {
+                            const r = await fetch('/api/troves', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+                            if (r.ok) { const arr = await r.json(); if (Array.isArray(arr)) setTroves(arr) }
+                            refreshStatusMessage()
+                          }
+                        } catch (_) {}
+                      }
+                    }
+                  } catch (_) {}
+                  setReloadTrovesProgress({ current: 0, total: 0 })
+                  setReloadTrovesInProgress(false)
+                }}
+              >
+                Reload Troves
+              </button>
+            </p>
+          ) : <span />}
+          <button
+            type="button"
+            className="app-footer-link app-footer-logout-btn"
+            onClick={() => {
+              const token = getCsrfToken()
+              const headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
+              if (token) headers['X-XSRF-TOKEN'] = token
+              fetch('/logout', { method: 'POST', credentials: 'include', headers })
+                .then(() => { window.location.href = '/login' })
+                .catch(() => { window.location.href = '/login' })
+            }}
+          >
+            Log Out
+          </button>
+        </div>
       </footer>
       {reloadTrovesInProgress && (
         <div className="reload-troves-overlay" role="dialog" aria-modal="true" aria-label="Reloading troves">
@@ -1869,7 +1873,7 @@ aria-label="Clear compare troves"
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }
 

@@ -228,10 +228,19 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
   const [showBackToTop, setShowBackToTop] = useState(false)
   const gridRef = useRef(null)
   const [backToTopCenterX, setBackToTopCenterX] = useState(null)
+  const scrollContainerRef = useRef(null)
   useEffect(() => {
+    const el = gridRef.current
+    const scrollContainer = el?.closest('.main') ?? null
+    scrollContainerRef.current = scrollContainer
     const threshold = 200
-    const onScroll = () => setShowBackToTop(window.scrollY > threshold)
+    const getScrollTop = () => (scrollContainer ? scrollContainer.scrollTop : window.scrollY)
+    const onScroll = () => setShowBackToTop(getScrollTop() > threshold)
     onScroll()
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', onScroll, { passive: true })
+      return () => scrollContainer.removeEventListener('scroll', onScroll)
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -444,7 +453,11 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
           type="button"
           className="back-to-top-btn"
           style={backToTopCenterX != null ? { left: backToTopCenterX } : undefined}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            const sc = scrollContainerRef.current
+            if (sc) sc.scrollTo({ top: 0, behavior: 'smooth' })
+            else window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
           aria-label="Back to top"
           title="Back to top"
         >

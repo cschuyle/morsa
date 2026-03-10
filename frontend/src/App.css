@@ -7,6 +7,37 @@
   box-sizing: border-box;
 }
 
+/* Desktop app: fit header + search in viewport without page scroll */
+.desktop-app {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 4rem);
+  max-height: calc(100vh - 4rem);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1920px) {
+  .desktop-app {
+    min-height: calc(100vh - 3rem);
+    max-height: calc(100vh - 3rem);
+  }
+}
+
+@media (max-width: 1400px) {
+  .desktop-app {
+    min-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 2rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .desktop-app {
+    min-height: calc(100vh - 1.5rem);
+    max-height: calc(100vh - 1.5rem);
+  }
+}
+
 @media (max-width: 1920px) {
   #root {
     padding: 1.5rem;
@@ -57,6 +88,7 @@
   text-align: center;
   font-size: inherit;
   font-weight: inherit;
+  flex-shrink: 0;
 }
 
 .app-title .search-title-brand {
@@ -73,23 +105,36 @@
   align-items: stretch;
   margin-top: 1.5rem;
   text-align: left;
-  min-height: calc(100vh - 8rem);
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .backend-status-divider {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
   margin-bottom: 0;
   border: none;
   border-top: 1px solid #e5e5e5;
+  flex-shrink: 0;
 }
 
 .app-footer {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   margin-bottom: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e5e5;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.app-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  gap: 1rem;
 }
 
 .app-footer-link {
@@ -223,6 +268,7 @@
   width: 6.25rem;
   transition: width 0.25s ease;
   overflow: hidden;
+  min-height: 0;
 }
 
 .sidebar-wrapper--open {
@@ -291,6 +337,11 @@
   background: #fff5f0;
   position: sticky;
   top: 1rem;
+}
+
+.desktop-app .sidebar-wrapper .sidebar {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .sidebar-title {
@@ -604,7 +655,9 @@
 .main {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   max-width: 100%;
+  overflow-y: auto;
 }
 
 .card {
