@@ -11,6 +11,7 @@ import { UniquesResultsView } from './UniquesResultsView'
 import './MobileApp.css'
 
 const MOBILE_PAGE_SIZE = 100
+const MOBILE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 250, 500]
 const DUP_UNIQUES_PAGE_SIZE = 50
 
 function MobileApp() {
@@ -59,6 +60,11 @@ function MobileApp() {
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery'
+  const [pageSize, setPageSize] = useState(() => {
+    const p = new URLSearchParams(window.location.search)
+    const s = Number(p.get('size'))
+    return Number.isFinite(s) && s > 0 ? s : MOBILE_PAGE_SIZE
+  })
   const queryRef = useRef(query)
   const skipSearchRef = useRef(true)
   const skipFileTypeSearchRef = useRef(false)
@@ -106,6 +112,8 @@ function MobileApp() {
       setSearchResultsViewMode(view === 'gallery' ? 'gallery' : 'list')
       const pageParam = Number(searchParams.get('page'))
       setPage(Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0)
+      const sizeParam = Number(searchParams.get('size'))
+      if (Number.isFinite(sizeParam) && sizeParam > 0) setPageSize(sizeParam)
     } else {
       setSearchMode(mode)
       const primary = searchParams.get('primary') ?? ''
@@ -189,7 +197,7 @@ function MobileApp() {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true })
     }
-  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, page, searchParams])
+  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, page, pageSize, searchParams])
 
   // Keep mobile search page input in sync with the current page (1-based)
   useEffect(() => {
@@ -230,10 +238,11 @@ function MobileApp() {
       .catch(() => setStatusMessage('Server AWOL'))
   }
 
-  function fetchSearch(pageNum, sortByOverride = null, sortDirOverride = null, fileTypesOverride = undefined) {
+  function fetchSearch(pageNum, sortByOverride = null, sortDirOverride = null, fileTypesOverride = undefined, sizeOverride = undefined) {
+    const size = sizeOverride ?? pageSize
     const q = queryRef.current.trim()
     if (!q) {
-      setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE })
+      setSearchResult({ count: 0, results: [], page: 0, size })
       return
     }
     const sortBy = sortByOverride ?? searchSortBy
@@ -246,7 +255,7 @@ function MobileApp() {
     const params = new URLSearchParams({
       query: q,
       page: String(pageNum),
-      size: String(MOBILE_PAGE_SIZE),
+      size: String(size),
     })
     selectedTroveIds.forEach((id) => params.append('trove', id))
     if (boostTroveId) params.set('boostTrove', boostTroveId)
@@ -286,7 +295,7 @@ function MobileApp() {
         }
         refreshStatusMessage()
       })
-      .catch(() => setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE }))
+      .catch(() => setSearchResult({ count: 0, results: [], page: 0, size }))
       .finally(() => setSearching(false))
   }
 
@@ -578,7 +587,7 @@ function MobileApp() {
     setPage(0)
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set('page', '1')
-    nextParams.set('size', String(MOBILE_PAGE_SIZE))
+    nextParams.set('size', String(pageSize))
     setSearchParams(nextParams, { replace: true })
     fetchSearch(0)
   }
@@ -588,8 +597,19 @@ function MobileApp() {
     setPage(nextPage)
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set('page', String(nextPage + 1))
-    nextParams.set('size', String(MOBILE_PAGE_SIZE))
+    nextParams.set('size', String(pageSize))
     setSearchParams(nextParams, { replace: true })
+  }
+
+  function handlePageSizeChange(e) {
+    const newSize = Number(e.target.value)
+    setPageSize(newSize)
+    if (searchResult != null && query.trim()) fetchSearch(0, null, null, undefined, newSize)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('size', String(newSize))
+    nextParams.set('page', '1')
+    setSearchParams(nextParams, { replace: true })
+    setPage(0)
   }
 
   function handleMobileSearchPageInputKeyDown(e, totalPages, currentPage) {
@@ -634,7 +654,8 @@ function MobileApp() {
 
   const results = searchResult?.results ?? []
   const count = searchResult?.count ?? 0
-  const totalPages = Math.ceil(count / MOBILE_PAGE_SIZE) || 0
+  const searchSize = typeof searchResult?.size === 'number' ? searchResult.size : pageSize
+  const totalPages = Math.ceil(count / searchSize) || 0
   const displaySelectedTroveIds = useMemo(() => {
     if (searchMode !== 'search' || selectedTroveIds.size > 0) return selectedTroveIds
     if (!Array.isArray(results) || results.length === 0) return selectedTroveIds
@@ -768,7 +789,7 @@ onClick={() => {
               type="search"
               value={query}
               onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
-              onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = ''; setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE }) } }}
+              onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = ''; setSearchResult({ count: 0, results: [], page: 0, size: pageSize }) } }}
               placeholder="e.g. Greek, Prince, Albanian, Alien — or * for all"
               className="mobile-search-input"
               autoCapitalize="off"
@@ -809,7 +830,7 @@ onClick={() => {
                 onClick={() => {
                   setQuery('')
                   setFreezeTroveListOrder(false)
-                  setSearchResult({ count: 0, results: [], page: 0, size: MOBILE_PAGE_SIZE })
+                  setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
                   setDuplicatesResult(null)
                   setUniquesResult(null)
                 }}
@@ -886,38 +907,27 @@ onClick={() => {
             )}
             {!(searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)) && !(searchMode === 'uniques' && compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)) && troveLabel}
           </span>
-          {searchMode === 'search' && searchResult != null && totalPages > 1 && (
-            <nav className="mobile-pagination" aria-label="Pages">
-              <button
-                type="button"
-                className="mobile-page-btn"
-                disabled={page <= 0 || searching}
-                onClick={() => goToPage(page - 1)}
-                aria-label="Previous page"
-              >
-                ‹
-              </button>
-              <span className="mobile-page-info">
-                <input
-                  type="text"
-                  className="mobile-page-input"
-                  value={mobileSearchPageInput}
-                  onChange={(e) => setMobileSearchPageInput(e.target.value)}
-                  onKeyDown={(e) => handleMobileSearchPageInputKeyDown(e, totalPages, page)}
-                  aria-label="Current page"
-                />{' '}
-                / {formatCount(totalPages)}
+          {searchMode === 'search' && searchResult != null && (
+            <span className="mobile-view-and-size-wrap">
+              <span className="mobile-view-mode-toggle" role="group" aria-label="Results view">
+                <button
+                  type="button"
+                  className={`mobile-view-mode-btn ${searchResultsViewMode === 'list' ? 'mobile-view-mode-btn--active' : ''}`}
+                  onClick={() => setSearchResultsViewMode('list')}
+                  aria-pressed={searchResultsViewMode === 'list'}
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  className={`mobile-view-mode-btn ${searchResultsViewMode === 'gallery' ? 'mobile-view-mode-btn--active' : ''}`}
+                  onClick={() => setSearchResultsViewMode('gallery')}
+                  aria-pressed={searchResultsViewMode === 'gallery'}
+                >
+                  Gallery
+                </button>
               </span>
-              <button
-                type="button"
-                className="mobile-page-btn"
-                disabled={page >= totalPages - 1 || searching}
-                onClick={() => goToPage(page + 1)}
-                aria-label="Next page"
-              >
-                ›
-              </button>
-            </nav>
+            </span>
           )}
           {searchMode === 'duplicates' && duplicatesResult != null && (() => {
             const total = duplicatesResult.total ?? 0
@@ -1107,24 +1117,56 @@ onClick={() => {
             {results.length > 0 && (
               <div className={`mobile-search-results-grid${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
                 <div className="mobile-view-mode-row">
-                  <span className="mobile-view-mode-toggle" role="group" aria-label="Results view">
-                    <button
-                      type="button"
-                      className={`mobile-view-mode-btn ${searchResultsViewMode === 'list' ? 'mobile-view-mode-btn--active' : ''}`}
-                      onClick={() => setSearchResultsViewMode('list')}
-                      aria-pressed={searchResultsViewMode === 'list'}
+                  {totalPages > 1 && (
+                    <nav className="mobile-pagination" aria-label="Pages">
+                      <button
+                        type="button"
+                        className="mobile-page-btn"
+                        disabled={page <= 0 || searching}
+                        onClick={() => goToPage(page - 1)}
+                        aria-label="Previous page"
+                      >
+                        ‹
+                      </button>
+                      <span className="mobile-page-info">
+                        Page{' '}
+                        <input
+                          type="text"
+                          className="mobile-page-input"
+                          value={mobileSearchPageInput}
+                          onChange={(e) => setMobileSearchPageInput(e.target.value)}
+                          onKeyDown={(e) => handleMobileSearchPageInputKeyDown(e, totalPages, page)}
+                          aria-label="Current page"
+                        />{' '}
+                        / {formatCount(totalPages)}
+                      </span>
+                      <button
+                        type="button"
+                        className="mobile-page-btn"
+                        disabled={page >= totalPages - 1 || searching}
+                        onClick={() => goToPage(page + 1)}
+                        aria-label="Next page"
+                      >
+                        ›
+                      </button>
+                    </nav>
+                  )}
+                  <label className="mobile-page-size-label mobile-page-size-label--end">
+                    Size
+                    <select
+                      value={pageSize}
+                      onChange={handlePageSizeChange}
+                      className="mobile-page-size-select"
+                      disabled={searching}
+                      aria-label="Page size"
                     >
-                      List
-                    </button>
-                    <button
-                      type="button"
-                      className={`mobile-view-mode-btn ${searchResultsViewMode === 'gallery' ? 'mobile-view-mode-btn--active' : ''}`}
-                      onClick={() => setSearchResultsViewMode('gallery')}
-                      aria-pressed={searchResultsViewMode === 'gallery'}
-                    >
-                      Gallery
-                    </button>
-                  </span>
+                      {MOBILE_PAGE_SIZE_OPTIONS.map((n) => (
+                        <option key={n} value={n}>
+                          {formatCount(n)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
                 <SearchResultsGrid
                   data={results}
