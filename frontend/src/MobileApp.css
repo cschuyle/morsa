@@ -1019,22 +1019,23 @@
 
 /* Mobile gallery: tiles 1/2 size (height and width) */
 .mobile-search-results-grid .search-results-gallery {
-  grid-template-columns: repeat(auto-fill, minmax(92.5px, 1fr));
-  gap: 0.5rem;
+  /* ~33% larger tiles in each dimension than previous mobile sizing */
+  grid-template-columns: repeat(auto-fill, minmax(123px, 1fr)); /* 92.5px * 1.33 (approx) */
+  gap: 0.66rem; /* 0.5rem * 1.33 (approx) */
 }
 
 .mobile-search-results-grid .search-results-gallery-card-placeholder {
-  min-height: 80px;
-  font-size: 1.25rem;
+  min-height: 106px; /* 80px * 1.33 (approx) */
+  font-size: 1.35rem;
 }
 
 .mobile-search-results-grid .search-results-gallery-card-link-icon {
-  min-height: 53.33px;
+  min-height: 71px; /* 53.33px * 1.33 (approx) */
 }
 
 .mobile-search-results-grid .search-results-gallery-card-link-icon-img {
-  width: 1rem;
-  height: 1rem;
+  width: 1.33rem; /* 1rem * 1.33 (approx) */
+  height: 1.33rem;
 }
 
 .mobile-search-results-grid .search-results-gallery-card-title,
