@@ -573,7 +573,7 @@
 }
 
 .trove-picker-tab:hover:not(.trove-picker-tab--active) {
-  background: #e0e0e0;
+  background: #ede5f5;
   color: #222;
 }
 
@@ -599,8 +599,8 @@
 }
 
 .trove-picker-clear:hover {
-  background: #f5f5f5;
-  border-color: #999;
+  background: #ede5f5;
+  border-color: #c9b8e8;
   color: #222;
 }
 
@@ -705,7 +705,7 @@
 }
 
 .trove-checkbox:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: #ede5f5;
 }
 
 .trove-item--selected .trove-checkbox:hover {
@@ -866,7 +866,7 @@
   border-radius: 0;
 }
 .search-query-btn:hover {
-  background: #f0f0f0;
+  background: #ede5f5;
 }
 .search-query-btn:first-child {
   font-weight: 600;
@@ -889,6 +889,9 @@
 }
 .search-submit-btn svg {
   display: block;
+}
+.search-submit-btn:hover {
+  background: #ede5f5;
 }
 
 .search-filetype-dropdown-wrap {
@@ -940,7 +943,7 @@
 }
 
 .search-filetype-dropdown-trigger:hover {
-  background: #f5f5f5;
+  background: #ede5f5;
 }
 
 .search-filetype-divider {
@@ -967,7 +970,7 @@
 }
 
 .search-filetype-clear:hover {
-  background: #f0f0f0;
+  background: #ede5f5;
 }
 
 .search-filetype-dropdown-panel {
@@ -1010,8 +1013,8 @@
 }
 
 .search-filetype-quick-btn:hover {
-  background: #eee;
-  border-color: #bbb;
+  background: #ede5f5;
+  border-color: #ddd0eb;
 }
 
 .search-filetype-quick-btn:disabled {
@@ -1020,8 +1023,8 @@
 }
 
 .search-filetype-quick-btn:disabled:hover {
-  background: #f8f8f8;
-  border-color: #ccc;
+  background: #f5f0fc;
+  border-color: #ddd0eb;
 }
 
 .search-filetype-quick-prefix {
@@ -1059,7 +1062,7 @@
 }
 
 .search-filetype-group-header:hover {
-  background: #f0f0f0;
+  background: #ede5f5;
 }
 
 .search-filetype-group-header input {
@@ -1079,7 +1082,7 @@
 }
 
 .search-filetype-option:hover {
-  background: #f0f0f0;
+  background: #ede5f5;
 }
 
 .search-filetype-option input {
@@ -1170,8 +1173,8 @@
 }
 
 .view-mode-btn:hover {
-  background: #f5f5f5;
-  border-color: #ccc;
+  background: #ede5f5;
+  border-color: #ddd0eb;
 }
 
 .view-mode-btn--active {
@@ -1181,9 +1184,9 @@
 }
 
 .view-mode-btn--active:hover {
-  background: #5358d8;
-  border-color: #5358d8;
-  color: #fff;
+  background: #e0d8f0;
+  border-color: #c9b8e8;
+  color: #333;
 }
 
 .page-size-label {
@@ -1225,6 +1228,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
+}
+.pagination-btn:hover:not(:disabled) {
+  background: #ede5f5;
 }
 
 .pagination-info {
@@ -1326,7 +1333,7 @@
 }
 
 .duplicate-results-table th.sortable:hover {
-  background: #eee;
+  background: #ede5f5;
 }
 
 .duplicate-results-table .sort-indicator {
@@ -1583,7 +1590,7 @@
 }
 
 .search-mode-toggle button:hover:not(.active) {
-  background: #e0e0e0;
+  background: #ede5f5;
   color: #333;
 }
 
@@ -1730,7 +1737,7 @@
 }
 
 .primary-trove-option:hover {
-  background: #eee;
+  background: #ede5f5;
 }
 
 .primary-trove-option--selected {
@@ -1740,7 +1747,7 @@
 }
 
 .primary-trove-option--selected:hover {
-  background: #d8e0ff;
+  background: #e0d8f0;
 }
 
 .primary-trove-select-wrap select {

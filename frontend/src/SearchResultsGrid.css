@@ -102,7 +102,7 @@
 }
 
 .grid-table th.sortable:hover {
-  background: #f5f5f5;
+  background: #ede5f5;
 }
 
 .grid-table tbody td {
@@ -115,7 +115,7 @@
 }
 
 .grid-table tbody tr:hover td {
-  background: #f5f5f5;
+  background: #ede5f5;
 }
 
 .grid-table tbody tr:last-child td {
