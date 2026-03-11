@@ -1081,8 +1081,9 @@ onClick={() => {
                     setSearchResultsViewMode('list')
                   }}
                   aria-pressed={searchResultsViewMode === 'list'}
+                  aria-label="List view"
                 >
-                  List
+                  <img src="/list.png" alt="" aria-hidden="true" className="mobile-view-mode-btn-icon" />
                 </button>
                 <button
                   type="button"
@@ -1093,8 +1094,9 @@ onClick={() => {
                     setSearchResultsViewMode('gallery')
                   }}
                   aria-pressed={searchResultsViewMode === 'gallery'}
+                  aria-label="Gallery view"
                 >
-                  Gallery
+                  <img src="/gallery.png" alt="" aria-hidden="true" className="mobile-view-mode-btn-icon" />
                 </button>
               </span>
               {searchResultsViewMode === 'gallery' && (

@@ -790,12 +790,18 @@
 }
 
 .mobile-page-btn {
-  padding: 0.6rem 1rem;
+  padding: 0.35rem 0.5rem;
   border: 1px solid #ddd;
   border-radius: 6px;
   background: #fff;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   cursor: pointer;
+  min-width: 2rem;
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .mobile-page-btn:hover:not(:disabled) {
@@ -1182,8 +1188,9 @@
 
 .mobile-view-mode-toggle {
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
   gap: 0;
+  height: 2.6rem;
   border: 1px solid #ddd;
   border-radius: 6px;
   overflow: hidden;
@@ -1191,16 +1198,25 @@
 }
 
 .mobile-view-mode-btn {
-  padding: 0.4rem 0.85rem;
-  font-size: 0.9rem;
-  font-family: inherit;
+  height: 100%;
+  padding: 0 0.1rem;
   border: none;
   border-radius: 0;
   background: transparent;
   color: #333;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.15s, color 0.15s;
   -webkit-tap-highlight-color: #ede5f5;
+  box-sizing: border-box;
+}
+.mobile-view-mode-btn-icon {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
 }
 
 .mobile-view-mode-btn:hover {
