@@ -878,6 +878,17 @@
 .search-query-btn:last-child {
   transform: translateY(-0.06em);
 }
+.search-query-asterisk {
+  display: inline-block;
+  font-size: 1.5em;
+  margin-top: 0.26em;
+  vertical-align: bottom;
+  color: #888;
+}
+.search-query-btn-clear {
+  font-weight: bold;
+  color: #888;
+}
 .search-submit-btn {
   flex-shrink: 0;
   display: inline-flex;
@@ -1030,15 +1041,18 @@
 .search-filetype-quick-prefix {
   vertical-align: super;
   font-size: 1.125em;
-  color: #888;
+  font-weight: bold;
+  color: #ccc;
   margin-right: 0.15em;
   margin-top: -0.28em;
 }
 
 .search-filetype-quick-prefix--asterisk {
   vertical-align: baseline;
-  font-size: 1.5em;
-  margin-top: 0.06em;
+  font-size: 1.85em;
+  font-weight: normal;
+  color: #888;
+  margin-top: 0.28em;
 }
 
 .search-filetype-group {
@@ -1062,7 +1076,7 @@
 }
 
 .search-filetype-group-header:hover {
-  background: #ede5f5;
+  background: #ddd0eb;
 }
 
 .search-filetype-group-header input {

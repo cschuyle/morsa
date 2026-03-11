@@ -789,7 +789,7 @@ function App() {
                           <span className="search-query-actions">
                             <button
                               type="button"
-                              className="search-query-btn"
+                              className="search-query-btn search-query-btn-clear"
                               title="Clear filter"
                               onClick={() => setPrimaryTroveFilter('')}
                               aria-label="Clear filter"
@@ -899,7 +899,7 @@ aria-label="Clear compare troves"
                         <span className="search-query-actions">
                           <button
                             type="button"
-                            className="search-query-btn"
+                            className="search-query-btn search-query-btn-clear"
                             title="Clear filter"
                             onClick={() => setTroveFilter('')}
                             aria-label="Clear filter"
@@ -1002,7 +1002,7 @@ aria-label="Clear compare troves"
             <span className="search-query-actions">
               <button
                 type="button"
-                className="search-query-btn"
+                className="search-query-btn search-query-btn-clear"
                 title="Clear filter"
                 onClick={() => setTroveFilter('')}
                 aria-label="Clear trove filter"
@@ -1213,11 +1213,11 @@ aria-label="Clear compare troves"
                         }
                       }}
                     >
-                      *
+                      <span className="search-query-asterisk" aria-hidden="true">*</span>
                     </button>
                     <button
                       type="button"
-                      className="search-query-btn"
+                      className="search-query-btn search-query-btn-clear"
                       title="Clear"
                       onClick={() => {
                         setQuery('')

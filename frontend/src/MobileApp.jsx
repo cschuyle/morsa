@@ -840,11 +840,11 @@ onClick={() => {
                   }
                 }}
               >
-                *
+                <span className="mobile-search-query-asterisk" aria-hidden="true">*</span>
               </button>
               <button
                 type="button"
-                className="mobile-search-query-btn"
+                className="mobile-search-query-btn mobile-search-query-btn-clear"
                 title="Clear"
                 onClick={() => {
                   setQuery('')
