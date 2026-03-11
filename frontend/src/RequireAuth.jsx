@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getApiAuthHeaders } from './apiAuth'
+import { redirectToLogin } from './redirectToLogin'
 
 /**
  * Prevents flash of logged-in UI: verify auth before rendering children; redirect to /login if 401.
@@ -12,7 +13,7 @@ export function RequireAuth({ children }) {
       .then((res) => {
         if (res.status === 401 || res.status === 403) {
           setStatus('redirecting')
-          window.location.href = '/login'
+          redirectToLogin()
           return
         }
         if (res.ok) {
@@ -24,7 +25,7 @@ export function RequireAuth({ children }) {
       })
       .catch(() => {
         setStatus('redirecting')
-        window.location.href = '/login'
+        redirectToLogin()
       })
   }, [])
   if (status !== 'ok') return null

@@ -11,10 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -27,8 +27,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Configuration
@@ -96,9 +98,21 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
-                .defaultAuthenticationEntryPointFor(
-                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                    (RequestMatcher) request -> request.getRequestURI().startsWith("/api/")))
+                .authenticationEntryPoint((request, response, authException) -> {
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
+                                .commence(request, response, authException);
+                        return;
+                    }
+                    String next = request.getRequestURI();
+                    String query = request.getQueryString();
+                    if (query != null && !query.isBlank()) {
+                        next += "?" + query;
+                    }
+                    String encodedNext = UriUtils.encode(next, StandardCharsets.UTF_8);
+                    new LoginUrlAuthenticationEntryPoint("/login?next=" + encodedNext)
+                            .commence(request, response, authException);
+                }))
             .formLogin(form -> form
                 .loginPage("/login")
                 .permitAll()
