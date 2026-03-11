@@ -911,7 +911,7 @@ onClick={() => {
                   aria-label="Filter by file type"
                 >
                   {fileTypesForLabel.size === 0
-                    ? 'Select media'
+                    ? 'Media?'
                     : allSelected
                       ? 'Any media'
                       : (() => {

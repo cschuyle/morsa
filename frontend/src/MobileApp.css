@@ -54,7 +54,9 @@
 .mobile-main {
   flex: 1 1 0;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
+  overflow-x: auto;
   padding: 0.5rem 0;
   max-width: 100%;
   box-sizing: border-box;
@@ -83,25 +85,30 @@
 .mobile-search-query-wrap {
   flex: 1;
   min-width: 0;
+  height: 2.25rem;
   display: flex;
   align-items: stretch;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
+  box-sizing: border-box;
 }
 
 .mobile-search-input {
   flex: 1;
   min-width: 0;
-  padding: 0.5rem 1rem;
+  height: 100%;
+  padding: 0 1rem;
   border: none;
   border-radius: 0;
   font-size: 1rem;
+  line-height: 1.2;
   background: transparent;
   color: #252525;
   -webkit-appearance: none;
   appearance: none;
+  box-sizing: border-box;
 }
 
 .mobile-search-input::placeholder {
@@ -120,10 +127,12 @@
 .mobile-search-query-btn {
   width: 2rem;
   min-width: 2rem;
-  min-height: 2rem;
+  height: 100%;
+  min-height: 0;
   padding: 0;
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
   justify-content: center;
   font-size: 0.95rem;
   line-height: 1;
@@ -143,7 +152,6 @@
   font-weight: 600;
   width: 1.5rem;
   min-width: 1.5rem;
-  min-height: 2rem;
   font-size: 1.235rem;
 }
 
@@ -167,7 +175,8 @@
 }
 
 .mobile-search-btn {
-  padding: 0.75rem 1rem;
+  height: 2.25rem;
+  padding: 0 1rem;
   border: 1px solid #6633cc;
   border-radius: 8px;
   background: #6633cc;
@@ -179,6 +188,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .mobile-search-btn:disabled {
@@ -433,13 +443,16 @@
 }
 
 .mobile-troves-btn {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
-  padding: 0.4rem 0.75rem;
+  max-width: 100%;
+  height: 2.25rem;
+  padding: 0 0.75rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   background: #fff;
   font-size: 0.9rem;
+  line-height: 2.25rem;
   color: #333;
   text-align: left;
   white-space: nowrap;
@@ -447,6 +460,8 @@
   text-overflow: ellipsis;
   cursor: pointer;
   -webkit-tap-highlight-color: #ede5f5;
+  display: block;
+  box-sizing: border-box;
 }
 .mobile-troves-btn:hover {
   background: #ede5f5;
