@@ -1175,8 +1175,21 @@
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
+}
+
+.search-results-options-view-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-results-options-pager-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: 2.5rem;
 }
 
 .gallery-decorate-wrap {
@@ -1186,6 +1199,9 @@
   margin-left: 0.75rem;
   font-size: 0.9rem;
   color: #666;
+}
+.gallery-decorate-wrap--hidden {
+  visibility: hidden;
 }
 .gallery-decorate-label {
   user-select: none;

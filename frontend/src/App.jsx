@@ -1718,49 +1718,52 @@ aria-label="Clear compare troves"
                     {totalPages > 1 && ` Showing ${formatCount(from)}–${formatCount(to)}.`}
                   </p>
                   <div className="search-results-options">
-                    <span className="view-mode-toggle" role="group" aria-label="Results view">
-                      <span className="view-mode-label">View:</span>
-                      <button
-                        type="button"
-                        className={`view-mode-btn ${searchResultsViewMode === 'list' ? 'view-mode-btn--active' : ''}`}
-                        onClick={() => {
-                          skipViewModeSearchRef.current = true
-                          lastFileTypeOrViewSearchRef.current = Date.now()
-                          setSearchResultsViewMode('list')
-                        }}
-                        aria-pressed={searchResultsViewMode === 'list'}
-                      >
-                        List
-                      </button>
-                      <button
-                        type="button"
-                        className={`view-mode-btn ${searchResultsViewMode === 'gallery' ? 'view-mode-btn--active' : ''}`}
-                        onClick={() => {
-                          skipViewModeSearchRef.current = true
-                          lastFileTypeOrViewSearchRef.current = Date.now()
-                          setSearchResultsViewMode('gallery')
-                        }}
-                        aria-pressed={searchResultsViewMode === 'gallery'}
-                      >
-                        Gallery
-                      </button>
-                    </span>
-                    {searchResultsViewMode === 'gallery' && (
-                      <span className="gallery-decorate-wrap">
+                    <span className="search-results-options-view-group">
+                      <span className="view-mode-toggle" role="group" aria-label="Results view">
+                        <span className="view-mode-label">View:</span>
+                        <button
+                          type="button"
+                          className={`view-mode-btn ${searchResultsViewMode === 'list' ? 'view-mode-btn--active' : ''}`}
+                          onClick={() => {
+                            skipViewModeSearchRef.current = true
+                            lastFileTypeOrViewSearchRef.current = Date.now()
+                            setSearchResultsViewMode('list')
+                          }}
+                          aria-pressed={searchResultsViewMode === 'list'}
+                        >
+                          List
+                        </button>
+                        <button
+                          type="button"
+                          className={`view-mode-btn ${searchResultsViewMode === 'gallery' ? 'view-mode-btn--active' : ''}`}
+                          onClick={() => {
+                            skipViewModeSearchRef.current = true
+                            lastFileTypeOrViewSearchRef.current = Date.now()
+                            setSearchResultsViewMode('gallery')
+                          }}
+                          aria-pressed={searchResultsViewMode === 'gallery'}
+                        >
+                          Gallery
+                        </button>
+                      </span>
+                      <span className={`gallery-decorate-wrap ${searchResultsViewMode !== 'gallery' ? 'gallery-decorate-wrap--hidden' : ''}`}>
                         <span className="gallery-decorate-label">Decorate</span>
                         <button
                           type="button"
                           role="switch"
                           aria-checked={galleryDecorate}
                           aria-label="Show file type decorations on gallery items"
-                          title={galleryDecorate ? 'Hide decorations' : 'Show decorations'}
+                          aria-hidden={searchResultsViewMode !== 'gallery'}
+                          title={searchResultsViewMode === 'gallery' ? (galleryDecorate ? 'Hide decorations' : 'Show decorations') : undefined}
+                          tabIndex={searchResultsViewMode === 'gallery' ? undefined : -1}
                           className={`gallery-decorate-toggle ${galleryDecorate ? 'gallery-decorate-toggle--on' : ''}`}
                           onClick={() => setGalleryDecorate((v) => !v)}
                         >
                           <span className="gallery-decorate-toggle-thumb" aria-hidden="true" />
                         </button>
                       </span>
-                    )}
+                    </span>
+                    <span className="search-results-options-pager-group">
                     {totalPages > 1 && (() => {
                       const maxShow = 5
                       let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
@@ -1863,6 +1866,7 @@ aria-label="Clear compare troves"
                         ))}
                       </select>
                     </label>
+                    </span>
                   </div>
                   <SearchResultsGrid
                     data={results}
