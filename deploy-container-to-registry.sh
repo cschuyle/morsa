@@ -12,9 +12,9 @@ fi
 if [ -z "${MOOCHO_VERSION:-}" ]; then
   GIT_SHA_SHORT="$(git rev-parse --short=7 HEAD)"
   BUILD_DATE="$(date +%Y%m%d)"
-  # Seconds elapsed in the current day, divided by 10
-  BUILD_TIME_TENTHS="$(( (10#$(date +%H) * 3600 + 10#$(date +%M) * 60 + 10#$(date +%S)) / 10 ))"
-  MOOCHO_VERSION="${BUILD_DATE}-${BUILD_TIME_TENTHS}-${GIT_SHA_SHORT}"
+  # 24-hour HHMM timestamp
+  BUILD_TIME_HHMM="$(date +%H%M)"
+  MOOCHO_VERSION="${BUILD_DATE}-${BUILD_TIME_HHMM}-${GIT_SHA_SHORT}"
 fi
 
 echo "Using MOOCHO_VERSION=${MOOCHO_VERSION}"
