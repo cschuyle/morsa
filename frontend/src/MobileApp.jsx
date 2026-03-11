@@ -786,7 +786,11 @@ function MobileApp() {
                 try {
                   const { origin, pathname, search } = window.location
                   const pathWithoutMobile = pathname.replace(/^\/mobile\/?/, '/') || '/'
-                  const urlToCopy = `${origin}${pathWithoutMobile}${search}`
+                  const params = new URLSearchParams(search)
+                  params.delete('page')
+                  params.delete('size')
+                  const query = params.toString()
+                  const urlToCopy = `${origin}${pathWithoutMobile}${query ? `?${query}` : ''}`
                   await navigator.clipboard.writeText(urlToCopy)
                   if (copyFlareTimeoutRef.current) clearTimeout(copyFlareTimeoutRef.current)
                   setCopiedUrlFlare(true)
