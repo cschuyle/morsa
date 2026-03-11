@@ -192,6 +192,17 @@
   max-width: 10rem;
 }
 
+/* In form row: match height of search box and button */
+.mobile-filetype-dropdown-wrap--form {
+  align-self: stretch;
+  display: flex;
+}
+.mobile-filetype-dropdown-wrap--form .mobile-filetype-trigger-wrap {
+  height: 100%;
+  min-height: 0;
+  border-radius: 8px;
+}
+
 /* Match height of .grid-filter-input (Filter this page): same padding and font-size */
 .mobile-filetype-trigger-wrap {
   display: flex;
@@ -403,7 +414,7 @@
 .mobile-troves-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0.5rem 0;
 }
@@ -413,13 +424,27 @@
   color: #444;
 }
 
+.mobile-troves-row-right {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .mobile-troves-btn {
+  flex: 1;
+  min-width: 0;
   padding: 0.4rem 0.75rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   background: #fff;
   font-size: 0.9rem;
   color: #333;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
   -webkit-tap-highlight-color: #ede5f5;
 }

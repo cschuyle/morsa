@@ -690,6 +690,30 @@ function MobileApp() {
         ? <><strong>Primary:</strong> {troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · {compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId) ? <strong>Self-compare</strong> : <><strong>Compare:</strong> {formatCount(compareTroveIds.size)}</>}</>
         : 'Set primary & compare troves')
     : (selectedTroveIds.size === 0 ? 'All troves' : `${formatCount(selectedTroveIds.size)} trove${selectedTroveIds.size !== 1 ? 's' : ''}`)
+  const mobileTroveDropdownLabel = (() => {
+    if (searchMode === 'search') {
+      const itemsPart = searchResult != null && count > 0 ? `${formatCount(count)} item${count !== 1 ? 's' : ''} · ` : ''
+      const trovePart = selectedTroveIds.size === 0 ? 'All troves' : `${formatCount(selectedTroveIds.size)} trove${selectedTroveIds.size !== 1 ? 's' : ''}`
+      const s = itemsPart + trovePart
+      return s.trim() || 'Troves?'
+    }
+    if (searchMode === 'duplicates' && duplicatesResult != null) {
+      const total = duplicatesResult.total ?? 0
+      const selfCompare = compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)
+      const name = troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId
+      if (selfCompare && total > 0) return `${name} · Self-compare. ${formatCount(total)} item${total !== 1 ? 's' : ''} with possible duplicates.`
+      if (total > 0) return `${formatCount(total)} dups · ${primaryTroveId ? `${name} · Compare: ${formatCount(compareTroveIds.size)}` : 'Set primary & compare troves'}`
+      return primaryTroveId ? `${name} · Compare: ${formatCount(compareTroveIds.size)}` : 'Set primary & compare troves'
+    }
+    if (searchMode === 'uniques' && uniquesResult != null) {
+      const total = uniquesResult.total ?? 0
+      if (compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)) return 'Primary trove cannot be in compare list.'
+      const uniqPart = total > 0 ? `${formatCount(total)} uniques · ` : ''
+      const trovePart = primaryTroveId ? `${troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId} · Compare: ${formatCount(compareTroveIds.size)}` : 'Set primary & compare troves'
+      return (uniqPart + trovePart).trim() || 'Troves?'
+    }
+    return 'Troves?'
+  })()
   const filteredTroves = troves.filter((t) => {
     const q = trovePickerFilter.trim().toLowerCase()
     return !q || (t.name && t.name.toLowerCase().includes(q))
@@ -867,6 +891,129 @@ onClick={() => {
               </svg>
             )}
           </button>
+          {searchMode === 'search' && (displayFileTypes.length >= 1 || fileTypeFilters.size > 0) && (() => {
+            const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+            const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
+            const upper = (s) => (s || '').toUpperCase()
+            const availableUpper = new Set(displayFileTypes.map(upper))
+            const selectedUpper = new Set([...fileTypesForLabel].map(upper))
+            const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
+            const hasFileTypeFilter = fileTypesForLabel.size > 0 && !allSelected
+            return (
+              <div className="mobile-filetype-dropdown-wrap mobile-filetype-dropdown-wrap--form" ref={fileTypeDropdownRef}>
+              <div className={`mobile-filetype-trigger-wrap${hasFileTypeFilter ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
+                <button
+                  type="button"
+                  className="mobile-filetype-trigger"
+                  onClick={() => setFileTypeDropdownOpen((o) => !o)}
+                  aria-haspopup="listbox"
+                  aria-expanded={fileTypeDropdownOpen}
+                  aria-label="Filter by file type"
+                >
+                  {fileTypesForLabel.size === 0
+                    ? 'Select media'
+                    : allSelected
+                      ? 'Any media'
+                      : (() => {
+                          if (fileTypesForLabel.size === 1) return `Only ${[...fileTypesForLabel][0]}`
+                          const groupName = getGroupNameIfFullySelected(fileTypesForLabel, displayFileTypes)
+                          return groupName ? `Only ${groupName}` : `${fileTypesForLabel.size} filetypes`
+                        })()}
+                </button>
+              </div>
+              {fileTypeDropdownOpen && fileTypePanelRect && (
+                <div
+                  className="mobile-filetype-panel mobile-filetype-panel--fixed"
+                  role="listbox"
+                  aria-label="File type filter"
+                  style={{ position: 'fixed', top: fileTypePanelRect.top, left: fileTypePanelRect.left, width: fileTypePanelRect.width, zIndex: 1100 }}
+                >
+                  <div className="mobile-filetype-quick-actions">
+                    <button
+                      type="button"
+                      className="mobile-filetype-quick-btn"
+                      disabled={allSelected}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        skipFileTypeSearchRef.current = true
+                        lastFileTypeOrViewSearchRef.current = Date.now()
+                        const next = new Set(displayFileTypes)
+                        setFileTypeFilters(next)
+                        setSearchParams(buildSearchParams(next), { replace: true })
+                        fetchSearch(0, null, null, next)
+                      }}
+                    >
+                      <span className="mobile-filetype-quick-prefix mobile-filetype-quick-prefix--asterisk" aria-hidden="true">*</span> Any
+                    </button>
+                    <button
+                      type="button"
+                      className="mobile-filetype-quick-btn"
+                      disabled={fileTypeFilters.size === 0}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        skipFileTypeSearchRef.current = true
+                        lastFileTypeOrViewSearchRef.current = Date.now()
+                        const next = new Set()
+                        setFileTypeFilters(next)
+                        setSearchParams(buildSearchParams(next), { replace: true })
+                        fetchSearch(0, null, null, next)
+                      }}
+                    >
+                      <span className="mobile-filetype-quick-prefix" aria-hidden="true">×</span> Meh
+                    </button>
+                  </div>
+                  {groupFileTypes(displayFileTypes).map(({ group, types }) => {
+                    const allSelectedGroup = types.every((ft) => fileTypeFilters.has(ft))
+                    const someSelected = types.some((ft) => fileTypeFilters.has(ft))
+                    return (
+                      <div key={group ?? 'other'} className="mobile-filetype-group">
+                        {group != null && (
+                          <label className="mobile-filetype-group-header">
+                            <input
+                              type="checkbox"
+                              ref={(el) => { if (el) el.indeterminate = someSelected && !allSelectedGroup }}
+                              checked={allSelectedGroup}
+                              onChange={() => {
+                                skipFileTypeSearchRef.current = true
+                                lastFileTypeOrViewSearchRef.current = Date.now()
+                                const next = new Set(fileTypeFilters)
+                                if (allSelectedGroup) types.forEach((t) => next.delete(t))
+                                else types.forEach((t) => next.add(t))
+                                setFileTypeFilters(next)
+                                setSearchParams(buildSearchParams(next), { replace: true })
+                                fetchSearch(0, null, null, next)
+                              }}
+                            />
+                            {group}
+                          </label>
+                        )}
+                        {types.map((ft) => (
+                          <label key={ft} className="mobile-filetype-option">
+                            <input
+                              type="checkbox"
+                              checked={fileTypeFilters.has(ft)}
+                              onChange={() => {
+                                skipFileTypeSearchRef.current = true
+                                lastFileTypeOrViewSearchRef.current = Date.now()
+                                const next = new Set(fileTypeFilters)
+                                if (next.has(ft)) next.delete(ft)
+                                else next.add(ft)
+                                setFileTypeFilters(next)
+                                setSearchParams(buildSearchParams(next), { replace: true })
+                                fetchSearch(0, null, null, next)
+                              }}
+                            />
+                            {ft}
+                          </label>
+                        ))}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            );
+          })()}
         </form>
 
         {searchError && <p className="mobile-search-error" role="alert">{searchError}</p>}
@@ -907,28 +1054,17 @@ onClick={() => {
         )}
 
         <div className="mobile-troves-row">
-          <span className="mobile-troves-label">
-            {searchMode === 'search' && searchResult != null && count > 0 && (
-              <>{formatCount(count)} item{count !== 1 ? 's' : ''} · </>
-            )}
-            {searchMode === 'duplicates' && duplicatesResult != null && (() => {
-              const total = duplicatesResult.total ?? 0
-              const selfCompare = compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)
-              const name = troves.find((t) => t.id === primaryTroveId)?.name ?? primaryTroveId
-              if (selfCompare && total > 0) return <>{name} · <strong>Self-compare</strong>. {formatCount(total)} item{total !== 1 ? 's' : ''} with possible duplicates.</>
-              if (total > 0) return <>{formatCount(total)} dups · </>
-              return null
-            })()}
-            {searchMode === 'uniques' && uniquesResult != null && (uniquesResult.total ?? 0) > 0 && (
-              <>{formatCount(uniquesResult.total)} uniques · </>
-            )}
-            {searchMode === 'uniques' && compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId) && (
-              <span className="mobile-search-error" role="alert">Primary trove cannot be in compare list.</span>
-            )}
-            {!(searchMode === 'duplicates' && duplicatesResult != null && (duplicatesResult.total ?? 0) > 0 && compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)) && !(searchMode === 'uniques' && compareTroveIds.size === 1 && compareTroveIds.has(primaryTroveId)) && troveLabel}
-          </span>
+          <button
+            type="button"
+            className="mobile-troves-btn"
+            onClick={() => setShowTrovePicker((v) => !v)}
+            aria-expanded={showTrovePicker}
+            aria-label="Select troves"
+          >
+            {mobileTroveDropdownLabel}
+          </button>
           {searchMode === 'search' && searchResult != null && (
-            <span className="mobile-view-and-size-wrap">
+            <span className="mobile-view-and-size-wrap mobile-troves-row-right">
               <span className="mobile-view-mode-toggle" role="group" aria-label="Results view">
                 <button
                   type="button"
@@ -978,7 +1114,7 @@ onClick={() => {
             const size = duplicatesResult.size ?? DUP_UNIQUES_PAGE_SIZE
             const totalDupPages = size > 0 ? Math.ceil(total / size) : 0
             return totalDupPages > 1 && (
-              <nav className="mobile-pagination" aria-label="Duplicate pages">
+              <nav className="mobile-pagination mobile-troves-row-right" aria-label="Duplicate pages">
                 <button type="button" className="mobile-page-btn" disabled={duplicatesPage <= 0 || searching} onClick={() => fetchDuplicates(duplicatesPage - 1)} aria-label="Previous">‹</button>
                 <span className="mobile-page-info">{formatCount(duplicatesPage + 1)} / {formatCount(totalDupPages)}</span>
                 <button type="button" className="mobile-page-btn" disabled={duplicatesPage >= totalDupPages - 1 || searching} onClick={() => fetchDuplicates(duplicatesPage + 1)} aria-label="Next">›</button>
@@ -990,21 +1126,13 @@ onClick={() => {
             const size = uniquesResult.size ?? DUP_UNIQUES_PAGE_SIZE
             const totalUniqPages = size > 0 ? Math.ceil(total / size) : 0
             return totalUniqPages > 1 && (
-              <nav className="mobile-pagination" aria-label="Uniques pages">
+              <nav className="mobile-pagination mobile-troves-row-right" aria-label="Uniques pages">
                 <button type="button" className="mobile-page-btn" disabled={uniquesPage <= 0 || searching} onClick={() => fetchUniques(uniquesPage - 1)} aria-label="Previous">‹</button>
                 <span className="mobile-page-info">{formatCount(uniquesPage + 1)} / {formatCount(totalUniqPages)}</span>
                 <button type="button" className="mobile-page-btn" disabled={uniquesPage >= totalUniqPages - 1 || searching} onClick={() => fetchUniques(uniquesPage + 1)} aria-label="Next">›</button>
               </nav>
             )
           })()}
-          <button
-            type="button"
-            className="mobile-troves-btn"
-            onClick={() => setShowTrovePicker((v) => !v)}
-            aria-expanded={showTrovePicker}
-          >
-            Troves?
-          </button>
         </div>
 
         {showTrovePicker && (
@@ -1222,149 +1350,6 @@ onClick={() => {
                   hideTroveInGallery={selectedTroveIds.size === 1}
                   showPdfSashInGallery
                   showGalleryDecorations={galleryDecorate}
-                  afterFilterSlot={displayFileTypes.length >= 1 ? (() => {
-                    const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
-                    const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
-                    const upper = (s) => (s || '').toUpperCase()
-                    const availableUpper = new Set(displayFileTypes.map(upper))
-                    const selectedUpper = new Set([...fileTypesForLabel].map(upper))
-                    const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
-                    const hasFileTypeFilter = fileTypesForLabel.size > 0 && !allSelected
-                    return (
-                    <div className="mobile-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
-                      <div className={`mobile-filetype-trigger-wrap${hasFileTypeFilter ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
-                        <button
-                          type="button"
-                          className="mobile-filetype-trigger"
-                          onClick={() => setFileTypeDropdownOpen((o) => !o)}
-                          aria-haspopup="listbox"
-                          aria-expanded={fileTypeDropdownOpen}
-                          aria-label="Filter by file type"
-                        >
-                          {fileTypesForLabel.size === 0
-                            ? 'Select media'
-                            : allSelected
-                              ? 'Any media'
-                              : (() => {
-                                  if (fileTypesForLabel.size === 1) return `Only ${[...fileTypesForLabel][0]}`
-                                  const groupName = getGroupNameIfFullySelected(fileTypesForLabel, displayFileTypes)
-                                  return groupName ? `Only ${groupName}` : `${fileTypesForLabel.size} filetypes`
-                                })()}
-                        </button>
-                        {fileTypesForLabel.size > 0 && (
-                          <>
-                            <span className="mobile-filetype-divider" aria-hidden="true" />
-                            <button
-                              type="button"
-                              className="mobile-filetype-clear"
-                              title="Clear file type filter"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                skipFileTypeSearchRef.current = true
-                                lastFileTypeOrViewSearchRef.current = Date.now()
-                                setFileTypeFilters(new Set())
-                                setSearchParams(buildSearchParams(new Set()), { replace: true })
-                                fetchSearch(0, null, null, new Set())
-                              }}
-                              aria-label="Clear file type filter"
-                            >
-                              ×
-                            </button>
-                          </>
-                        )}
-                      </div>
-                      {fileTypeDropdownOpen && fileTypePanelRect && (
-                        <div
-                          className="mobile-filetype-panel mobile-filetype-panel--fixed"
-                          role="listbox"
-                          aria-label="File type filter"
-                          style={{ position: 'fixed', top: fileTypePanelRect.top, left: fileTypePanelRect.left, width: fileTypePanelRect.width, zIndex: 1100 }}
-                        >
-                          <div className="mobile-filetype-quick-actions">
-                            <button
-                              type="button"
-                              className="mobile-filetype-quick-btn"
-                              disabled={allSelected}
-                              onClick={(e) => {
-                                e.preventDefault()
-                                skipFileTypeSearchRef.current = true
-                                lastFileTypeOrViewSearchRef.current = Date.now()
-                                const next = new Set(displayFileTypes)
-                                setFileTypeFilters(next)
-                                setSearchParams(buildSearchParams(next), { replace: true })
-                                fetchSearch(0, null, null, next)
-                              }}
-                            >
-                              <span className="mobile-filetype-quick-prefix mobile-filetype-quick-prefix--asterisk" aria-hidden="true">*</span> Any
-                            </button>
-                            <button
-                              type="button"
-                              className="mobile-filetype-quick-btn"
-                              disabled={fileTypeFilters.size === 0}
-                              onClick={(e) => {
-                                e.preventDefault()
-                                skipFileTypeSearchRef.current = true
-                                lastFileTypeOrViewSearchRef.current = Date.now()
-                                const next = new Set()
-                                setFileTypeFilters(next)
-                                setSearchParams(buildSearchParams(next), { replace: true })
-                                fetchSearch(0, null, null, next)
-                              }}
-                            >
-                              <span className="mobile-filetype-quick-prefix" aria-hidden="true">×</span> Meh
-                            </button>
-                          </div>
-                          {groupFileTypes(displayFileTypes).map(({ group, types }) => {
-                            const allSelectedGroup = types.every((ft) => fileTypeFilters.has(ft))
-                            const someSelected = types.some((ft) => fileTypeFilters.has(ft))
-                            return (
-                            <div key={group ?? 'other'} className="mobile-filetype-group">
-                              {group != null && (
-                                <label className="mobile-filetype-group-header">
-                                  <input
-                                    type="checkbox"
-                                    ref={(el) => { if (el) el.indeterminate = someSelected && !allSelectedGroup }}
-                                    checked={allSelectedGroup}
-                                    onChange={() => {
-                                      skipFileTypeSearchRef.current = true
-                                      lastFileTypeOrViewSearchRef.current = Date.now()
-                                      const next = new Set(fileTypeFilters)
-                                      if (allSelectedGroup) types.forEach((t) => next.delete(t))
-                                      else types.forEach((t) => next.add(t))
-                                      setFileTypeFilters(next)
-                                      setSearchParams(buildSearchParams(next), { replace: true })
-                                      fetchSearch(0, null, null, next)
-                                    }}
-                                  />
-                                  {group}
-                                </label>
-                              )}
-                              {types.map((ft) => (
-                                <label key={ft} className="mobile-filetype-option">
-                                  <input
-                                    type="checkbox"
-                                    checked={fileTypeFilters.has(ft)}
-                                    onChange={() => {
-                                      skipFileTypeSearchRef.current = true
-                                      lastFileTypeOrViewSearchRef.current = Date.now()
-                                      const next = new Set(fileTypeFilters)
-                                      if (next.has(ft)) next.delete(ft)
-                                      else next.add(ft)
-                                      setFileTypeFilters(next)
-                                      setSearchParams(buildSearchParams(next), { replace: true })
-                                      fetchSearch(0, null, null, next)
-                                    }}
-                                  />
-                                  {ft}
-                                </label>
-                              ))}
-                            </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ); })() : null}
                 />
               </div>
             )}

@@ -1235,7 +1235,7 @@ aria-label="Clear compare troves"
                 <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
                   {searching ? 'Searching…' : 'Go!'}
                 </button>
-                {searchMode === 'search' && allAvailableFileTypes.length >= 1 && (() => {
+                {searchMode === 'search' && (allAvailableFileTypes.length >= 1 || fileTypeFilters.size > 0) && (() => {
                   const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
                   const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
                   const upper = (s) => (s || '').toUpperCase()
