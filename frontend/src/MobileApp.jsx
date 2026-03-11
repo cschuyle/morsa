@@ -62,6 +62,7 @@ function MobileApp() {
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery'
   const [galleryDecorate, setGalleryDecorate] = useState(true)
   const [copiedUrlFlare, setCopiedUrlFlare] = useState(false)
+  const [shareIconFlash, setShareIconFlash] = useState(false)
   const [pageSize, setPageSize] = useState(() => {
     const p = new URLSearchParams(window.location.search)
     const s = Number(p.get('size'))
@@ -436,6 +437,13 @@ function MobileApp() {
     }
   }, [])
   useEffect(() => {
+    if (searchResult?.results?.length > 0) {
+      setShareIconFlash(true)
+      const t = setTimeout(() => setShareIconFlash(false), 280)
+      return () => clearTimeout(t)
+    }
+  }, [searchResult])
+  useEffect(() => {
     if (!showTrovePicker) return
     const onKeyDown = (e) => {
       if (e.key === 'Escape') setShowTrovePicker(false)
@@ -773,7 +781,7 @@ function MobileApp() {
           {searchMode === 'search' && searchResult != null && results.length > 0 && (
             <button
               type="button"
-              className="mobile-share-btn"
+              className={`mobile-share-btn${shareIconFlash ? ' mobile-share-btn--flash' : ''}`}
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(window.location.href)
