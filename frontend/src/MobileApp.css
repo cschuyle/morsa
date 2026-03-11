@@ -141,8 +141,8 @@
 
 .mobile-search-query-btn:first-child {
   font-weight: 600;
-  width: 2.5rem;
-  min-width: 2.5rem;
+  width: 1.5rem;
+  min-width: 1.5rem;
   min-height: 2rem;
   font-size: 1.235rem;
 }
@@ -160,6 +160,10 @@
 .mobile-search-query-btn-clear {
   font-weight: bold;
   color: #888;
+  width: 1.25rem;
+  min-width: 1.25rem;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .mobile-search-btn {
