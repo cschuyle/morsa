@@ -784,7 +784,10 @@ function MobileApp() {
               className={`mobile-share-btn${shareIconFlash ? ' mobile-share-btn--flash' : ''}`}
               onClick={async () => {
                 try {
-                  await navigator.clipboard.writeText(window.location.href)
+                  const { origin, pathname, search } = window.location
+                  const pathWithoutMobile = pathname.replace(/^\/mobile\/?/, '/') || '/'
+                  const urlToCopy = `${origin}${pathWithoutMobile}${search}`
+                  await navigator.clipboard.writeText(urlToCopy)
                   if (copyFlareTimeoutRef.current) clearTimeout(copyFlareTimeoutRef.current)
                   setCopiedUrlFlare(true)
                   copyFlareTimeoutRef.current = setTimeout(() => setCopiedUrlFlare(false), 2000)
