@@ -156,7 +156,7 @@ const scoreColumn = {
   },
 }
 
-export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false, showPdfSashInGallery = false }) {
+export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false, showPdfSashInGallery = false, showGalleryDecorations = true }) {
   const [globalFilter, setGlobalFilter] = useState('')
   const [lightbox, setLightbox] = useState(null)
 
@@ -415,28 +415,28 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                         {title ? title.charAt(0).toUpperCase() : '?'}
                       </span>
                     )}
-                    {showPdfSashInGallery && hasPdf && (
+                    {showGalleryDecorations && showPdfSashInGallery && hasPdf && (
                       <span className="search-results-gallery-card-pdf-sash" aria-hidden="true">
                         <img src="/pdf.svg" alt="" />
                       </span>
                     )}
-                    {showPdfSashInGallery && hasTextNotPdf && !hasPdf && (
+                    {showGalleryDecorations && showPdfSashInGallery && hasTextNotPdf && !hasPdf && (
                       <span className="search-results-gallery-card-pdf-sash" aria-hidden="true">
                         <img src="/book.svg" alt="" />
                       </span>
                     )}
-                    {showPdfSashInGallery && hasAudio && (
+                    {showGalleryDecorations && showPdfSashInGallery && hasAudio && (
                       <span className="search-results-gallery-card-audio-sash" aria-hidden="true">
                         <img src="/audio.png" alt="" />
                       </span>
                     )}
-                    {showPdfSashInGallery && hasVideo && (
+                    {showGalleryDecorations && showPdfSashInGallery && hasVideo && (
                       <span className="search-results-gallery-card-video-sash" aria-hidden="true">
                         <img src="/video.svg" alt="" />
                       </span>
                     )}
                   </span>
-                  {otherFileTypesList.length > 0 && (
+                  {showGalleryDecorations && otherFileTypesList.length > 0 && (
                     <span className="search-results-gallery-card-other-filetypes" aria-hidden="true">
                       {otherFileTypesList.join(', ')}
                     </span>

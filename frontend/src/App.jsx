@@ -61,6 +61,7 @@ function App() {
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery' (desktop only)
+  const [galleryDecorate, setGalleryDecorate] = useState(true)
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
   const [reloadTrovesProgress, setReloadTrovesProgress] = useState({ current: 0, total: 0 })
@@ -1444,7 +1445,7 @@ aria-label="Clear compare troves"
                   </p>
                   <div className="search-results-options">
                     <label className="page-size-label">
-                      Page size
+                      Size
                       <select
                         value={dupPageSize}
                         onChange={handleDupPageSizeChange}
@@ -1569,7 +1570,7 @@ aria-label="Clear compare troves"
                   </p>
                   <div className="search-results-options">
                     <label className="page-size-label">
-                      Page size
+                      Size
                       <select
                         value={uniqPageSize}
                         onChange={handleUniqPageSizeChange}
@@ -1688,6 +1689,7 @@ aria-label="Clear compare troves"
                       showScoreColumn={query.trim() !== '*'}
                       viewMode={searchResultsViewMode}
                       showPdfSashInGallery
+                      showGalleryDecorations={galleryDecorate}
                     />
                   </>
                 )
@@ -1743,21 +1745,22 @@ aria-label="Clear compare troves"
                         Gallery
                       </button>
                     </span>
-                    <label className="page-size-label">
-                      Page size
-                      <select
-                        value={pageSize}
-                        onChange={handlePageSizeChange}
-                        className="page-size-select"
-                        disabled={searching}
-                      >
-                        {PAGE_SIZE_OPTIONS.map((n) => (
-                          <option key={n} value={n}>
-                            {formatCount(n)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    {searchResultsViewMode === 'gallery' && (
+                      <span className="gallery-decorate-wrap">
+                        <span className="gallery-decorate-label">Decorate</span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={galleryDecorate}
+                          aria-label="Show file type decorations on gallery items"
+                          title={galleryDecorate ? 'Hide decorations' : 'Show decorations'}
+                          className={`gallery-decorate-toggle ${galleryDecorate ? 'gallery-decorate-toggle--on' : ''}`}
+                          onClick={() => setGalleryDecorate((v) => !v)}
+                        >
+                          <span className="gallery-decorate-toggle-thumb" aria-hidden="true" />
+                        </button>
+                      </span>
+                    )}
                     {totalPages > 1 && (() => {
                       const maxShow = 5
                       let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
@@ -1845,6 +1848,21 @@ aria-label="Clear compare troves"
                         </nav>
                       )
                     })()}
+                    <label className="page-size-label">
+                      {totalPages > 1 ? 'Size' : 'Page size'}
+                      <select
+                        value={pageSize}
+                        onChange={handlePageSizeChange}
+                        className="page-size-select"
+                        disabled={searching}
+                      >
+                        {PAGE_SIZE_OPTIONS.map((n) => (
+                          <option key={n} value={n}>
+                            {formatCount(n)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                   <SearchResultsGrid
                     data={results}
@@ -1855,6 +1873,7 @@ aria-label="Clear compare troves"
                     viewMode={searchResultsViewMode}
                     hideTroveInGallery={selectedTroveIds.size === 1}
                     showPdfSashInGallery
+                    showGalleryDecorations={galleryDecorate}
                   />
                 </>
               )

@@ -60,6 +60,7 @@ function MobileApp() {
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery'
+  const [galleryDecorate, setGalleryDecorate] = useState(true)
   const [pageSize, setPageSize] = useState(() => {
     const p = new URLSearchParams(window.location.search)
     const s = Number(p.get('size'))
@@ -954,6 +955,22 @@ onClick={() => {
                   Gallery
                 </button>
               </span>
+              {searchResultsViewMode === 'gallery' && (
+                <span className="mobile-gallery-decorate-wrap">
+                  <span className="mobile-gallery-decorate-label">Decorate</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={galleryDecorate}
+                    aria-label="Show file type decorations on gallery items"
+                    title={galleryDecorate ? 'Hide decorations' : 'Show decorations'}
+                    className={`mobile-gallery-decorate-toggle ${galleryDecorate ? 'mobile-gallery-decorate-toggle--on' : ''}`}
+                    onClick={() => setGalleryDecorate((v) => !v)}
+                  >
+                    <span className="mobile-gallery-decorate-toggle-thumb" aria-hidden="true" />
+                  </button>
+                </span>
+              )}
             </span>
           )}
           {searchMode === 'duplicates' && duplicatesResult != null && (() => {
@@ -1179,7 +1196,7 @@ onClick={() => {
                     </nav>
                   )}
                   <label className="mobile-page-size-label mobile-page-size-label--end">
-                    Size
+                    {totalPages > 1 ? 'Size' : 'Page size'}
                     <select
                       value={pageSize}
                       onChange={handlePageSizeChange}
@@ -1204,6 +1221,7 @@ onClick={() => {
                   viewMode={searchResultsViewMode}
                   hideTroveInGallery={selectedTroveIds.size === 1}
                   showPdfSashInGallery
+                  showGalleryDecorations={galleryDecorate}
                   afterFilterSlot={displayFileTypes.length >= 1 ? (() => {
                     const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
                     const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
