@@ -136,7 +136,7 @@
 }
 
 .mobile-search-query-btn:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .mobile-search-query-btn:first-child {
@@ -268,7 +268,7 @@
 }
 
 .mobile-filetype-clear:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .mobile-filetype-panel {
@@ -316,8 +316,8 @@
 }
 
 .mobile-filetype-quick-btn:hover {
-  background: #ede5f5;
-  border-color: #ddd0eb;
+  background: #e0e0ff;
+  border-color: #aaaaff;
 }
 
 .mobile-filetype-quick-btn:disabled {
@@ -327,7 +327,7 @@
 
 .mobile-filetype-quick-btn:disabled:hover {
   background: #f5f0fc;
-  border-color: #ddd0eb;
+  border-color: #aaaaff;
 }
 
 .mobile-filetype-quick-prefix {
@@ -367,7 +367,7 @@
 }
 
 .mobile-filetype-group-header:hover {
-  background: #ddd0eb;
+  background: #aaaaff;
 }
 
 .mobile-filetype-group-header input {
@@ -387,7 +387,7 @@
 }
 
 .mobile-filetype-option:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .mobile-filetype-option input {
@@ -503,7 +503,7 @@
 }
 
 .mobile-trove-filter-clear:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .mobile-trove-filter-wrap:focus-within {
@@ -734,8 +734,8 @@
 }
 
 .mobile-page-btn:hover:not(:disabled) {
-  background: #ede5f5;
-  border-color: #ddd0eb;
+  background: #e0e0ff;
+  border-color: #aaaaff;
 }
 .mobile-page-btn:disabled {
   opacity: 0.5;

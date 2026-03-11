@@ -573,7 +573,7 @@
 }
 
 .trove-picker-tab:hover:not(.trove-picker-tab--active) {
-  background: #ede5f5;
+  background: #e0e0ff;
   color: #222;
 }
 
@@ -599,7 +599,7 @@
 }
 
 .trove-picker-clear:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
   border-color: #c9b8e8;
   color: #222;
 }
@@ -705,7 +705,7 @@
 }
 
 .trove-checkbox:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .trove-item--selected .trove-checkbox:hover {
@@ -866,7 +866,7 @@
   border-radius: 0;
 }
 .search-query-btn:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 .search-query-btn:first-child {
   font-weight: 600;
@@ -920,7 +920,7 @@
   display: block;
 }
 .search-submit-btn:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .search-filetype-dropdown-wrap {
@@ -972,7 +972,7 @@
 }
 
 .search-filetype-dropdown-trigger:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .search-filetype-divider {
@@ -999,7 +999,7 @@
 }
 
 .search-filetype-clear:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .search-filetype-dropdown-panel {
@@ -1042,8 +1042,8 @@
 }
 
 .search-filetype-quick-btn:hover {
-  background: #ede5f5;
-  border-color: #ddd0eb;
+  background: #e0e0ff;
+  border-color: #aaaaff;
 }
 
 .search-filetype-quick-btn:disabled {
@@ -1053,7 +1053,7 @@
 
 .search-filetype-quick-btn:disabled:hover {
   background: #f5f0fc;
-  border-color: #ddd0eb;
+  border-color: #aaaaff;
 }
 
 .search-filetype-quick-prefix {
@@ -1094,7 +1094,7 @@
 }
 
 .search-filetype-group-header:hover {
-  background: #ddd0eb;
+  background: #aaaaff;
 }
 
 .search-filetype-group-header input {
@@ -1114,7 +1114,7 @@
 }
 
 .search-filetype-option:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .search-filetype-option input {
@@ -1205,8 +1205,8 @@
 }
 
 .view-mode-btn:hover {
-  background: #ede5f5;
-  border-color: #ddd0eb;
+  background: #e0e0ff;
+  border-color: #aaaaff;
 }
 
 .view-mode-btn--active {
@@ -1263,7 +1263,7 @@
   border-radius: 4px;
 }
 .pagination-btn:hover:not(:disabled) {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .pagination-info {
@@ -1365,7 +1365,7 @@
 }
 
 .duplicate-results-table th.sortable:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .duplicate-results-table .sort-indicator {
@@ -1622,7 +1622,7 @@
 }
 
 .search-mode-toggle button:hover:not(.active) {
-  background: #ede5f5;
+  background: #e0e0ff;
   color: #333;
 }
 
@@ -1769,7 +1769,7 @@
 }
 
 .primary-trove-option:hover {
-  background: #ede5f5;
+  background: #e0e0ff;
 }
 
 .primary-trove-option--selected {
