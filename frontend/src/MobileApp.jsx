@@ -1176,7 +1176,8 @@ onClick={() => {
             aria-expanded={showTrovePicker}
             aria-label="Select troves"
           >
-            {mobileTroveDropdownLabel}
+            <span className="mobile-troves-btn-label">{mobileTroveDropdownLabel}</span>
+            <span className="mobile-troves-btn-change" aria-hidden="true">Change</span>
           </button>
           {searchMode === 'search' && searchResult != null && (
             <span className="mobile-view-and-size-wrap mobile-troves-row-right">
