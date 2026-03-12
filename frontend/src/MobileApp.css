@@ -1017,6 +1017,11 @@
   text-decoration: underline;
 }
 
+.mobile-cache-unit {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.02em;
+}
+
 .mobile-footer-logout-btn {
   background: none;
   border: none;

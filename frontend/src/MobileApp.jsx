@@ -817,6 +817,19 @@ function MobileApp() {
     return { selected, notSelected }
   }, [searchMode, filteredTroves, displaySelectedTroveIds, selectedTroveIds, freezeTroveListOrder, boostTroveId, searchResult?.troveCounts, searchResult?.results])
 
+  function renderCacheLabel() {
+    const label = cacheLabel || 'cache'
+    const m = /^cache (\d+)(kb|mb|gb)$/.exec(label)
+    if (!m) return ` ${label}`
+    return (
+      <>
+        {' cache '}
+        {m[1]}
+        <span className="mobile-cache-unit">{m[2]}</span>
+      </>
+    )
+  }
+
   return (
     <div className="mobile-app">
       <header className="mobile-header">
@@ -1526,7 +1539,7 @@ onClick={() => {
                     <line x1="10" y1="11" x2="10" y2="17" />
                     <line x1="14" y1="11" x2="14" y2="17" />
                   </svg>
-                  <span>{` ${cacheLabel || 'cache'}`}</span>
+                  <span>{renderCacheLabel()}</span>
                 </button>
               </>
             )}
