@@ -530,7 +530,11 @@
 }
 
 .mobile-filetype-group .mobile-filetype-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   padding-left: 1.5rem;
+  text-align: left;
 }
 
 .mobile-filetype-option {
