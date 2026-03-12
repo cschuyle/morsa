@@ -2,6 +2,8 @@
 #root:has(.mobile-app) {
   padding-top: 0;
   padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* Mobile-first layout under /mobile: header/footer anchored, only main scrolls */
@@ -22,11 +24,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 0.5rem;
+  margin: 0 0.35rem;
   padding: 0.75rem 1rem;
   background: #ffaa44;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 0 0 8px 8px;
+  box-shadow:
+    -6px 0 8px rgba(109, 77, 255, 0.55),
+    6px 0 8px rgba(109, 77, 255, 0.55),
+    0 6px 8px rgba(46, 70, 255, 0.55),
+    -10px 0 14px rgba(16, 32, 184, 0.45),
+    10px 0 14px rgba(16, 32, 184, 0.45),
+    0 10px 14px rgba(16, 32, 184, 0.45);
   z-index: 10;
 }
 
@@ -119,7 +128,31 @@
   max-width: 100%;
   box-sizing: border-box;
   background: transparent;
-  margin: 0 0.5rem;
+  margin: 0;
+}
+
+.mobile-main:not(.mobile-about-main) {
+  border: 0 solid #ff00ff;
+  border-radius: 10px;
+  box-shadow: none;
+  filter:
+    drop-shadow(0 0 3px #6d4dff)
+    drop-shadow(0 0 8px #2e46ff)
+    drop-shadow(0 0 14px #1020b8);
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-left: 0.35rem;
+  margin-right: 0.35rem;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.mobile-main.mobile-main-gap-top-open:not(.mobile-about-main) {
+  margin-top: 0.5rem;
+}
+
+.mobile-main.mobile-main-gap-bottom-open:not(.mobile-about-main) {
+  margin-bottom: 0.5rem;
 }
 
 .mobile-main-inner {
@@ -128,6 +161,10 @@
   border-radius: 8px;
   padding: 0.5rem 1rem;
   min-height: min-content;
+}
+
+.mobile-main:not(.mobile-about-main) .mobile-main-inner {
+  border-radius: 4px;
 }
 
 .mobile-main.mobile-filetype-dropdown-open {
@@ -908,7 +945,14 @@
   flex-direction: column;
   gap: 0.5rem;
   border-radius: 8px 8px 0 0;
-  margin: 0 0.5rem 0 0.5rem;
+  margin: 0 0.35rem;
+  box-shadow:
+    -6px 0 8px rgba(109, 77, 255, 0.55),
+    6px 0 8px rgba(109, 77, 255, 0.55),
+    0 -6px 8px rgba(46, 70, 255, 0.55),
+    -10px 0 14px rgba(16, 32, 184, 0.45),
+    10px 0 14px rgba(16, 32, 184, 0.45),
+    0 -10px 14px rgba(16, 32, 184, 0.45);
 }
 
 .mobile-status-message {

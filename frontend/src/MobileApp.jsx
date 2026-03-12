@@ -78,6 +78,9 @@ function MobileApp() {
   const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
   const copyFlareTimeoutRef = useRef(null)
+  const mobileMainRef = useRef(null)
+  const [mobileMainGapTopOpen, setMobileMainGapTopOpen] = useState(true)
+  const [mobileMainGapBottomOpen, setMobileMainGapBottomOpen] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
   queryRef.current = query
@@ -495,6 +498,38 @@ function MobileApp() {
   }, [searchMode])
 
   const prevBoostTroveIdRef = useRef(undefined)
+
+  function updateMobileMainGapState() {
+    const el = mobileMainRef.current
+    if (!el) return
+    const epsilon = 8
+    const maxScroll = Math.max(0, el.scrollHeight - el.clientHeight)
+    if (maxScroll <= epsilon) {
+      setMobileMainGapTopOpen(true)
+      setMobileMainGapBottomOpen(true)
+      return
+    }
+    const atTop = el.scrollTop <= epsilon
+    const atBottom = (el.scrollTop + el.clientHeight) >= (el.scrollHeight - epsilon)
+    setMobileMainGapTopOpen(atTop)
+    setMobileMainGapBottomOpen(atBottom)
+  }
+
+  useEffect(() => {
+    const id = window.requestAnimationFrame(updateMobileMainGapState)
+    return () => window.cancelAnimationFrame(id)
+  }, [
+    searchMode,
+    showTrovePicker,
+    fileTypeDropdownOpen,
+    searching,
+    page,
+    duplicatesPage,
+    uniquesPage,
+    searchResult?.count,
+    duplicatesResult?.count,
+    uniquesResult?.count,
+  ])
   useEffect(() => {
     if (searchMode !== 'search') return
     if (prevBoostTroveIdRef.current === undefined) {
@@ -813,7 +848,11 @@ function MobileApp() {
         </div>
       )}
 
-      <main className={`mobile-main${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
+      <main
+        ref={mobileMainRef}
+        onScroll={updateMobileMainGapState}
+        className={`mobile-main${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}${mobileMainGapTopOpen ? ' mobile-main-gap-top-open' : ''}${mobileMainGapBottomOpen ? ' mobile-main-gap-bottom-open' : ''}`}
+      >
         <div className="mobile-main-inner">
         <div className="mobile-mode-tabs" role="tablist" aria-label="Search mode">
           <button
