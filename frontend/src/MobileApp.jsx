@@ -1598,7 +1598,15 @@ onClick={() => {
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M21 12a9 9 0 1 1-2.636-6.364M21 3v6h-6" />
+                <path d="M18.691 17.785A9 9 0 1 1 17.2 7.2" />
+                <path
+                  d="M17.652 3.851 L13.783 7.938 L19.465 9.037 Z"
+                  fill="currentColor"
+                  stroke="currentColor"
+                  strokeWidth="1.1"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
               </svg>
               <span> troves</span>
             </button>
