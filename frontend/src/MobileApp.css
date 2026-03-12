@@ -1042,6 +1042,8 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 0.9rem;
+  font-weight: inherit;
+  line-height: inherit;
   color: #6633cc;
   text-decoration: none;
   display: inline-flex;
@@ -1056,15 +1058,21 @@
 
 .mobile-reload-label {
   margin-left: -13px;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
 }
 
 .mobile-clear-cache-btn[aria-label="Reload troves"] svg {
-  transform: translateY(1px) scale(1.05);
+  transform: translateX(1px) translateY(1px) scale(1.15);
 }
 
 .mobile-cache-unit {
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.02em;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
 }
 
 .mobile-footer-logout-btn {
