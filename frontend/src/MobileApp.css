@@ -46,11 +46,12 @@
 }
 
 .mobile-brand {
-  font-weight: 800;
-  font-size: 1.25rem;
+  font-weight: 900;
+  font-size: 1.55rem;
   font-family: "Nunito", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   color: #6633cc;
   text-decoration: none;
+  text-shadow: 0.2px 0 0 currentColor, -0.2px 0 0 currentColor;
   white-space: nowrap;
   flex-shrink: 0;
 }
