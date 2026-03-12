@@ -1066,7 +1066,7 @@
 }
 
 .mobile-clear-cache-btn[aria-label="Reload troves"] svg {
-  transform: translateX(1px) translateY(1px) scale(1.15);
+  transform: translateX(1px) translateY(0) scale(1.15);
 }
 
 .mobile-cache-unit {
