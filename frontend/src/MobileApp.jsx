@@ -723,6 +723,7 @@ function MobileApp() {
   const count = searchResult?.count ?? 0
   const searchSize = typeof searchResult?.size === 'number' ? searchResult.size : pageSize
   const totalPages = Math.ceil(count / searchSize) || 0
+  const showSearchPaginationControls = totalPages > 1
   const displayFileTypes = useMemo(() => {
     const upper = (s) => (s || '').toUpperCase()
     const seen = new Set(ALL_KNOWN_FILE_TYPES.map(upper))
@@ -1407,9 +1408,9 @@ onClick={() => {
               <p className="mobile-no-results">No items.</p>
             )}
             {results.length > 0 && (
-              <div className={`mobile-search-results-grid${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}`}>
-                <div className="mobile-view-mode-row">
-                  {totalPages > 1 && (
+              <div className={`mobile-search-results-grid${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}${!showSearchPaginationControls ? ' mobile-search-results-grid--no-pager' : ''}`}>
+                {showSearchPaginationControls && (
+                  <div className="mobile-view-mode-row">
                     <nav className="mobile-pagination" aria-label="Pages">
                       <button
                         type="button"
@@ -1442,24 +1443,24 @@ onClick={() => {
                         ›
                       </button>
                     </nav>
-                  )}
-                  <label className="mobile-page-size-label mobile-page-size-label--end">
-                    {totalPages > 1 ? 'Size' : 'Page size'}
-                    <select
-                      value={pageSize}
-                      onChange={handlePageSizeChange}
-                      className="mobile-page-size-select"
-                      disabled={searching}
-                      aria-label="Page size"
-                    >
-                      {MOBILE_PAGE_SIZE_OPTIONS.map((n) => (
-                        <option key={n} value={n}>
-                          {formatCount(n)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
+                    <label className="mobile-page-size-label mobile-page-size-label--end">
+                      Size
+                      <select
+                        value={pageSize}
+                        onChange={handlePageSizeChange}
+                        className="mobile-page-size-select"
+                        disabled={searching}
+                        aria-label="Page size"
+                      >
+                        {MOBILE_PAGE_SIZE_OPTIONS.map((n) => (
+                          <option key={n} value={n}>
+                            {formatCount(n)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
                 <SearchResultsGrid
                   data={results}
                   sortBy={searchSortBy}

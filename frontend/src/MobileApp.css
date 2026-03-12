@@ -185,7 +185,7 @@
 .mobile-search-form {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
 }
 
 .mobile-search-query-wrap {
@@ -545,8 +545,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem 0;
+  margin-bottom: 0.35rem;
+  padding: 0.25rem 0 0.35rem;
 }
 
 .mobile-troves-label {
@@ -1292,9 +1292,14 @@
 
 /* Duplicate / Uniques results (base styles; mobile doesn't load App.css) */
 .mobile-search-results-grid {
-  margin-top: 1rem;
+  margin-top: 0.35rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* When pagination controls are hidden, tighten space before "Filter this page". */
+.mobile-search-results-grid.mobile-search-results-grid--no-pager {
+  margin-top: 0.1rem;
 }
 
 .mobile-view-mode-row {
@@ -1417,6 +1422,20 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+}
+
+/* Reduce vertical gap from trove row to "Filter this page" input in mobile. */
+.mobile-search-results-grid .search-results-grid {
+  margin-top: 0.85rem;
+}
+
+/* Strongly control the exact gap between trove row and filter row. */
+.mobile-troves-row + .mobile-search-results-grid {
+  margin-top: 0 !important;
+}
+
+.mobile-troves-row + .mobile-search-results-grid .search-results-grid {
+  margin-top: 0.35rem !important;
 }
 
 .mobile-search-results-grid .grid-filter-input {
