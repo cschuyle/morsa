@@ -421,7 +421,7 @@
   margin-top: 0.25rem;
   padding: 0.35rem 0;
   min-width: 8rem;
-  max-height: 12rem;
+  max-height: 30rem;
   overflow-y: auto;
   background: #fff;
   border: 1px solid #ccc;
@@ -437,7 +437,7 @@
   left: auto;
   margin-top: 0;
   max-width: calc(100vw - 1rem);
-  max-height: min(12rem, calc(100vh - 2rem));
+  max-height: min(30rem, calc(100vh - 2rem));
   overflow-x: hidden;
 }
 
