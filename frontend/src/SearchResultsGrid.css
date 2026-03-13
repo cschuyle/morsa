@@ -6,6 +6,8 @@
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  container-type: inline-size;
+  container-name: search-results;
 }
 
 .search-results-grid .back-to-top-btn {
@@ -444,8 +446,100 @@
 
 .search-results-gallery-card-wrap {
   position: relative;
+  overflow: visible;
+  border-radius: 8px;
+}
+
+.search-results-gallery-card-wrap .search-results-gallery-card {
   overflow: hidden;
   border-radius: 8px;
+}
+
+.search-results-gallery-url-tooltip {
+  position: absolute;
+  padding: 0.5rem 0.6rem;
+  background: #e8e0f5;
+  color: #252525;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  border-radius: 6px;
+  z-index: 1000;
+  max-width: 66.67cqw;
+  min-width: 12rem;
+  width: max-content;
+  word-break: break-all;
+  pointer-events: auto;
+}
+
+.search-results-gallery-url-tooltip--centered {
+  position: fixed;
+  max-width: min(66.67cqw, 66.67vw);
+  animation-duration: 0.5s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+.search-results-gallery-url-tooltip--above {
+  animation-name: search-results-url-tooltip-emerge-above;
+}
+
+.search-results-gallery-url-tooltip--below {
+  animation-name: search-results-url-tooltip-emerge-below;
+}
+
+@keyframes search-results-url-tooltip-emerge {
+  /* fallback, same as below */
+  from {
+    left: var(--tooltip-start-x);
+    top: var(--tooltip-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    left: var(--tooltip-end-x);
+    top: var(--tooltip-end-y);
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes search-results-url-tooltip-emerge-above {
+  from {
+    left: var(--tooltip-start-x);
+    top: var(--tooltip-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    left: var(--tooltip-end-x);
+    top: var(--tooltip-end-y);
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+@keyframes search-results-url-tooltip-emerge-below {
+  from {
+    left: var(--tooltip-start-x);
+    top: var(--tooltip-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    left: var(--tooltip-end-x);
+    top: var(--tooltip-end-y);
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.search-results-gallery-url-tooltip a {
+  color: #6633cc;
+  text-decoration: underline;
+}
+
+.search-results-gallery-url-tooltip a:hover {
+  color: #5522aa;
 }
 
 .search-results-gallery-card-raw-btn {
