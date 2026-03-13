@@ -1392,6 +1392,14 @@ onClick={() => {
                               }}
                             />
                             {ft}
+                            {ft === 'Link' && <img src="/link.png" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {ft === 'PDF' && <img src="/pdf.png" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {['JPG', 'JPEG', 'GIF', 'WEBP', 'TIFF', 'PNG'].includes(ft) && <img src="/image.png" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {['RDF', 'TXT', 'DOC', 'DOCX'].includes(ft) && <img src="/document.png" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {['MP4', 'M4V', 'AVI', 'MOV', 'MKV'].includes(ft) && <img src="/video.svg" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {ft === 'MP3' && <img src="/audio.png" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {['EPUB', 'MOBI'].includes(ft) && <img src="/book.svg" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
+                            {ft === 'ZIP' && <img src="/zip.png" alt="" className="mobile-filetype-option-icon" aria-hidden="true" />}
                           </label>
                         ))}
                       </div>
