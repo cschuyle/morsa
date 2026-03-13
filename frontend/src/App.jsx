@@ -63,7 +63,7 @@ function App() {
   const [searchPageInput, setSearchPageInput] = useState('')
   const [fileTypeFilters, setFileTypeFilters] = useState(() => {
     const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
-    return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim()))
+    return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
   })
   const [fileTypeQuickMode, setFileTypeQuickMode] = useState(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq')))
   const [thumbnailOnly, setThumbnailOnly] = useState(() => new URLSearchParams(window.location.search).get('thumbs') === '1')
@@ -145,7 +145,7 @@ function App() {
       if (Array.isArray(cached?.availableFileTypes) && cached.availableFileTypes.length > 0) {
         setAllAvailableFileTypes((prev) => {
           const next = new Set(prev)
-          cached.availableFileTypes.forEach((t) => next.add(t))
+          cached.availableFileTypes.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
           return [...next].sort()
         })
       }
@@ -168,7 +168,7 @@ function App() {
         if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
           setAllAvailableFileTypes((prev) => {
             const next = new Set(prev)
-            data.availableFileTypes.forEach((t) => next.add(t))
+            data.availableFileTypes.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
             return [...next].sort()
           })
         }
@@ -227,7 +227,7 @@ function App() {
     const q = searchParams.get('q')
     setQuery(q != null ? q : '')
     const ftAll = searchParams.getAll('fileTypes')
-    setFileTypeFilters(new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim())))
+    setFileTypeFilters(new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim()))))
     setFileTypeQuickMode(normalizeFileTypeQuickMode(searchParams.get('ftq')))
     setThumbnailOnly(searchParams.get('thumbs') === '1')
     const mode = searchParams.get('mode')
@@ -364,7 +364,7 @@ function App() {
       }
       const pageParam = Number(searchParams.get('page'))
       const initialPage = Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0
-      const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+      const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
       const fileTypesToUse = fileTypeFilters.size > 0 ? undefined : (urlFileTypes.size > 0 ? urlFileTypes : undefined)
       fetchSearch(initialPage, null, null, null, null, fileTypesToUse)
     }, 400)
@@ -1353,7 +1353,7 @@ aria-label="Clear compare troves"
                   {searching ? 'Searching…' : 'Go!'}
                 </button>
                 {searchMode === 'search' && (allAvailableFileTypes.length >= 1 || fileTypeFilters.size > 0) && (() => {
-                  const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => f.trim()))
+                  const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
                   const fileTypesForLabel = fileTypeFilters.size > 0 ? fileTypeFilters : urlFileTypes
                   const upper = (s) => (s || '').toUpperCase()
                   const availableUpper = new Set((allAvailableFileTypes || []).map(upper))

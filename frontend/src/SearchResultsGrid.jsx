@@ -65,7 +65,7 @@ function getLightboxPayload(row) {
 
 function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, hasLargeImage) {
   const labels = new Set()
-  if (itemUrl && hasLargeImage) labels.add('URL')
+  if (itemUrl && hasLargeImage) labels.add('Link')
   if (pdfs.length > 0) labels.add('PDF')
   imageUrls.forEach((u) => {
     const m = u.match(/\.(jpe?g|png|gif|webp|tiff?|bmp|svg)(\?|$)/i)
@@ -494,7 +494,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   })}
                 {lightbox.itemUrl && (
                   <a href={lightbox.itemUrl} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                    URL
+                    Link
                   </a>
                 )}
               </div>
