@@ -1199,7 +1199,7 @@ onClick={() => {
             const hasThumbFilter = thumbnailOnly
             return (
               <div className="mobile-filetype-dropdown-wrap mobile-filetype-dropdown-wrap--form" ref={fileTypeDropdownRef}>
-              <div className={`mobile-filetype-trigger-wrap${hasFileTypeFilter ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
+              <div className={`mobile-filetype-trigger-wrap${!(mehQuickSelected && !hasThumbFilter) ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
                 <button
                   type="button"
                   className="mobile-filetype-trigger"
