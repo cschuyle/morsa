@@ -811,6 +811,14 @@ function MobileApp() {
     if (q) fetchSearch(page, nextSortBy, nextSortDir)
   }
 
+  function toggleGallerySortDir() {
+    const nextDir = searchSortDir === 'asc' ? 'desc' : 'asc'
+    setSearchSortDir(nextDir)
+    const q = queryRef.current.trim()
+    const sortBy = searchSortBy === 'score' || searchSortBy === 'trove' ? searchSortBy : 'title'
+    if (q) fetchSearch(page, sortBy, nextDir)
+  }
+
   const sortedDuplicateRows = useMemo(() => {
     const raw = Array.isArray(duplicatesResult?.rows) ? duplicatesResult.rows : []
     if (!duplicatesSortBy) return raw
@@ -866,6 +874,16 @@ function MobileApp() {
     ? (
       <div className="mobile-gallery-sort-dropdown-wrap" ref={gallerySortDropdownRef}>
         <div className="mobile-gallery-sort-trigger-wrap">
+          <button
+            type="button"
+            className="mobile-gallery-sort-dir-btn"
+            onClick={(e) => { e.stopPropagation(); toggleGallerySortDir() }}
+            aria-label={searchSortDir === 'asc' ? 'Sort ascending, click to sort descending' : 'Sort descending, click to sort ascending'}
+            title={searchSortDir === 'asc' ? 'Sort ascending (click to toggle)' : 'Sort descending (click to toggle)'}
+          >
+            {searchSortDir === 'asc' ? '↑' : '↓'}
+          </button>
+          <span className="mobile-gallery-sort-divider" aria-hidden="true" />
           <button
             type="button"
             className="mobile-gallery-sort-trigger"
