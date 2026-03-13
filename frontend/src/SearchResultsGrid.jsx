@@ -516,8 +516,9 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   key={row.id ?? idx}
                   className="search-results-gallery-card-wrap"
                 >
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
                     className={`search-results-gallery-card${hideTroveInGallery ? ' search-results-gallery-card--title-wraps' : ''}`}
                     onClick={() => {
                       if (longPressTriggeredRef.current) {
@@ -655,7 +656,6 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   )}
                   <span className="search-results-gallery-card-title">{title || '\u00A0'}</span>
                   {!hideTroveInGallery && <span className="search-results-gallery-card-trove">{trove || '\u00A0'}</span>}
-                </button>
                   <button
                     type="button"
                     className="search-results-gallery-card-raw-btn"
@@ -665,6 +665,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   >
                     {'{…}'}
                   </button>
+                </div>
                 </div>
               )
             })
