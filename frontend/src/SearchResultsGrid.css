@@ -482,6 +482,12 @@
   position: relative;
 }
 
+.search-results-gallery-card-pdf-sash,
+.search-results-gallery-card-audio-sash,
+.search-results-gallery-card-video-sash {
+  cursor: pointer;
+}
+
 .search-results-gallery-card-pdf-sash {
   position: absolute;
   top: 2.05rem;
@@ -495,7 +501,6 @@
   color: #fff;
   transform: rotate(-45deg);
   transform-origin: top left;
-  pointer-events: none;
 }
 
 .search-results-gallery-card-audio-sash {
@@ -512,7 +517,6 @@
   color: #ffd700;
   transform: rotate(45deg);
   transform-origin: top right;
-  pointer-events: none;
 }
 
 .search-results-gallery-card-video-sash {
@@ -529,7 +533,6 @@
   color: #fff;
   transform: rotate(-45deg);
   transform-origin: bottom right;
-  pointer-events: none;
 }
 
 .search-results-gallery-card-image img {

@@ -463,10 +463,19 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               const title = row?.title ?? ''
               const trove = row?.trove ?? ''
               const files = Array.isArray(row?.files) ? row.files : []
-              const hasPdf = files.some((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
-              const hasTextNotPdf = files.some((u) => typeof u === 'string' && /\.(mobi|epub|txt|doc|docx|rtf|odt)(\?|$)/i.test(u))
-              const hasAudio = files.some((u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u))
-              const hasVideo = files.some((u) => typeof u === 'string' && /\.(mp4|webm|mov|avi|mkv|m4v|ogv|wmv)(\?|$)/i.test(u))
+              const pdfs = files.filter((u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u))
+              const audios = files.filter((u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u))
+              const videos = files.filter((u) => typeof u === 'string' && /\.(mp4|webm|mov|avi|mkv|m4v|ogv|wmv)(\?|$)/i.test(u))
+              const hasPdf = pdfs.length > 0
+              const textFiles = files.filter((u) => typeof u === 'string' && /\.(mobi|epub|txt|doc|docx|rtf|odt)(\?|$)/i.test(u))
+              const hasTextNotPdf = textFiles.length > 0
+              const hasAudio = audios.length > 0
+              const hasVideo = videos.length > 0
+              const openSashFile = (e, url) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (url) window.open(url, '_blank', 'noopener,noreferrer')
+              }
               const isPdf = (u) => typeof u === 'string' && /\.pdf(\?|$)/i.test(u)
               const isAudio = (u) => typeof u === 'string' && /\.(mp3|m4a|wav|ogg|flac|aac|wma)(\?|$)/i.test(u)
               const isVideo = (u) => typeof u === 'string' && /\.(mp4|webm|mov|avi|mkv|m4v|ogv|wmv)(\?|$)/i.test(u)
@@ -591,22 +600,50 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                       </span>
                     )}
                     {showGalleryDecorations && showPdfSashInGallery && hasPdf && (
-                      <span className="search-results-gallery-card-pdf-sash" aria-hidden="true">
+                      <span
+                        className="search-results-gallery-card-pdf-sash"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Open PDF"
+                        onClick={(e) => openSashFile(e, pdfs[0])}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSashFile(e, pdfs[0]) } }}
+                      >
                         <img src="/pdf.svg" alt="" />
                       </span>
                     )}
                     {showGalleryDecorations && showPdfSashInGallery && hasTextNotPdf && !hasPdf && (
-                      <span className="search-results-gallery-card-pdf-sash" aria-hidden="true">
+                      <span
+                        className="search-results-gallery-card-pdf-sash"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Open file"
+                        onClick={(e) => openSashFile(e, textFiles[0])}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSashFile(e, textFiles[0]) } }}
+                      >
                         <img src="/book.svg" alt="" />
                       </span>
                     )}
                     {showGalleryDecorations && showPdfSashInGallery && hasAudio && (
-                      <span className="search-results-gallery-card-audio-sash" aria-hidden="true">
+                      <span
+                        className="search-results-gallery-card-audio-sash"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Open audio"
+                        onClick={(e) => openSashFile(e, audios[0])}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSashFile(e, audios[0]) } }}
+                      >
                         <img src="/audio.png" alt="" />
                       </span>
                     )}
                     {showGalleryDecorations && showPdfSashInGallery && hasVideo && (
-                      <span className="search-results-gallery-card-video-sash" aria-hidden="true">
+                      <span
+                        className="search-results-gallery-card-video-sash"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Open video"
+                        onClick={(e) => openSashFile(e, videos[0])}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSashFile(e, videos[0]) } }}
+                      >
                         <img src="/video.svg" alt="" />
                       </span>
                     )}
