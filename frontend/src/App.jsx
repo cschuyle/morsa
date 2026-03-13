@@ -1874,7 +1874,7 @@ aria-label="Clear compare troves"
                         </button>
                       </span>
                       <span className={`gallery-decorate-wrap ${searchResultsViewMode !== 'gallery' ? 'gallery-decorate-wrap--hidden' : ''}`}>
-                        <span className="gallery-decorate-label">Media Types</span>
+                        <span className="gallery-decorate-label">Show Media Types</span>
                         <img
                           src={galleryDecorate ? '/decorated-picture.png' : '/undecorated-picture.png'}
                           alt=""

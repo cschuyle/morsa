@@ -1288,6 +1288,13 @@
 .card .search-results-options .pagination-ellipsis {
   color: #b8b8b8;
 }
+.gallery-sort-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
 .card .grid-toolbar .gallery-sort-label {
   color: #b8b8b8;
 }
