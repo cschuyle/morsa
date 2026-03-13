@@ -298,6 +298,7 @@
   width: 2.25rem;
   min-width: 2.25rem;
   font-size: 1.235rem;
+  transform: translateY(0.15em);
 }
 
 .mobile-search-query-asterisk {
