@@ -41,8 +41,8 @@ class SearchControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody()).as("Backend should return trove options from loaded data").isNotEmpty();
-        assertThat(response.getBody().stream().map(TroveOption::id).toList()).contains("little-prince");
-        assertThat(response.getBody().stream().map(TroveOption::name).toList()).contains("Little Prince");
+        assertThat(response.getBody().stream().map(TroveOption::id).toList()).contains("favorites");
+        assertThat(response.getBody().stream().map(TroveOption::name).toList()).contains("IMDB Favs");
     }
 
     @Test
@@ -58,8 +58,8 @@ class SearchControllerTest {
         assertThat(allResponse.getBody()).isNotNull();
         assertThat(allResponse.getBody().results()).as("Data should be loaded from JSON").isNotEmpty();
 
-        // Filter by trove and query: should find the Ancient Greek item
-        String url = "http://localhost:" + port + "/api/search?trove=little-prince&query=Greek";
+        // Filter by trove and query: should find Alien (1979)
+        String url = "http://localhost:" + port + "/api/search?trove=favorites&query=Alien";
         ResponseEntity<SearchResponse> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -69,20 +69,20 @@ class SearchControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         SearchResponse body = response.getBody();
         assertThat(body).isNotNull();
-        assertThat(body.results()).as("Filtered search should return the Ancient Greek item").isNotEmpty();
-        SearchResultWithScore greekRow = body.results().stream()
-                .filter(r -> r.result() != null && "PP-4277".equals(r.result().id()))
+        assertThat(body.results()).as("Filtered search should return Alien (1979)").isNotEmpty();
+        SearchResultWithScore alienRow = body.results().stream()
+                .filter(r -> r.result() != null && "Alien (1979)".equals(r.result().title()))
                 .findFirst()
                 .orElse(null);
-        assertThat(greekRow).isNotNull();
-        SearchResult greekResult = greekRow.result();
-        assertThat(greekResult.trove()).isEqualTo("Little Prince");
-        assertThat(greekResult.title()).isEqualTo("The Little Prince, in Ancient Greek");
+        assertThat(alienRow).isNotNull();
+        SearchResult alienResult = alienRow.result();
+        assertThat(alienResult.trove()).isEqualTo("IMDB Favs");
+        assertThat(alienResult.title()).isEqualTo("Alien (1979)");
     }
 
     @Test
     void duplicatesExcludeSelfMatchWhenSameTroveInPrimaryAndCompare() {
-        String url = "http://localhost:" + port + "/api/search/duplicates?primaryTrove=little-prince&compareTrove=little-prince&query=*";
+        String url = "http://localhost:" + port + "/api/search/duplicates?primaryTrove=favorites&compareTrove=favorites&query=*";
         ResponseEntity<DuplicatesResponse> response = restTemplate.getForEntity(url, DuplicatesResponse.class);
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         DuplicatesResponse body = response.getBody();
@@ -102,7 +102,7 @@ class SearchControllerTest {
 
     @Test
     void duplicatesOneRowPerGroupWhenSameTroveInPrimaryAndCompare() {
-        String url = "http://localhost:" + port + "/api/search/duplicates?primaryTrove=little-prince&compareTrove=little-prince&query=*";
+        String url = "http://localhost:" + port + "/api/search/duplicates?primaryTrove=favorites&compareTrove=favorites&query=*";
         ResponseEntity<DuplicatesResponse> response = restTemplate.getForEntity(url, DuplicatesResponse.class);
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         DuplicatesResponse body = response.getBody();
