@@ -1119,17 +1119,36 @@ onClick={() => {
 
         <form onSubmit={handleSearch} className="mobile-search-form">
           <div className="mobile-search-query-wrap">
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
-              onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = ''; setSearchResult({ count: 0, results: [], page: 0, size: pageSize }) } }}
-              placeholder="e.g. Greek, Prince, Albanian, Alien — or * for all"
-              className="mobile-search-input"
-              autoCapitalize="off"
-              autoCorrect="off"
-              aria-label="Query"
-            />
+            <div className="mobile-search-input-wrap">
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setFreezeTroveListOrder(false) }}
+                onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setQuery(''); queryRef.current = ''; setSearchResult({ count: 0, results: [], page: 0, size: pageSize }) } }}
+                placeholder="e.g. Greek, Prince, Albanian, Alien — or * for all"
+                className="mobile-search-input"
+                autoCapitalize="off"
+                autoCorrect="off"
+                aria-label="Query"
+              />
+              {query && (
+                <button
+                  type="button"
+                  className="mobile-search-query-clear"
+                  onClick={() => {
+                    setQuery('')
+                    queryRef.current = ''
+                    setFreezeTroveListOrder(false)
+                    setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
+                    setDuplicatesResult(null)
+                    setUniquesResult(null)
+                  }}
+                  aria-label="Clear query"
+                >
+                  ×
+                </button>
+              )}
+            </div>
             <span className="mobile-search-query-actions">
               <button
                 type="button"
@@ -1156,20 +1175,6 @@ onClick={() => {
                 }}
               >
                 <span className="mobile-search-query-asterisk" aria-hidden="true">*</span>
-              </button>
-              <button
-                type="button"
-                className="mobile-search-query-btn mobile-search-query-btn-clear"
-                title="Clear"
-                onClick={() => {
-                  setQuery('')
-                  setFreezeTroveListOrder(false)
-                  setSearchResult({ count: 0, results: [], page: 0, size: pageSize })
-                  setDuplicatesResult(null)
-                  setUniquesResult(null)
-                }}
-              >
-                ×
               </button>
             </span>
           </div>
@@ -1524,15 +1529,16 @@ onClick={() => {
                   className="mobile-trove-picker-filter"
                   aria-label="Filter troves by name"
                 />
-                <button
-                  type="button"
-                  className="mobile-trove-filter-clear"
-                  title="Clear filter"
-                  onClick={() => setTrovePickerFilter('')}
-                  aria-label="Clear filter"
-                >
-                  ×
-                </button>
+                {trovePickerFilter && (
+                  <button
+                    type="button"
+                    className="mobile-trove-filter-clear"
+                    onClick={() => setTrovePickerFilter('')}
+                    aria-label="Clear filter"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
               <button type="button" onClick={() => setShowTrovePicker(false)} className="mobile-trove-picker-done">
                 Done

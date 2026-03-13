@@ -207,11 +207,19 @@
   box-sizing: border-box;
 }
 
+.mobile-search-input-wrap {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
 .mobile-search-input {
   flex: 1;
   min-width: 0;
   height: 100%;
-  padding: 0 1rem;
+  padding: 0 2.25rem 0 1rem;
   border: none;
   border-radius: 0;
   font-size: 1rem;
@@ -221,6 +229,31 @@
   -webkit-appearance: none;
   appearance: none;
   box-sizing: border-box;
+}
+
+.mobile-search-query-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.mobile-search-query-clear:hover {
+  background: #e0e0ff;
+  color: #333;
 }
 
 .mobile-search-input::placeholder {
@@ -267,9 +300,6 @@
   font-size: 1.235rem;
 }
 
-.mobile-search-query-btn:last-child {
-  transform: translateY(-0.06em);
-}
 .mobile-search-query-asterisk {
   display: inline-block;
   font-size: 1.5em;
@@ -277,15 +307,6 @@
   vertical-align: bottom;
   color: #888;
 }
-.mobile-search-query-btn-clear {
-  font-weight: bold;
-  color: #888;
-  width: 1.25rem;
-  min-width: 1.25rem;
-  padding-left: 0;
-  padding-right: 0;
-}
-
 .mobile-search-btn {
   width: 2.25rem;
   height: 2.25rem;
@@ -754,6 +775,7 @@
 .mobile-trove-filter-wrap {
   flex: 1;
   min-width: 0;
+  position: relative;
   display: flex;
   align-items: stretch;
   border: 1px solid #ddd;
@@ -764,12 +786,13 @@
 .mobile-trove-picker-filter {
   flex: 1;
   min-width: 0;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 2.25rem 0.5rem 0.75rem;
   border: none;
   border-radius: 0;
   font-size: 1rem;
   background: transparent;
   color: #252525;
+  box-sizing: border-box;
 }
 
 .mobile-trove-picker-filter::placeholder {
@@ -777,19 +800,28 @@
 }
 
 .mobile-trove-filter-clear {
-  padding: 0 0.5rem;
-  border: none;
-  border-left: 1px solid #ddd;
-  border-radius: 0;
-  background: transparent;
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.1rem;
   line-height: 1;
-  color: #888;
+  border: none;
+  background: transparent;
+  color: #666;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .mobile-trove-filter-clear:hover {
   background: #e0e0ff;
+  color: #333;
 }
 
 .mobile-trove-filter-wrap:focus-within {
