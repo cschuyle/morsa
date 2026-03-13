@@ -116,15 +116,14 @@ function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = f
       const showLinkIconOnly = isLittlePrince && !url && itemUrl
       const hasThumbnailImage = url && !showLinkIconInsteadOfThumb
       const rawSourceItem = row?.rawSourceItem
-      const canShowRawSourceThumb = rawSourceItem != null && rawSourceItem !== ''
       if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
       const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, !!largeUrl)
       const payload = { imageUrl: lightboxImageUrl, title: row?.title ?? '', pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, isFallbackThumbnail }
       const canClick = lightboxImageUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
       const handleThumbLongPress = () => {
-        if (canShowRawSourceThumb && setRawSourceLightbox) {
+        if (setRawSourceLightbox) {
           if (longPressTriggeredRef) longPressTriggeredRef.current = true
-          setRawSourceLightbox({ title: row?.title ?? '', rawSourceItem })
+          setRawSourceLightbox({ title: row?.title ?? '', rawSourceItem: rawSourceDisplay(rawSourceItem) })
         }
       }
       const linkIcon = (
@@ -138,30 +137,30 @@ function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = f
           className="search-thumb-btn"
           title={
             isMobile
-              ? (hasThumbnailImage ? (fileTypeTooltip ?? 'View full size') : (canShowRawSourceThumb ? 'Long-press for raw source' : undefined))
+              ? (hasThumbnailImage ? (fileTypeTooltip ?? 'View full size') : 'Long-press for raw source')
               : (fileTypeTooltip ?? undefined)
           }
           onClick={() => canClick && onThumbnailClick(payload)}
           aria-label={
             showLinkIconOnly ? 'Open link' : (
               isMobile
-                ? (hasThumbnailImage ? (fileTypeTooltip ?? 'View full size') : (canShowRawSourceThumb ? 'Long-press for raw source' : undefined))
+                ? (hasThumbnailImage ? (fileTypeTooltip ?? 'View full size') : 'Long-press for raw source')
                 : 'View full size'
             )
           }
-          onTouchStart={isMobile && canShowRawSourceThumb && longPressTimerRef ? () => {
+          onTouchStart={isMobile && longPressTimerRef ? () => {
             longPressTimerRef.current = setTimeout(() => {
               longPressTimerRef.current = null
               handleThumbLongPress()
             }, LONG_PRESS_MS)
           } : undefined}
-          onTouchEnd={isMobile && canShowRawSourceThumb && longPressTimerRef ? () => {
+          onTouchEnd={isMobile && longPressTimerRef ? () => {
             if (longPressTimerRef.current) {
               clearTimeout(longPressTimerRef.current)
               longPressTimerRef.current = null
             }
           } : undefined}
-          onTouchCancel={isMobile && canShowRawSourceThumb && longPressTimerRef ? () => {
+          onTouchCancel={isMobile && longPressTimerRef ? () => {
             if (longPressTimerRef.current) {
               clearTimeout(longPressTimerRef.current)
               longPressTimerRef.current = null
@@ -197,12 +196,19 @@ const scoreColumn = {
 }
 
 const LONG_PRESS_MS = 500
+const RAW_SOURCE_NOT_AVAILABLE = 'Raw Source Not Available'
+
+function rawSourceDisplay(rawSourceItem) {
+  return (rawSourceItem != null && rawSourceItem !== '') ? rawSourceItem : RAW_SOURCE_NOT_AVAILABLE
+}
 
 export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false, showPdfSashInGallery = false, showGalleryDecorations = true, allowThumbnailFallbackLightbox = false, isMobile = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
   const [lightbox, setLightbox] = useState(null)
   const [rawSourceLightbox, setRawSourceLightbox] = useState(null)
   const galleryClickTimeoutRef = useRef(null)
+  const galleryLastClickRef = useRef({ rowId: null, time: 0 })
+  const tableRowLastClickRef = useRef({ rowId: null, time: 0 })
   const longPressTimerRef = useRef(null)
   const longPressTriggeredRef = useRef(false)
 
@@ -335,7 +341,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                 {rawSourceLightbox.title}
               </div>
             )}
-            <pre className="search-raw-source-lightbox-pre">{rawSourceLightbox.rawSourceItem ?? ''}</pre>
+            <pre className="search-raw-source-lightbox-pre">{rawSourceDisplay(rawSourceLightbox.rawSourceItem)}</pre>
           </div>
         </div>
       )}
@@ -477,84 +483,103 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                 </span>
               )
               const rawSourceItem = row?.rawSourceItem
-              const canShowRawSource = rawSourceItem != null && rawSourceItem !== ''
               const handleLongPress = () => {
-                if (canShowRawSource) {
-                  longPressTriggeredRef.current = true
-                  if (galleryClickTimeoutRef.current) {
-                    clearTimeout(galleryClickTimeoutRef.current)
-                    galleryClickTimeoutRef.current = null
-                  }
-                  setLightbox(null)
-                  setRawSourceLightbox({ title, rawSourceItem })
+                longPressTriggeredRef.current = true
+                if (galleryClickTimeoutRef.current) {
+                  clearTimeout(galleryClickTimeoutRef.current)
+                  galleryClickTimeoutRef.current = null
                 }
+                setLightbox(null)
+                setRawSourceLightbox({ title, rawSourceItem: rawSourceDisplay(rawSourceItem) })
+              }
+              const openRawSource = (e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (galleryClickTimeoutRef.current) {
+                  clearTimeout(galleryClickTimeoutRef.current)
+                  galleryClickTimeoutRef.current = null
+                }
+                setLightbox(null)
+                setRawSourceLightbox({ title, rawSourceItem: rawSourceDisplay(rawSourceItem) })
               }
               return (
-                <button
+                <div
                   key={row.id ?? idx}
-                  type="button"
-                  className={`search-results-gallery-card${hideTroveInGallery ? ' search-results-gallery-card--title-wraps' : ''}`}
-                  onClick={() => {
-                    if (longPressTriggeredRef.current) {
-                      longPressTriggeredRef.current = false
-                      return
-                    }
-                    if (!payload) return
-                    if (galleryClickTimeoutRef.current) {
-                      clearTimeout(galleryClickTimeoutRef.current)
-                      galleryClickTimeoutRef.current = null
-                    }
-                    const next = { ...payload, title }
-                    if (next.itemUrl && !next.imageUrl) {
-                      window.open(next.itemUrl, '_blank', 'noopener,noreferrer')
-                      return
-                    }
-                    galleryClickTimeoutRef.current = setTimeout(() => {
-                      galleryClickTimeoutRef.current = null
-                      setLightbox(next)
-                    }, 250)
-                  }}
-                  onTouchStart={isMobile && canShowRawSource ? () => {
-                    longPressTimerRef.current = setTimeout(() => {
-                      longPressTimerRef.current = null
-                      handleLongPress()
-                    }, LONG_PRESS_MS)
-                  } : undefined}
-                  onTouchEnd={isMobile && canShowRawSource ? () => {
-                    if (longPressTimerRef.current) {
-                      clearTimeout(longPressTimerRef.current)
-                      longPressTimerRef.current = null
-                    }
-                  } : undefined}
-                  onTouchCancel={isMobile && canShowRawSource ? () => {
-                    if (longPressTimerRef.current) {
-                      clearTimeout(longPressTimerRef.current)
-                      longPressTimerRef.current = null
-                    }
-                  } : undefined}
-                  onDoubleClick={(e) => {
-                    e.preventDefault()
-                    if (galleryClickTimeoutRef.current) {
-                      clearTimeout(galleryClickTimeoutRef.current)
-                      galleryClickTimeoutRef.current = null
-                    }
-                    if (canShowRawSource) {
-                      setLightbox(null)
-                      setRawSourceLightbox({ title, rawSourceItem })
-                    }
-                  }}
-                  disabled={!payload && !canShowRawSource}
-                  title={
-                    isMobile
-                      ? (payload ? 'View full size' : (canShowRawSource ? 'Long-press for raw source' : title))
-                      : (payload ? 'View full size (double-click for raw source)' : (canShowRawSource ? 'Double-click for raw source' : title))
-                  }
-                  aria-label={
-                    isMobile
-                      ? (payload ? 'View full size' : (canShowRawSource ? 'Long-press for raw source' : undefined))
-                      : undefined
-                  }
+                  className="search-results-gallery-card-wrap"
                 >
+                  <button
+                    type="button"
+                    className={`search-results-gallery-card${hideTroveInGallery ? ' search-results-gallery-card--title-wraps' : ''}`}
+                    onClick={() => {
+                      if (longPressTriggeredRef.current) {
+                        longPressTriggeredRef.current = false
+                        return
+                      }
+                      const now = Date.now()
+                      const rowId = row.id ?? idx
+                      const last = galleryLastClickRef.current
+                      const isDoubleClick = last.rowId === rowId && (now - last.time) < 400
+                      galleryLastClickRef.current = { rowId, time: now }
+
+                      if (isDoubleClick) {
+                        if (galleryClickTimeoutRef.current) {
+                          clearTimeout(galleryClickTimeoutRef.current)
+                          galleryClickTimeoutRef.current = null
+                        }
+                        setLightbox(null)
+                        setRawSourceLightbox({ title, rawSourceItem: rawSourceDisplay(rawSourceItem) })
+                        return
+                      }
+
+                      if (!payload) return
+                      if (galleryClickTimeoutRef.current) {
+                        clearTimeout(galleryClickTimeoutRef.current)
+                        galleryClickTimeoutRef.current = null
+                      }
+                      const next = { ...payload, title }
+                      if (next.itemUrl && !next.imageUrl) {
+                        window.open(next.itemUrl, '_blank', 'noopener,noreferrer')
+                        return
+                      }
+                      galleryClickTimeoutRef.current = setTimeout(() => {
+                        galleryClickTimeoutRef.current = null
+                        setLightbox(next)
+                      }, 400)
+                    }}
+                    onTouchStart={isMobile ? () => {
+                      longPressTimerRef.current = setTimeout(() => {
+                        longPressTimerRef.current = null
+                        handleLongPress()
+                      }, LONG_PRESS_MS)
+                    } : undefined}
+                    onTouchEnd={isMobile ? () => {
+                      if (longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current)
+                        longPressTimerRef.current = null
+                      }
+                    } : undefined}
+                    onTouchCancel={isMobile ? () => {
+                      if (longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current)
+                        longPressTimerRef.current = null
+                      }
+                    } : undefined}
+                    onDoubleClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      openRawSource(e)
+                    }}
+                    title={
+                      isMobile
+                        ? (payload ? 'View full size' : 'Long-press for raw source')
+                        : (payload ? 'View full size (double-click for raw source)' : 'Double-click for raw source')
+                    }
+                    aria-label={
+                      isMobile
+                        ? (payload ? 'View full size' : 'Long-press for raw source')
+                        : undefined
+                    }
+                  >
                   <span className="search-results-gallery-card-image">
                     {hasImage ? (
                       <img src={thumbUrl} alt="" loading="lazy" />
@@ -594,6 +619,16 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   <span className="search-results-gallery-card-title">{title || '\u00A0'}</span>
                   {!hideTroveInGallery && <span className="search-results-gallery-card-trove">{trove || '\u00A0'}</span>}
                 </button>
+                  <button
+                    type="button"
+                    className="search-results-gallery-card-raw-btn"
+                    onClick={(e) => { e.stopPropagation(); openRawSource(e) }}
+                    title="View raw source"
+                    aria-label="View raw source"
+                  >
+                    {'{…}'}
+                  </button>
+                </div>
               )
             })
           )}
@@ -633,35 +668,42 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               table.getRowModel().rows.map((row) => {
                 const rowData = row.original
                 const rawSourceItem = rowData?.rawSourceItem
-                const canShowRawSourceRow = rawSourceItem != null && rawSourceItem !== ''
                 const handleRowLongPress = () => {
-                  if (canShowRawSourceRow) {
-                    setRawSourceLightbox({ title: rowData?.title ?? '', rawSourceItem })
+                  setRawSourceLightbox({ title: rowData?.title ?? '', rawSourceItem: rawSourceDisplay(rawSourceItem) })
+                }
+                const handleRowClick = () => {
+                  const now = Date.now()
+                  const rowId = row.id
+                  const last = tableRowLastClickRef.current
+                  const isDoubleClick = last.rowId === rowId && (now - last.time) < 300
+                  tableRowLastClickRef.current = { rowId, time: now }
+                  if (isDoubleClick) {
+                    if (galleryClickTimeoutRef.current) {
+                      clearTimeout(galleryClickTimeoutRef.current)
+                      galleryClickTimeoutRef.current = null
+                    }
+                    setRawSourceLightbox({ title: rowData?.title ?? '', rawSourceItem: rawSourceDisplay(rawSourceItem) })
                   }
                 }
                 return (
                   <tr
                     key={row.id}
-                    className={rawSourceItem ? 'grid-row-double-clickable' : ''}
-                    title={rawSourceItem ? (isMobile ? 'Long-press for raw source' : 'Double-click for raw source') : undefined}
-                    onDoubleClick={() => {
-                      if (canShowRawSourceRow) {
-                        setRawSourceLightbox({ title: rowData?.title ?? '', rawSourceItem })
-                      }
-                    }}
-                    onTouchStart={isMobile && canShowRawSourceRow ? () => {
+                    className="grid-row-double-clickable"
+                    title={isMobile ? 'Long-press for raw source' : 'Double-click for raw source'}
+                    onClick={handleRowClick}
+                    onTouchStart={isMobile ? () => {
                       longPressTimerRef.current = setTimeout(() => {
                         longPressTimerRef.current = null
                         handleRowLongPress()
                       }, LONG_PRESS_MS)
                     } : undefined}
-                    onTouchEnd={isMobile && canShowRawSourceRow ? () => {
+                    onTouchEnd={isMobile ? () => {
                       if (longPressTimerRef.current) {
                         clearTimeout(longPressTimerRef.current)
                         longPressTimerRef.current = null
                       }
                     } : undefined}
-                    onTouchCancel={isMobile && canShowRawSourceRow ? () => {
+                    onTouchCancel={isMobile ? () => {
                       if (longPressTimerRef.current) {
                         clearTimeout(longPressTimerRef.current)
                         longPressTimerRef.current = null
