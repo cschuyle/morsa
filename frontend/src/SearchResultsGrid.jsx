@@ -586,6 +586,10 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   let endY
                   let above
 
+                  const vv = typeof window !== 'undefined' && window.visualViewport ? window.visualViewport : null
+                  const viewportHeight = vv ? vv.height : (window.innerHeight || document.documentElement.clientHeight || 0)
+                  const viewportTopOffset = vv ? vv.offsetTop : 0
+
                   if (gridEl) {
                     const gridRect = gridEl.getBoundingClientRect()
                     const relX = startX - gridRect.left
@@ -600,17 +604,34 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                     }
 
                     if (isMobile) {
-                      const margin = 6
-                      const preferredAboveCenterY = cardRect.top - tooltipApproxHalfHeight - margin
-                      const tooltipTopIfAbove = preferredAboveCenterY - tooltipApproxHalfHeight
-                      const controlsBottom = gridRect.top + 8
+                      const marginAbove = 60
+                      const gapBelow = 4
                       const viewportTopMargin = 8
-                      const canPlaceAbove = tooltipTopIfAbove > Math.max(controlsBottom, viewportTopMargin)
-                      if (canPlaceAbove) {
-                        endY = preferredAboveCenterY
-                        above = true
+                      const viewportBottomMargin = 8
+
+                      let endYCandidate
+                      let useAbove = false
+
+                      if (viewportHeight > 0) {
+                        const preferredAboveCenterY = cardRect.top - tooltipApproxHalfHeight - marginAbove
+                        const tooltipTopIfAbove = preferredAboveCenterY - tooltipApproxHalfHeight
+
+                        if (tooltipTopIfAbove >= viewportTopMargin) {
+                          endYCandidate = preferredAboveCenterY
+                          useAbove = true
+                        } else {
+                          // Place tooltip just below the card: gapBelow between card bottom and tooltip top
+                          const preferredBelowCenterY = cardRect.bottom + tooltipApproxHalfHeight + gapBelow
+                          endYCandidate = preferredBelowCenterY
+                        }
+
+                        const minCenterY = viewportTopOffset + tooltipApproxHalfHeight + viewportTopMargin
+                        const maxCenterY = viewportTopOffset + viewportHeight - tooltipApproxHalfHeight - viewportBottomMargin
+                        endY = Math.min(Math.max(endYCandidate, minCenterY), maxCenterY)
+                        above = useAbove
                       } else {
-                        const preferredBelowCenterY = cardRect.bottom + tooltipApproxHalfHeight + margin
+                        // Fallback if viewport height is unavailable
+                        const preferredBelowCenterY = cardRect.bottom + tooltipApproxHalfHeight + gapBelow
                         endY = preferredBelowCenterY
                         above = false
                       }
@@ -628,18 +649,32 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   } else {
                     // Fallback if gridRef is missing
                     const viewportTopMargin = 8
-                    const margin = 6
-                    const preferredAboveCenterY = cardRect.top - tooltipApproxHalfHeight - margin
+                    const viewportBottomMargin = 8
+                    const marginAbove = 60
+                    const gapBelow = 4
+
+                    const preferredAboveCenterY = cardRect.top - tooltipApproxHalfHeight - marginAbove
                     const tooltipTopIfAbove = preferredAboveCenterY - tooltipApproxHalfHeight
-                    const canPlaceAbove = tooltipTopIfAbove > viewportTopMargin
-                    if (canPlaceAbove) {
-                      endY = preferredAboveCenterY
-                      above = true
+
+                    let endYCandidate
+                    let useAbove = false
+
+                    if (tooltipTopIfAbove >= viewportTopMargin) {
+                      endYCandidate = preferredAboveCenterY
+                      useAbove = true
                     } else {
-                      const preferredBelowCenterY = cardRect.bottom + tooltipApproxHalfHeight + margin
-                      endY = preferredBelowCenterY
-                      above = false
+                      const preferredBelowCenterY = cardRect.bottom + tooltipApproxHalfHeight + gapBelow
+                      endYCandidate = preferredBelowCenterY
                     }
+
+                    if (viewportHeight > 0) {
+                      const minCenterY = tooltipApproxHalfHeight + viewportTopMargin
+                      const maxCenterY = viewportHeight - tooltipApproxHalfHeight - viewportBottomMargin
+                      endY = Math.min(Math.max(endYCandidate, minCenterY), maxCenterY)
+                    } else {
+                      endY = endYCandidate
+                    }
+                    above = useAbove
                   }
 
                   setUrlTooltipState({
