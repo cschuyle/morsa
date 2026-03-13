@@ -493,7 +493,7 @@
     left: var(--tooltip-start-x);
     top: var(--tooltip-start-y);
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
+    transform: translate(-50%, -50%) scale(0);
   }
   to {
     left: var(--tooltip-end-x);
@@ -508,7 +508,7 @@
     left: var(--tooltip-start-x);
     top: var(--tooltip-start-y);
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
+    transform: translate(-50%, -50%) scale(0);
   }
   to {
     left: var(--tooltip-end-x);
@@ -523,7 +523,7 @@
     left: var(--tooltip-start-x);
     top: var(--tooltip-start-y);
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.85);
+    transform: translate(-50%, -50%) scale(0);
   }
   to {
     left: var(--tooltip-end-x);

@@ -581,15 +581,23 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   const showAbove = spaceAbove > 120
                   const startX = cardRect.left + cardRect.width / 2
                   const startY = cardRect.top
-                  const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0
+
+                  const gridEl = gridRef.current
                   let clampedEndX = startX
-                  if (viewportWidth > 0) {
-                    const frac = startX / viewportWidth
-                    const minFrac = 1 / 3
-                    const maxFrac = 2 / 3
-                    const clampedFrac = Math.min(Math.max(frac, minFrac), maxFrac)
-                    clampedEndX = clampedFrac * viewportWidth
+                  if (gridEl) {
+                    const gridRect = gridEl.getBoundingClientRect()
+                    const relX = startX - gridRect.left
+                    const containerWidth = gridRect.width
+                    if (containerWidth > 0) {
+                      const maxTooltipFraction = 2 / 3
+                      const halfMaxWidth = (maxTooltipFraction * containerWidth) / 2
+                      const edgeMargin = 8
+                      const minCenter = gridRect.left + halfMaxWidth + edgeMargin
+                      const maxCenter = gridRect.right - halfMaxWidth - edgeMargin
+                      clampedEndX = Math.min(Math.max(startX, minCenter), maxCenter)
+                    }
                   }
+
                   const endY = showAbove ? cardRect.top - 8 : cardRect.bottom + 8
                   setUrlTooltipState({
                     url: payload.itemUrl,
