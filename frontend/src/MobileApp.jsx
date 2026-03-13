@@ -139,6 +139,10 @@ function MobileApp() {
       setBoostTroveId(boost != null && boost !== '' ? (urlTroveId(boost, troves) ?? boost) : null)
       const view = searchParams.get('view')
       setSearchResultsViewMode(view === 'gallery' ? 'gallery' : 'list')
+      if (view === 'gallery') {
+        setSearchSortBy('title')
+        setSearchSortDir('asc')
+      }
       const pageParam = Number(searchParams.get('page'))
       setPage(Number.isFinite(pageParam) && pageParam > 0 ? pageParam - 1 : 0)
       const sizeParam = Number(searchParams.get('size'))
@@ -1258,7 +1262,11 @@ onClick={() => {
                   onClick={() => {
                     skipViewModeSearchRef.current = true
                     lastFileTypeOrViewSearchRef.current = Date.now()
+                    setSearchSortBy('title')
+                    setSearchSortDir('asc')
                     setSearchResultsViewMode('gallery')
+                    const q = queryRef.current.trim()
+                    if (q) fetchSearch(page, 'title', 'asc')
                   }}
                   aria-pressed={effectiveSearchResultsViewMode === 'gallery'}
                   aria-label="Gallery view"

@@ -218,6 +218,10 @@ function App() {
       setBoostTroveId(boost != null && boost !== '' ? (urlTroveId(boost, troves) ?? boost) : null)
       const view = searchParams.get('view')
       setSearchResultsViewMode(view === 'gallery' ? 'gallery' : 'list')
+      if (view === 'gallery') {
+        setSortBy('title')
+        setSortDir('asc')
+      }
       const sizeParam = Number(searchParams.get('size'))
       if (Number.isFinite(sizeParam) && sizeParam > 0) {
         setPageSize(sizeParam)
@@ -1749,7 +1753,14 @@ aria-label="Clear compare troves"
                           onClick={() => {
                             skipViewModeSearchRef.current = true
                             lastFileTypeOrViewSearchRef.current = Date.now()
+                            setSortBy('title')
+                            setSortDir('asc')
                             setSearchResultsViewMode('gallery')
+                            const q = queryRef.current
+                            if (q.trim()) {
+                              const pageNum = searchResult != null && typeof searchResult.page === 'number' ? searchResult.page : 0
+                              fetchSearch(pageNum, null, null, 'title', 'asc')
+                            }
                           }}
                           aria-pressed={searchResultsViewMode === 'gallery'}
                         >
