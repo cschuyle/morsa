@@ -1026,15 +1026,21 @@
 }
 
 .search-filetype-quick-btn {
-  flex: 1;
+  flex: 0 0 2.6rem;
+  width: 2.6rem;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-direction: row;
   white-space: nowrap;
-  padding: 0 0.5rem 0.06rem 0.2rem;
+  text-align: center;
+  padding: 0;
   min-height: unset;
-  line-height: 1.2;
-  font-size: 0.85rem;
+  line-height: 1;
+  font-size: 0.75rem;
   font-family: inherit;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -1058,21 +1064,46 @@
   border-color: #aaaaff;
 }
 
+.search-filetype-quick-btn--active {
+  background: #ff8800;
+  border-color: #ff8800;
+  color: #213547;
+}
+
+.search-filetype-quick-btn--active:hover {
+  background: #e67a00;
+  border-color: #e67a00;
+}
+
+.search-filetype-quick-btn--thumb {
+  font-size: 0;
+}
+
+.search-filetype-quick-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  object-fit: contain;
+}
+
 .search-filetype-quick-prefix {
-  vertical-align: super;
-  font-size: 1.125em;
+  position: absolute;
+  top: 0.18rem;
+  left: 0.25rem;
+  line-height: 1;
+  font-size: 0.9rem;
   font-weight: bold;
   color: #888;
-  margin-right: 0.15em;
-  margin-top: -0.28em;
+  margin: 0;
+  pointer-events: none;
+}
+
+.search-filetype-quick-prefix:not(.search-filetype-quick-prefix--asterisk) {
+  top: 0.06rem;
 }
 
 .search-filetype-quick-prefix--asterisk {
-  vertical-align: baseline;
-  font-size: 1.5em;
+  font-size: 1.3rem;
   font-weight: normal;
-  color: #888;
-  margin-top: 0.06em;
 }
 
 .search-filetype-group {

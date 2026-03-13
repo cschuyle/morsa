@@ -11,6 +11,19 @@ import { formatCount, formatCacheBytes } from './formatCount'
 import { groupFileTypes, getGroupNameIfFullySelected, getFullySelectedGroupNames } from './fileTypeGroups'
 import './App.css'
 
+const AMAZON_PLACEHOLDER_THUMB = 'https://m.media-amazon.com/images/I/01RmK+J4pJL._SS135_.gif'
+
+function hasUsableThumbnail(row) {
+  const thumbnailUrl = row?.thumbnailUrl
+  if (!thumbnailUrl || !String(thumbnailUrl).trim()) return false
+  const normalized = String(thumbnailUrl).trim()
+  return normalized !== AMAZON_PLACEHOLDER_THUMB && !normalized.includes('/no_image')
+}
+
+function normalizeFileTypeQuickMode(value) {
+  return value === 'any' || value === 'meh' ? value : 'custom'
+}
+
 function App() {
   const [message, setMessage] = useState('')
   const [cacheEntries, setCacheEntries] = useState(0)
@@ -59,6 +72,8 @@ function App() {
     const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
     return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim()))
   })
+  const [fileTypeQuickMode, setFileTypeQuickMode] = useState(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq')))
+  const [thumbnailOnly, setThumbnailOnly] = useState(() => new URLSearchParams(window.location.search).get('thumbs') === '1')
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery' (desktop only)
@@ -211,6 +226,8 @@ function App() {
     setQuery(q != null ? q : '')
     const ftAll = searchParams.getAll('fileTypes')
     setFileTypeFilters(new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim())))
+    setFileTypeQuickMode(normalizeFileTypeQuickMode(searchParams.get('ftq')))
+    setThumbnailOnly(searchParams.get('thumbs') === '1')
     const mode = searchParams.get('mode')
     if (mode !== 'duplicates' && mode !== 'uniques') {
       const troveIds = searchParams.getAll('trove').map((v) => urlTroveId(v, troves) ?? v).filter(Boolean)
@@ -238,7 +255,7 @@ function App() {
     }
   }, [searchParams, troves])
 
-  function buildSearchParams(mode, q, searchTroves, dupPrimary, dupCompare, uniqPrimary, uniqCompare, fileTypesSet = null, boostTrove = null, view = null) {
+  function buildSearchParams(mode, q, searchTroves, dupPrimary, dupCompare, uniqPrimary, uniqCompare, fileTypesSet = null, boostTrove = null, view = null, thumbnailOnlyOverride = undefined, quickModeOverride = undefined) {
     const next = new URLSearchParams()
     if (mode !== 'search') next.set('mode', mode)
     const qTrim = (q ?? '').trim()
@@ -249,6 +266,10 @@ function App() {
       if (boostId) next.set('boost', boostId)
       const ft = fileTypesSet ?? fileTypeFilters
       if (ft && ft.size > 0) ft.forEach((f) => next.append('fileTypes', f))
+      const useQuickMode = quickModeOverride === undefined ? fileTypeQuickMode : quickModeOverride
+      if (useQuickMode !== 'custom') next.set('ftq', useQuickMode)
+      const useThumbnailOnly = thumbnailOnlyOverride === undefined ? thumbnailOnly : thumbnailOnlyOverride
+      if (useThumbnailOnly) next.set('thumbs', '1')
       next.set('view', view === 'gallery' ? 'gallery' : 'list')
       const existingPage = searchParams.get('page')
       if (existingPage != null) next.set('page', existingPage)
@@ -275,10 +296,14 @@ function App() {
     const urlHasQuery = searchParams.get('q') != null && searchParams.get('q') !== ''
     const urlHasTrove = searchParams.getAll('trove').length > 0
     const urlHasFileTypes = searchParams.getAll('fileTypes').length > 0
+    const urlQuickMode = normalizeFileTypeQuickMode(searchParams.get('ftq'))
+    const urlHasThumbs = searchParams.get('thumbs') === '1'
     const searchStateNotSynced =
       (urlHasQuery && (!query || (query ?? '').trim() === '')) ||
       (urlHasTrove && searchSelectedTroveIds.size === 0) ||
-      (urlHasFileTypes && fileTypeFilters.size === 0)
+      (urlHasFileTypes && fileTypeFilters.size === 0) ||
+      (urlQuickMode !== fileTypeQuickMode) ||
+      (urlHasThumbs && !thumbnailOnly)
     if (searchMode === 'search' && searchStateNotSynced) return
     const next = buildSearchParams(
       searchMode,
@@ -295,7 +320,7 @@ function App() {
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true })
     }
-  }, [query, searchMode, searchSelectedTroveIds, primaryTroveId, dupCompareTroveIds, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, pageSize])
+  }, [query, searchMode, searchSelectedTroveIds, primaryTroveId, dupCompareTroveIds, uniqCompareTroveIds, fileTypeFilters, fileTypeQuickMode, thumbnailOnly, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, pageSize])
 
   // Keep the search page input in sync with the current page (1-based)
   useEffect(() => {
@@ -1290,6 +1315,9 @@ aria-label="Clear compare troves"
                   const selectedUpper = new Set([...fileTypesForLabel].map(upper))
                   const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
                   const hasFileTypeFilter = fileTypesForLabel.size > 0 && !allSelected
+                  const anyQuickSelected = fileTypeQuickMode === 'any'
+                  const mehQuickSelected = fileTypeQuickMode === 'meh'
+                  const hasThumbFilter = thumbnailOnly
                   return (
                   <div className="search-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
                     <div className={`search-filetype-trigger-wrap${hasFileTypeFilter ? ' search-filetype-trigger-wrap--filtered' : ''}`}>
@@ -1322,8 +1350,9 @@ aria-label="Clear compare troves"
                             e.stopPropagation()
                             skipFileTypeSearchRef.current = true
                             lastFileTypeOrViewSearchRef.current = Date.now()
+                            setFileTypeQuickMode('meh')
                             setFileTypeFilters(new Set())
-                            setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, new Set(), boostTroveId, searchResultsViewMode), { replace: true })
+                            setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, new Set(), boostTroveId, searchResultsViewMode, undefined, 'meh'), { replace: true })
                             fetchSearch(0, null, null, null, null, new Set())
                           }}
                           aria-label="Clear file type filter"
@@ -1342,15 +1371,30 @@ aria-label="Clear compare troves"
                         <div className="search-filetype-quick-actions">
                           <button
                             type="button"
-                            className="search-filetype-quick-btn"
+                            className={`search-filetype-quick-btn search-filetype-quick-btn--thumb ${hasThumbFilter ? 'search-filetype-quick-btn--active' : ''}`}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              const nextThumbs = !thumbnailOnly
+                              setThumbnailOnly(nextThumbs)
+                              setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, null, boostTroveId, searchResultsViewMode, nextThumbs, fileTypeQuickMode), { replace: true })
+                            }}
+                            title="Only items with thumbnails"
+                            aria-label="Only items with thumbnails"
+                          >
+                            <img src="/thumb-thumbnail.png" alt="" className="search-filetype-quick-icon" />
+                          </button>
+                          <button
+                            type="button"
+                            className={`search-filetype-quick-btn ${anyQuickSelected ? 'search-filetype-quick-btn--active' : ''}`}
                             disabled={allSelected}
                             onClick={(e) => {
                               e.preventDefault()
                               skipFileTypeSearchRef.current = true
                               lastFileTypeOrViewSearchRef.current = Date.now()
                               const next = new Set(allAvailableFileTypes)
+                              setFileTypeQuickMode('any')
                               setFileTypeFilters(next)
-                              setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode), { replace: true })
+                              setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode, undefined, 'any'), { replace: true })
                               fetchSearch(0, null, null, null, null, next)
                             }}
                           >
@@ -1358,15 +1402,16 @@ aria-label="Clear compare troves"
                           </button>
                           <button
                             type="button"
-                            className="search-filetype-quick-btn"
+                            className={`search-filetype-quick-btn ${mehQuickSelected ? 'search-filetype-quick-btn--active' : ''}`}
                             disabled={fileTypeFilters.size === 0}
                             onClick={(e) => {
                               e.preventDefault()
                               skipFileTypeSearchRef.current = true
                               lastFileTypeOrViewSearchRef.current = Date.now()
                               const next = new Set()
+                              setFileTypeQuickMode('meh')
                               setFileTypeFilters(next)
-                              setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode), { replace: true })
+                              setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode, undefined, 'meh'), { replace: true })
                               fetchSearch(0, null, null, null, null, next)
                             }}
                           >
@@ -1390,8 +1435,9 @@ aria-label="Clear compare troves"
                                     const next = new Set(fileTypeFilters)
                                     if (allSelected) types.forEach((t) => next.delete(t))
                                     else types.forEach((t) => next.add(t))
+                                    setFileTypeQuickMode('custom')
                                     setFileTypeFilters(next)
-                                    setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode), { replace: true })
+                                    setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode, undefined, 'custom'), { replace: true })
                                     fetchSearch(0, null, null, null, null, next)
                                   }}
                                 />
@@ -1409,8 +1455,9 @@ aria-label="Clear compare troves"
                                     const next = new Set(fileTypeFilters)
                                     if (next.has(ft)) next.delete(ft)
                                     else next.add(ft)
+                                    setFileTypeQuickMode('custom')
                                     setFileTypeFilters(next)
-                                    setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode), { replace: true })
+                                    setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode, undefined, 'custom'), { replace: true })
                                     fetchSearch(0, null, null, null, null, next)
                                   }}
                                 />
@@ -1721,6 +1768,7 @@ aria-label="Clear compare troves"
             })()}
             {searchMode === 'search' && searchResult != null && (() => {
               const results = Array.isArray(searchResult.results) ? searchResult.results : []
+              const filteredResults = thumbnailOnly ? results.filter(hasUsableThumbnail) : results
               const hasQuery = query.trim() !== ''
               if (!hasQuery) {
                 return (
@@ -1729,7 +1777,7 @@ aria-label="Clear compare troves"
                       Enter a query to search. Optionally, select troves.
                     </p>
                     <SearchResultsGrid
-                      data={results}
+                      data={filteredResults}
                       sortBy={sortBy}
                       sortDir={sortDir}
                       onSortChange={handleGridSortChange}
@@ -1924,7 +1972,7 @@ aria-label="Clear compare troves"
                     </span>
                   </div>
                   <SearchResultsGrid
-                    data={results}
+                    data={filteredResults}
                     sortBy={sortBy}
                     sortDir={sortDir}
                     onSortChange={handleGridSortChange}

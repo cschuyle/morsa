@@ -23,6 +23,10 @@ function hasUsableThumbnail(row) {
   return normalized !== AMAZON_PLACEHOLDER_THUMB && !normalized.includes('/no_image')
 }
 
+function normalizeFileTypeQuickMode(value) {
+  return value === 'any' || value === 'meh' ? value : 'custom'
+}
+
 function MobileApp() {
   const [troves, setTroves] = useState([])
   const [searchMode, setSearchMode] = useState('search') // 'search' | 'duplicates' | 'uniques'
@@ -67,6 +71,8 @@ function MobileApp() {
     const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
     return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim()))
   })
+  const [fileTypeQuickMode, setFileTypeQuickMode] = useState(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq')))
+  const [thumbnailOnly, setThumbnailOnly] = useState(() => new URLSearchParams(window.location.search).get('thumbs') === '1')
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
@@ -131,6 +137,8 @@ function MobileApp() {
     setQuery(q != null ? q : '')
     const ftAll = searchParams.getAll('fileTypes')
     setFileTypeFilters(new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => f.trim())))
+    setFileTypeQuickMode(normalizeFileTypeQuickMode(searchParams.get('ftq')))
+    setThumbnailOnly(searchParams.get('thumbs') === '1')
     const mode = searchParams.get('mode')
     if (mode !== 'duplicates' && mode !== 'uniques') {
       setSearchMode('search')
@@ -163,7 +171,7 @@ function MobileApp() {
     }
   }, [searchParams, troves])
 
-  function buildSearchParams(fileTypesSet = null, searchTrovesOverride = null, boostOverride = undefined) {
+  function buildSearchParams(fileTypesSet = null, searchTrovesOverride = null, boostOverride = undefined, thumbnailOnlyOverride = undefined, quickModeOverride = undefined) {
     const next = new URLSearchParams()
     if (searchMode !== 'search') next.set('mode', searchMode)
     const qTrim = (query ?? '').trim()
@@ -175,6 +183,10 @@ function MobileApp() {
       if (boostId) next.set('boost', boostId)
       const ft = fileTypesSet ?? fileTypeFilters
       ft.forEach((f) => next.append('fileTypes', f))
+      const useQuickMode = quickModeOverride === undefined ? fileTypeQuickMode : quickModeOverride
+      if (useQuickMode !== 'custom') next.set('ftq', useQuickMode)
+      const useThumbnailOnly = thumbnailOnlyOverride === undefined ? thumbnailOnly : thumbnailOnlyOverride
+      if (useThumbnailOnly) next.set('thumbs', '1')
       next.set('view', searchResultsViewMode === 'gallery' ? 'gallery' : 'list')
       const existingPage = searchParams.get('page')
       if (existingPage != null) next.set('page', existingPage)
@@ -201,6 +213,8 @@ function MobileApp() {
       Array.from(selectedTroveIds).map((id) => urlTroveId(id, troves) ?? id).filter(Boolean).forEach((id) => next.append('trove', id))
       const boostId = boostTroveId ? (urlTroveId(boostTroveId, troves) ?? boostTroveId) : null
       if (boostId) next.set('boost', boostId)
+      if (fileTypeQuickMode !== 'custom') next.set('ftq', fileTypeQuickMode)
+      if (thumbnailOnly) next.set('thumbs', '1')
       next.set('view', searchResultsViewMode === 'gallery' ? 'gallery' : 'list')
     } else {
       const primaryId = primary ? (urlTroveId(primary, troves) ?? primary) : null
@@ -219,19 +233,23 @@ function MobileApp() {
     const urlHasQuery = searchParams.get('q') != null && searchParams.get('q') !== ''
     const urlHasTrove = searchParams.getAll('trove').length > 0
     const urlHasFileTypes = searchParams.getAll('fileTypes').length > 0
+    const urlQuickMode = normalizeFileTypeQuickMode(searchParams.get('ftq'))
+    const urlHasThumbs = searchParams.get('thumbs') === '1'
     const stateNotYetSynced =
       (urlHasDupUniquesMode && searchMode === 'search') ||
       (urlHasPrimaryOrCompare && searchMode === 'duplicates' && !dupPrimaryTroveId && dupCompareTroveIds.size === 0) ||
       (urlHasPrimaryOrCompare && searchMode === 'uniques' && !uniqPrimaryTroveId && uniqCompareTroveIds.size === 0) ||
       (urlHasQuery && (query ?? '') === '') ||
       (urlHasTrove && searchMode === 'search' && selectedTroveIds.size === 0) ||
-      (urlHasFileTypes && searchMode === 'search' && fileTypeFilters.size === 0)
+      (urlHasFileTypes && searchMode === 'search' && fileTypeFilters.size === 0) ||
+      (urlQuickMode !== fileTypeQuickMode) ||
+      (urlHasThumbs && searchMode === 'search' && !thumbnailOnly)
     if (stateNotYetSynced) return
     const next = buildSearchParams()
     if (next.toString() !== searchParams.toString()) {
       setSearchParams(next, { replace: true })
     }
-  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, page, pageSize, searchParams])
+  }, [query, searchMode, selectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, fileTypeFilters, fileTypeQuickMode, thumbnailOnly, boostTroveId, searchResultsViewMode, searchResult?.page, searchResult?.size, page, pageSize, searchParams])
 
   // Keep mobile search page input in sync with the current page (1-based)
   useEffect(() => {
@@ -775,12 +793,16 @@ function MobileApp() {
   }, [duplicatesResult?.rows, duplicatesSortBy, duplicatesSortDir])
 
   const results = searchResult?.results ?? []
+  const filteredSearchResults = useMemo(
+    () => (thumbnailOnly ? results.filter(hasUsableThumbnail) : results),
+    [results, thumbnailOnly]
+  )
   const count = searchResult?.count ?? 0
   const searchSize = typeof searchResult?.size === 'number' ? searchResult.size : pageSize
   const totalPages = Math.ceil(count / searchSize) || 0
   const showMobileViewModeToggle = useMemo(
-    () => Array.isArray(results) && results.some((row) => row?.itemType === 'littlePrinceItem' && hasUsableThumbnail(row)),
-    [results]
+    () => Array.isArray(filteredSearchResults) && filteredSearchResults.some((row) => row?.itemType === 'littlePrinceItem' && hasUsableThumbnail(row)),
+    [filteredSearchResults]
   )
   const showMobileFileTypePicker = useMemo(
     () => (
@@ -1099,6 +1121,9 @@ onClick={() => {
             const selectedUpper = new Set([...fileTypesForLabel].map(upper))
             const allSelected = availableUpper.size > 0 && availableUpper.size === selectedUpper.size && [...availableUpper].every((t) => selectedUpper.has(t))
             const hasFileTypeFilter = fileTypesForLabel.size > 0 && !allSelected
+            const anyQuickSelected = fileTypeQuickMode === 'any'
+            const mehQuickSelected = fileTypeQuickMode === 'meh'
+            const hasThumbFilter = thumbnailOnly
             return (
               <div className="mobile-filetype-dropdown-wrap mobile-filetype-dropdown-wrap--form" ref={fileTypeDropdownRef}>
               <div className={`mobile-filetype-trigger-wrap${hasFileTypeFilter ? ' mobile-filetype-trigger-wrap--filtered' : ''}`}>
@@ -1137,15 +1162,30 @@ onClick={() => {
                   <div className="mobile-filetype-quick-actions">
                     <button
                       type="button"
-                      className="mobile-filetype-quick-btn"
+                      className={`mobile-filetype-quick-btn mobile-filetype-quick-btn--thumb ${hasThumbFilter ? 'mobile-filetype-quick-btn--active' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        const nextThumbs = !thumbnailOnly
+                        setThumbnailOnly(nextThumbs)
+                        setSearchParams(buildSearchParams(null, null, undefined, nextThumbs, fileTypeQuickMode), { replace: true })
+                      }}
+                      title="Only items with thumbnails"
+                      aria-label="Only items with thumbnails"
+                    >
+                      <img src="/thumb-thumbnail.png" alt="" className="mobile-filetype-quick-icon" />
+                    </button>
+                    <button
+                      type="button"
+                      className={`mobile-filetype-quick-btn ${anyQuickSelected ? 'mobile-filetype-quick-btn--active' : ''}`}
                       disabled={allSelected}
                       onClick={(e) => {
                         e.preventDefault()
                         skipFileTypeSearchRef.current = true
                         lastFileTypeOrViewSearchRef.current = Date.now()
                         const next = new Set(displayFileTypes)
+                        setFileTypeQuickMode('any')
                         setFileTypeFilters(next)
-                        setSearchParams(buildSearchParams(next), { replace: true })
+                        setSearchParams(buildSearchParams(next, null, undefined, undefined, 'any'), { replace: true })
                         fetchSearch(0, null, null, next)
                       }}
                     >
@@ -1153,15 +1193,16 @@ onClick={() => {
                     </button>
                     <button
                       type="button"
-                      className="mobile-filetype-quick-btn"
+                      className={`mobile-filetype-quick-btn ${mehQuickSelected ? 'mobile-filetype-quick-btn--active' : ''}`}
                       disabled={fileTypeFilters.size === 0}
                       onClick={(e) => {
                         e.preventDefault()
                         skipFileTypeSearchRef.current = true
                         lastFileTypeOrViewSearchRef.current = Date.now()
                         const next = new Set()
+                        setFileTypeQuickMode('meh')
                         setFileTypeFilters(next)
-                        setSearchParams(buildSearchParams(next), { replace: true })
+                        setSearchParams(buildSearchParams(next, null, undefined, undefined, 'meh'), { replace: true })
                         fetchSearch(0, null, null, next)
                       }}
                     >
@@ -1185,8 +1226,9 @@ onClick={() => {
                                 const next = new Set(fileTypeFilters)
                                 if (allSelectedGroup) types.forEach((t) => next.delete(t))
                                 else types.forEach((t) => next.add(t))
+                                setFileTypeQuickMode('custom')
                                 setFileTypeFilters(next)
-                                setSearchParams(buildSearchParams(next), { replace: true })
+                                setSearchParams(buildSearchParams(next, null, undefined, undefined, 'custom'), { replace: true })
                                 fetchSearch(0, null, null, next)
                               }}
                             />
@@ -1204,8 +1246,9 @@ onClick={() => {
                                 const next = new Set(fileTypeFilters)
                                 if (next.has(ft)) next.delete(ft)
                                 else next.add(ft)
+                                setFileTypeQuickMode('custom')
                                 setFileTypeFilters(next)
-                                setSearchParams(buildSearchParams(next), { replace: true })
+                                setSearchParams(buildSearchParams(next, null, undefined, undefined, 'custom'), { replace: true })
                                 fetchSearch(0, null, null, next)
                               }}
                             />
@@ -1500,10 +1543,10 @@ onClick={() => {
 
         {searchMode === 'search' && searchResult != null && (
           <>
-            {results.length === 0 && query.trim() && !searching && (
+            {filteredSearchResults.length === 0 && query.trim() && !searching && (
               <p className="mobile-no-results">No items.</p>
             )}
-            {results.length > 0 && (
+            {filteredSearchResults.length > 0 && (
               <div className={`mobile-search-results-grid${fileTypeDropdownOpen ? ' mobile-filetype-dropdown-open' : ''}${!showSearchPaginationControls ? ' mobile-search-results-grid--no-pager' : ''}`}>
                 {showSearchPaginationControls && (
                   <div className="mobile-view-mode-row">
@@ -1558,7 +1601,7 @@ onClick={() => {
                   </div>
                 )}
                 <SearchResultsGrid
-                  data={results}
+                  data={filteredSearchResults}
                   sortBy={searchSortBy}
                   sortDir={searchSortDir}
                   onSortChange={(col, dir) => fetchSearch(0, col, dir)}
