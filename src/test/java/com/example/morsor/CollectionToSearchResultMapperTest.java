@@ -94,39 +94,85 @@ class CollectionToSearchResultMapperTest {
                 {
                   "littlePrinceItem": {
                     "acquired-from": "Example Bookshop",
+                    "amsoft-link": "http://example.com/amsoft",
+                    "asin": "B092MP17YM",
+                    "at-link": "http://example.com/at",
                     "author": "Antoine de Saint-Exupéry",
+                    "cat-link": "http://example.com/cat",
                     "comments": [
                       "Sample comment"
                     ],
+                    "customer-rating": "4.9",
                     "date-added": "2019-07-04",
+                    "date-published": "2002",
+                    "description": "Sample description",
                     "display-title": "The Little Prince, in Ancient Greek",
+                    "duration": "1 hr and 46 mins",
+                    "editor": "Miroslav Vučič",
+                    "enhanced-typesetting": "Enabled",
+                    "file-size": "2055 KB",
                     "files": [
                       "https://example.com/sample.pdf"
                     ],
                     "format": "paperback",
+                    "fragmenti-link": "https://example.com/fragmenti",
                     "illustrator": "Antoine de Saint-Exupéry",
+                    "initial-printing-year": "1951",
+                    "isbn": "9780957138742",
                     "isbn10": "0-9571387-4-2",
                     "isbn13": "978-0-9571387-4-2",
                     "language": "Ancient Greek",
+                    "language-dialect-of": "Greek",
+                    "language-spoke-in": "Athens",
+                    "language-spoken-in": "Greece",
+                    "language-synonyms": "Ancient Greek, Classical Greek",
+                    "language2": "Greek",
                     "largeImageUrl": "https://example.com/large2.jpg",
+                    "largeImageUrl2": "https://example.com/large2-alt.jpg",
                     "lpid": "PP-4277",
                     "narrator": "Zbigniew Brzezinsky",
+                    "notes": [
+                      "Sample note"
+                    ],
+                    "number-reviews": "366",
+                    "original-publication-date": "1977",
                     "original-title": "Le petit prince",
+                    "owned": "true",
+                    "oytuneris-link": "https://example.com/oytuneris",
+                    "pages": "96",
+                    "pdf": "https://example.com/sample.pdf",
+                    "print-length": "96 pages",
+                    "printed-by": "Example Printers",
                     "publication-country": "UK",
+                    "publication-date": "Oct. 8, 2019",
                     "publication-location": "St. Andrews",
+                    "published-in": "Example Series",
                     "publisher": "Juan Coderch",
+                    "publisher-series": "Little Prince Collection",
                     "quantity": 1,
+                    "release-date": "04-06-23",
                     "script": "Greek",
+                    "script-family": "Greek",
                     "search-words": "to basileidion ancient greek",
+                    "simultaneous-device-usage": "Unlimited",
                     "smallImageUrl": "https://example.com/s2.jpg",
+                    "smallImageUrl2": "https://example.com/s2-alt.jpg",
+                    "sticky-notes": "On Kindle Scribe",
+                    "subTitle": "Der kleine Prinz – Ancient Greek",
+                    "supervisor": "Toshiro Tsumagari",
                     "tags": [
                       "language isolate*",
                       "dead language"
                     ],
+                    "text-to-speech": "Enabled",
+                    "tintenfassId": "81",
                     "title": "Item with the kitchen sink thrown in",
+                    "titleInternal": "To Basileidion",
                     "translation-title": "Τὸ βασιλείδιον",
                     "translation-title-transliterated": "To Basileidion",
                     "translator": "Juan Coderch",
+                    "word-wise": "Not Enabled",
+                    "x-ray": "Not Enabled",
                     "year": "2017"
                   }
                 },
@@ -176,36 +222,81 @@ class CollectionToSearchResultMapperTest {
         assertThat(kitchenSinkRaw).isNotNull();
 
         assertThat(kitchenSinkRaw.get("acquired-from").asText()).isEqualTo("Example Bookshop");
+        assertThat(kitchenSinkRaw.get("amsoft-link").asText()).isEqualTo("http://example.com/amsoft");
+        assertThat(kitchenSinkRaw.get("asin").asText()).isEqualTo("B092MP17YM");
+        assertThat(kitchenSinkRaw.get("at-link").asText()).isEqualTo("http://example.com/at");
         assertThat(kitchenSinkRaw.get("author").asText()).isEqualTo("Antoine de Saint-Exupéry");
+        assertThat(kitchenSinkRaw.get("cat-link").asText()).isEqualTo("http://example.com/cat");
         assertThat(kitchenSinkRaw.get("comments").isArray()).isTrue();
         assertThat(kitchenSinkRaw.get("comments").get(0).asText()).isEqualTo("Sample comment");
+        assertThat(kitchenSinkRaw.get("customer-rating").asText()).isEqualTo("4.9");
         assertThat(kitchenSinkRaw.get("date-added").asText()).isEqualTo("2019-07-04");
+        assertThat(kitchenSinkRaw.get("date-published").asText()).isEqualTo("2002");
+        assertThat(kitchenSinkRaw.get("description").asText()).isEqualTo("Sample description");
         assertThat(kitchenSinkRaw.get("display-title").asText()).isEqualTo("The Little Prince, in Ancient Greek");
+        assertThat(kitchenSinkRaw.get("duration").asText()).isEqualTo("1 hr and 46 mins");
+        assertThat(kitchenSinkRaw.get("editor").asText()).isEqualTo("Miroslav Vučič");
+        assertThat(kitchenSinkRaw.get("enhanced-typesetting").asText()).isEqualTo("Enabled");
+        assertThat(kitchenSinkRaw.get("file-size").asText()).isEqualTo("2055 KB");
         assertThat(kitchenSinkRaw.get("files").isArray()).isTrue();
         assertThat(kitchenSinkRaw.get("files").get(0).asText()).isEqualTo("https://example.com/sample.pdf");
         assertThat(kitchenSinkRaw.get("format").asText()).isEqualTo("paperback");
+        assertThat(kitchenSinkRaw.get("fragmenti-link").asText()).isEqualTo("https://example.com/fragmenti");
         assertThat(kitchenSinkRaw.get("illustrator").asText()).isEqualTo("Antoine de Saint-Exupéry");
+        assertThat(kitchenSinkRaw.get("initial-printing-year").asText()).isEqualTo("1951");
+        assertThat(kitchenSinkRaw.get("isbn").asText()).isEqualTo("9780957138742");
         assertThat(kitchenSinkRaw.get("isbn10").asText()).isEqualTo("0-9571387-4-2");
         assertThat(kitchenSinkRaw.get("isbn13").asText()).isEqualTo("978-0-9571387-4-2");
         assertThat(kitchenSinkRaw.get("language").asText()).isEqualTo("Ancient Greek");
+        assertThat(kitchenSinkRaw.get("language-dialect-of").asText()).isEqualTo("Greek");
+        assertThat(kitchenSinkRaw.get("language-spoke-in").asText()).isEqualTo("Athens");
+        assertThat(kitchenSinkRaw.get("language-spoken-in").asText()).isEqualTo("Greece");
+        assertThat(kitchenSinkRaw.get("language-synonyms").asText()).isEqualTo("Ancient Greek, Classical Greek");
+        assertThat(kitchenSinkRaw.get("language2").asText()).isEqualTo("Greek");
         assertThat(kitchenSinkRaw.get("largeImageUrl").asText()).isEqualTo("https://example.com/large2.jpg");
+        assertThat(kitchenSinkRaw.get("largeImageUrl2").asText()).isEqualTo("https://example.com/large2-alt.jpg");
         assertThat(kitchenSinkRaw.get("lpid").asText()).isEqualTo("PP-4277");
         assertThat(kitchenSinkRaw.get("narrator").asText()).isEqualTo("Zbigniew Brzezinsky");
+        assertThat(kitchenSinkRaw.get("notes").isArray()).isTrue();
+        assertThat(kitchenSinkRaw.get("notes").get(0).asText()).isEqualTo("Sample note");
+        assertThat(kitchenSinkRaw.get("number-reviews").asText()).isEqualTo("366");
+        assertThat(kitchenSinkRaw.get("original-publication-date").asText()).isEqualTo("1977");
         assertThat(kitchenSinkRaw.get("original-title").asText()).isEqualTo("Le petit prince");
+        assertThat(kitchenSinkRaw.get("owned").asText()).isEqualTo("true");
+        assertThat(kitchenSinkRaw.get("oytuneris-link").asText()).isEqualTo("https://example.com/oytuneris");
+        assertThat(kitchenSinkRaw.get("pages").asText()).isEqualTo("96");
+        assertThat(kitchenSinkRaw.get("pdf").asText()).isEqualTo("https://example.com/sample.pdf");
+        assertThat(kitchenSinkRaw.get("print-length").asText()).isEqualTo("96 pages");
+        assertThat(kitchenSinkRaw.get("printed-by").asText()).isEqualTo("Example Printers");
         assertThat(kitchenSinkRaw.get("publication-country").asText()).isEqualTo("UK");
+        assertThat(kitchenSinkRaw.get("publication-date").asText()).isEqualTo("Oct. 8, 2019");
         assertThat(kitchenSinkRaw.get("publication-location").asText()).isEqualTo("St. Andrews");
+        assertThat(kitchenSinkRaw.get("published-in").asText()).isEqualTo("Example Series");
         assertThat(kitchenSinkRaw.get("publisher").asText()).isEqualTo("Juan Coderch");
+        assertThat(kitchenSinkRaw.get("publisher-series").asText()).isEqualTo("Little Prince Collection");
         assertThat(kitchenSinkRaw.get("quantity").asInt()).isEqualTo(1);
+        assertThat(kitchenSinkRaw.get("release-date").asText()).isEqualTo("04-06-23");
         assertThat(kitchenSinkRaw.get("script").asText()).isEqualTo("Greek");
+        assertThat(kitchenSinkRaw.get("script-family").asText()).isEqualTo("Greek");
         assertThat(kitchenSinkRaw.get("search-words").asText()).isEqualTo("to basileidion ancient greek");
+        assertThat(kitchenSinkRaw.get("simultaneous-device-usage").asText()).isEqualTo("Unlimited");
         assertThat(kitchenSinkRaw.get("smallImageUrl").asText()).isEqualTo("https://example.com/s2.jpg");
+        assertThat(kitchenSinkRaw.get("smallImageUrl2").asText()).isEqualTo("https://example.com/s2-alt.jpg");
+        assertThat(kitchenSinkRaw.get("sticky-notes").asText()).isEqualTo("On Kindle Scribe");
+        assertThat(kitchenSinkRaw.get("subTitle").asText()).isEqualTo("Der kleine Prinz – Ancient Greek");
+        assertThat(kitchenSinkRaw.get("supervisor").asText()).isEqualTo("Toshiro Tsumagari");
         assertThat(kitchenSinkRaw.get("tags").isArray()).isTrue();
         assertThat(kitchenSinkRaw.get("tags").get(0).asText()).isEqualTo("language isolate*");
         assertThat(kitchenSinkRaw.get("tags").get(1).asText()).isEqualTo("dead language");
+        assertThat(kitchenSinkRaw.get("text-to-speech").asText()).isEqualTo("Enabled");
+        assertThat(kitchenSinkRaw.get("tintenfassId").asText()).isEqualTo("81");
         assertThat(kitchenSinkRaw.get("title").asText()).isEqualTo("Item with the kitchen sink thrown in");
+        assertThat(kitchenSinkRaw.get("titleInternal").asText()).isEqualTo("To Basileidion");
         assertThat(kitchenSinkRaw.get("translation-title").asText()).isEqualTo("Τὸ βασιλείδιον");
         assertThat(kitchenSinkRaw.get("translation-title-transliterated").asText()).isEqualTo("To Basileidion");
         assertThat(kitchenSinkRaw.get("translator").asText()).isEqualTo("Juan Coderch");
+        assertThat(kitchenSinkRaw.get("word-wise").asText()).isEqualTo("Not Enabled");
+        assertThat(kitchenSinkRaw.get("x-ray").asText()).isEqualTo("Not Enabled");
         assertThat(kitchenSinkRaw.get("year").asText()).isEqualTo("2017");
     }
 
