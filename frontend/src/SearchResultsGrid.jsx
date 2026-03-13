@@ -88,7 +88,7 @@ function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles,
   return list.length > 0 ? `Media: ${list.join(', ')}` : null
 }
 
-function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = false) {
+function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = false, isMobile = false, longPressTimerRef = null, longPressTriggeredRef = null, setRawSourceLightbox = null) {
   return {
     id: 'thumb',
     accessorKey: 'thumbnailUrl',
@@ -114,10 +114,19 @@ function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = f
       const isFallbackThumbnail = !!(!largeUrl && lightboxImageUrl && fallbackThumbUrl)
       const showLinkIconInsteadOfThumb = isLittlePrince && (!url || thumbIsPlaceholder)
       const showLinkIconOnly = isLittlePrince && !url && itemUrl
+      const hasThumbnailImage = url && !showLinkIconInsteadOfThumb
+      const rawSourceItem = row?.rawSourceItem
+      const canShowRawSourceThumb = rawSourceItem != null && rawSourceItem !== ''
       if (!isLittlePrince || (!url && !itemUrl)) return <span aria-hidden="true">&nbsp;</span>
       const fileTypeTooltip = getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, !!largeUrl)
       const payload = { imageUrl: lightboxImageUrl, title: row?.title ?? '', pdfs, imageUrls, ebooks, videos, audios, otherFiles, itemUrl, isFallbackThumbnail }
       const canClick = lightboxImageUrl || itemUrl || pdfs.length > 0 || imageUrls.length > 0 || ebooks.length > 0 || videos.length > 0 || audios.length > 0 || otherFiles.length > 0
+      const handleThumbLongPress = () => {
+        if (canShowRawSourceThumb && setRawSourceLightbox) {
+          if (longPressTriggeredRef) longPressTriggeredRef.current = true
+          setRawSourceLightbox({ title: row?.title ?? '', rawSourceItem })
+        }
+      }
       const linkIcon = (
         <span className="search-thumb-link-icon" aria-hidden="true">
           <PopOutIcon className="search-thumb-link-icon-img" />
@@ -127,9 +136,37 @@ function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = f
         <button
           type="button"
           className="search-thumb-btn"
-          title={fileTypeTooltip ?? undefined}
+          title={
+            isMobile
+              ? (hasThumbnailImage ? (fileTypeTooltip ?? 'View full size') : (canShowRawSourceThumb ? 'Long-press for raw source' : undefined))
+              : (fileTypeTooltip ?? undefined)
+          }
           onClick={() => canClick && onThumbnailClick(payload)}
-          aria-label={showLinkIconOnly ? 'Open link' : 'View full size'}
+          aria-label={
+            showLinkIconOnly ? 'Open link' : (
+              isMobile
+                ? (hasThumbnailImage ? (fileTypeTooltip ?? 'View full size') : (canShowRawSourceThumb ? 'Long-press for raw source' : undefined))
+                : 'View full size'
+            )
+          }
+          onTouchStart={isMobile && canShowRawSourceThumb && longPressTimerRef ? () => {
+            longPressTimerRef.current = setTimeout(() => {
+              longPressTimerRef.current = null
+              handleThumbLongPress()
+            }, LONG_PRESS_MS)
+          } : undefined}
+          onTouchEnd={isMobile && canShowRawSourceThumb && longPressTimerRef ? () => {
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current)
+              longPressTimerRef.current = null
+            }
+          } : undefined}
+          onTouchCancel={isMobile && canShowRawSourceThumb && longPressTimerRef ? () => {
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current)
+              longPressTimerRef.current = null
+            }
+          } : undefined}
         >
           {largeUrl && url && !thumbIsPlaceholder && (
             <span className="search-thumb-pop-icon" aria-hidden="true">↗</span>
@@ -159,11 +196,15 @@ const scoreColumn = {
   },
 }
 
-export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false, showPdfSashInGallery = false, showGalleryDecorations = true, allowThumbnailFallbackLightbox = false }) {
+const LONG_PRESS_MS = 500
+
+export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSortChange, showScoreColumn = false, afterFilterSlot = null, viewMode = 'list', hideTroveInGallery = false, showPdfSashInGallery = false, showGalleryDecorations = true, allowThumbnailFallbackLightbox = false, isMobile = false }) {
   const [globalFilter, setGlobalFilter] = useState('')
   const [lightbox, setLightbox] = useState(null)
   const [rawSourceLightbox, setRawSourceLightbox] = useState(null)
   const galleryClickTimeoutRef = useRef(null)
+  const longPressTimerRef = useRef(null)
+  const longPressTriggeredRef = useRef(false)
 
   const closeLightbox = useCallback(() => setLightbox(null), [])
   const closeRawSourceLightbox = useCallback(() => setRawSourceLightbox(null), [])
@@ -177,6 +218,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
 
   useEffect(() => () => {
     if (galleryClickTimeoutRef.current) clearTimeout(galleryClickTimeoutRef.current)
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
   }, [])
 
   const hasThumbnails = useMemo(
@@ -185,13 +227,17 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
   )
   const baseColumns = useMemo(
     () => (hasThumbnails ? [thumbnailColumnDef((payload) => {
+      if (longPressTriggeredRef.current) {
+        longPressTriggeredRef.current = false
+        return
+      }
       if (payload.itemUrl && !payload.imageUrl) {
         window.open(payload.itemUrl, '_blank', 'noopener,noreferrer')
         return
       }
       setLightbox(payload)
-    }, allowThumbnailFallbackLightbox), ...textColumns] : textColumns),
-    [hasThumbnails, allowThumbnailFallbackLightbox]
+    }, allowThumbnailFallbackLightbox, isMobile, longPressTimerRef, longPressTriggeredRef, setRawSourceLightbox), ...textColumns] : textColumns),
+    [hasThumbnails, allowThumbnailFallbackLightbox, isMobile]
   )
   const columns = useMemo(
     () => (showScoreColumn ? [...baseColumns, scoreColumn] : baseColumns),
@@ -432,12 +478,27 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               )
               const rawSourceItem = row?.rawSourceItem
               const canShowRawSource = rawSourceItem != null && rawSourceItem !== ''
+              const handleLongPress = () => {
+                if (canShowRawSource) {
+                  longPressTriggeredRef.current = true
+                  if (galleryClickTimeoutRef.current) {
+                    clearTimeout(galleryClickTimeoutRef.current)
+                    galleryClickTimeoutRef.current = null
+                  }
+                  setLightbox(null)
+                  setRawSourceLightbox({ title, rawSourceItem })
+                }
+              }
               return (
                 <button
                   key={row.id ?? idx}
                   type="button"
                   className={`search-results-gallery-card${hideTroveInGallery ? ' search-results-gallery-card--title-wraps' : ''}`}
                   onClick={() => {
+                    if (longPressTriggeredRef.current) {
+                      longPressTriggeredRef.current = false
+                      return
+                    }
                     if (!payload) return
                     if (galleryClickTimeoutRef.current) {
                       clearTimeout(galleryClickTimeoutRef.current)
@@ -453,6 +514,24 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                       setLightbox(next)
                     }, 250)
                   }}
+                  onTouchStart={isMobile && canShowRawSource ? () => {
+                    longPressTimerRef.current = setTimeout(() => {
+                      longPressTimerRef.current = null
+                      handleLongPress()
+                    }, LONG_PRESS_MS)
+                  } : undefined}
+                  onTouchEnd={isMobile && canShowRawSource ? () => {
+                    if (longPressTimerRef.current) {
+                      clearTimeout(longPressTimerRef.current)
+                      longPressTimerRef.current = null
+                    }
+                  } : undefined}
+                  onTouchCancel={isMobile && canShowRawSource ? () => {
+                    if (longPressTimerRef.current) {
+                      clearTimeout(longPressTimerRef.current)
+                      longPressTimerRef.current = null
+                    }
+                  } : undefined}
                   onDoubleClick={(e) => {
                     e.preventDefault()
                     if (galleryClickTimeoutRef.current) {
@@ -465,7 +544,16 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                     }
                   }}
                   disabled={!payload && !canShowRawSource}
-                  title={payload ? 'View full size (double-click for raw source)' : (canShowRawSource ? 'Double-click for raw source' : title)}
+                  title={
+                    isMobile
+                      ? (payload ? 'View full size' : (canShowRawSource ? 'Long-press for raw source' : title))
+                      : (payload ? 'View full size (double-click for raw source)' : (canShowRawSource ? 'Double-click for raw source' : title))
+                  }
+                  aria-label={
+                    isMobile
+                      ? (payload ? 'View full size' : (canShowRawSource ? 'Long-press for raw source' : undefined))
+                      : undefined
+                  }
                 >
                   <span className="search-results-gallery-card-image">
                     {hasImage ? (
@@ -545,16 +633,40 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               table.getRowModel().rows.map((row) => {
                 const rowData = row.original
                 const rawSourceItem = rowData?.rawSourceItem
+                const canShowRawSourceRow = rawSourceItem != null && rawSourceItem !== ''
+                const handleRowLongPress = () => {
+                  if (canShowRawSourceRow) {
+                    setRawSourceLightbox({ title: rowData?.title ?? '', rawSourceItem })
+                  }
+                }
                 return (
                   <tr
                     key={row.id}
                     className={rawSourceItem ? 'grid-row-double-clickable' : ''}
-                    title={rawSourceItem ? 'Double-click for raw source' : undefined}
+                    title={rawSourceItem ? (isMobile ? 'Long-press for raw source' : 'Double-click for raw source') : undefined}
                     onDoubleClick={() => {
-                      if (rawSourceItem != null && rawSourceItem !== '') {
+                      if (canShowRawSourceRow) {
                         setRawSourceLightbox({ title: rowData?.title ?? '', rawSourceItem })
                       }
                     }}
+                    onTouchStart={isMobile && canShowRawSourceRow ? () => {
+                      longPressTimerRef.current = setTimeout(() => {
+                        longPressTimerRef.current = null
+                        handleRowLongPress()
+                      }, LONG_PRESS_MS)
+                    } : undefined}
+                    onTouchEnd={isMobile && canShowRawSourceRow ? () => {
+                      if (longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current)
+                        longPressTimerRef.current = null
+                      }
+                    } : undefined}
+                    onTouchCancel={isMobile && canShowRawSourceRow ? () => {
+                      if (longPressTimerRef.current) {
+                        clearTimeout(longPressTimerRef.current)
+                        longPressTimerRef.current = null
+                      }
+                    } : undefined}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className={`col-${cell.column.id}`}>

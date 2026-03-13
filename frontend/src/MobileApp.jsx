@@ -1736,6 +1736,7 @@ onClick={() => {
                   showPdfSashInGallery
                   showGalleryDecorations={galleryDecorate}
                   allowThumbnailFallbackLightbox
+                  isMobile
                 />
               </div>
             )}
