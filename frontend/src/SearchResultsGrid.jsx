@@ -95,14 +95,24 @@ function getFileTypeTooltip(pdfs, imageUrls, ebooks, videos, audios, otherFiles,
   return list.length > 0 ? `Media: ${list.join(', ')}` : null
 }
 
-function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = false, isMobile = false, longPressTimerRef = null, longPressTriggeredRef = null, setRawSourceLightbox = null) {
+function ThumbColumnHeader({ column }) {
+  const sorted = column.getIsSorted()
+  return (
+    <span className="grid-thumb-header-icons">
+      <img src="/thumb-thumbnail.png" alt="" aria-hidden="true" className="grid-thumb-header-thumbs" />
+      <img src={sorted === 'asc' ? '/to-top.png' : '/to-bottom.png'} alt="" aria-hidden="true" className="grid-thumb-header-direction" />
+    </span>
+  )
+}
+
+function thumbnailColumnDef(onThumbnailClick, allowThumbnailFallbackLightbox = false, isMobile = false, longPressTimerRef = null, longPressTriggeredRef = null, setRawSourceLightbox = null, hasThumbnails = true) {
   return {
     id: 'thumb',
     accessorKey: 'thumbnailUrl',
-    header: '',
-    size: 80,
+    header: ({ column }) => <ThumbColumnHeader column={column} />,
+    size: hasThumbnails ? 80 : 48,
     minSize: 40,
-    maxSize: 200,
+    maxSize: hasThumbnails ? 200 : 48,
     enableResizing: false,
     cell: (info) => {
       const row = info.row.original
@@ -243,7 +253,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
     [hideTroveInList]
   )
   const baseColumns = useMemo(
-    () => (hasThumbnails ? [thumbnailColumnDef((payload) => {
+    () => [thumbnailColumnDef((payload) => {
       if (longPressTriggeredRef.current) {
         longPressTriggeredRef.current = false
         return
@@ -253,7 +263,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
         return
       }
       setLightbox(payload)
-    }, allowThumbnailFallbackLightbox, isMobile, longPressTimerRef, longPressTriggeredRef, setRawSourceLightbox), ...listTextColumns] : listTextColumns),
+    }, allowThumbnailFallbackLightbox, isMobile, longPressTimerRef, longPressTriggeredRef, setRawSourceLightbox, hasThumbnails), ...listTextColumns],
     [hasThumbnails, allowThumbnailFallbackLightbox, isMobile, listTextColumns]
   )
   const columns = useMemo(
@@ -911,12 +921,14 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                   >
                     <span className="grid-th-content">
                       {flexRender(header.column.columnDef.header, header.getContext())}
-                      <span className="sort-indicator">
-                        {{
-                          asc: ' ↑',
-                          desc: ' ↓',
-                        }[header.column.getIsSorted()] ?? ''}
-                      </span>
+                      {header.column.id !== 'thumb' && (
+                        <span className="sort-indicator">
+                          {{
+                            asc: ' ↑',
+                            desc: ' ↓',
+                          }[header.column.getIsSorted()] ?? ''}
+                        </span>
+                      )}
                     </span>
                     {header.column.getCanResize() && (
                       <div
@@ -997,6 +1009,22 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
               })
             )}
           </tbody>
+          <tfoot>
+            <tr>
+              {table.getFlatHeaders().map((header) => (
+                header.column.id === 'thumb' ? (
+                  <td key={header.id} className="col-thumb grid-thumb-footer" onClick={() => onSortChange && onSortChange('thumb', sortBy === 'thumb' && sortDir === 'asc' ? 'desc' : 'asc')} role="button" tabIndex={0} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && onSortChange) { e.preventDefault(); onSortChange('thumb', sortBy === 'thumb' && sortDir === 'asc' ? 'desc' : 'asc') } }} aria-label={sortBy === 'thumb' && sortDir === 'asc' ? 'Sort by thumbnails last' : 'Sort by thumbnails first'}>
+                    <span className="grid-thumb-footer-icons">
+                      <img src="/thumb-thumbnail.png" alt="" aria-hidden="true" className="grid-thumb-footer-thumbs" />
+                      <img src={sortBy === 'thumb' && sortDir === 'asc' ? '/to-top.png' : '/to-bottom.png'} alt="" aria-hidden="true" className="grid-thumb-footer-direction" />
+                    </span>
+                  </td>
+                ) : (
+                  <td key={header.id} className={`col-${header.column.id}`} />
+                )
+              ))}
+            </tr>
+          </tfoot>
         </table>
       </div>
       )}
