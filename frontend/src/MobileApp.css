@@ -267,6 +267,8 @@
 .mobile-search-query-actions {
   display: flex;
   flex-shrink: 0;
+  align-self: stretch;
+  align-items: stretch;
 }
 
 .mobile-search-query-btn {
@@ -298,15 +300,14 @@
   width: 2.25rem;
   min-width: 2.25rem;
   font-size: 1.235rem;
-  transform: translateY(0.15em);
 }
 
 .mobile-search-query-asterisk {
   display: inline-block;
   font-size: 1.5em;
-  margin-top: 0.26em;
-  vertical-align: bottom;
+  line-height: 1;
   color: #888;
+  transform: translateY(0.2em);
 }
 .mobile-search-btn {
   width: 2.25rem;
