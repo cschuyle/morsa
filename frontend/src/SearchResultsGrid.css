@@ -184,6 +184,26 @@
 .grid-table .col-thumb {
   padding-left: 0.25rem;
   padding-right: 0.25rem;
+  overflow: hidden;
+  min-width: 0;
+  vertical-align: middle;
+}
+
+.grid-table .col-thumb .search-thumb-btn {
+  max-width: 100%;
+  margin: 0 auto;
+  display: block;
+}
+
+.grid-table .col-thumb .search-thumb,
+.grid-table .col-thumb .search-thumb-link-icon {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.grid-table .col-title {
+  vertical-align: middle;
+  padding-left: 0.75rem;
 }
 
 .grid-table .grid-thumb-header-icons {
