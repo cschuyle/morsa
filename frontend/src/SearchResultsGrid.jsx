@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import {
   useReactTable,
   getCoreRowModel,
@@ -378,105 +379,115 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
           </a>
         </div>
       )}
-      {rawSourceLightbox && (
-        <div
-          className="search-raw-source-lightbox"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Raw source"
-          onClick={closeRawSourceLightbox}
-        >
-          <button type="button" className="search-thumb-lightbox-close" onClick={closeRawSourceLightbox} aria-label="Close">×</button>
-          <div className="search-raw-source-lightbox-content" onClick={(e) => e.stopPropagation()}>
-            {rawSourceLightbox.title && (
-              <div className="search-thumb-lightbox-title">
-                {rawSourceLightbox.title}
-              </div>
-            )}
-            <pre className="search-raw-source-lightbox-pre">{rawSourceDisplay(rawSourceLightbox.rawSourceItem)}</pre>
+      {rawSourceLightbox && (() => {
+        const rawSourceContent = (
+          <div
+            className="search-raw-source-lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Raw source"
+            onClick={closeRawSourceLightbox}
+          >
+            <button type="button" className="search-thumb-lightbox-close" onClick={closeRawSourceLightbox} aria-label="Close">×</button>
+            <div className="search-raw-source-lightbox-content" onClick={(e) => e.stopPropagation()}>
+              {rawSourceLightbox.title && (
+                <div className="search-thumb-lightbox-title">
+                  {rawSourceLightbox.title}
+                </div>
+              )}
+              <pre className="search-raw-source-lightbox-pre">{rawSourceDisplay(rawSourceLightbox.rawSourceItem)}</pre>
+            </div>
           </div>
-        </div>
-      )}
-      {lightbox && (
-        <div
-          className={`search-thumb-lightbox${lightbox?.isFallbackThumbnail ? ' search-thumb-lightbox--thumb-fallback' : ''}`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Image full size"
-          onClick={closeLightbox}
-        >
-          <button type="button" className="search-thumb-lightbox-close" onClick={closeLightbox} aria-label="Close">×</button>
-          <div className="search-thumb-lightbox-content" onClick={(e) => e.stopPropagation()}>
-            {lightbox.title && (
-              <div className="search-thumb-lightbox-title">
-                {lightbox.title}
-              </div>
-            )}
-            {lightbox.imageUrl && (
-              <img src={lightbox.imageUrl} alt="" />
-            )}
+        )
+        return isMobile && typeof document !== 'undefined'
+          ? createPortal(rawSourceContent, document.body)
+          : rawSourceContent
+      })()}
+      {lightbox && (() => {
+        const lightboxContent = (
+          <div
+            className={`search-thumb-lightbox${lightbox?.isFallbackThumbnail ? ' search-thumb-lightbox--thumb-fallback' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Image full size"
+            onClick={closeLightbox}
+          >
+            <button type="button" className="search-thumb-lightbox-close" onClick={closeLightbox} aria-label="Close">×</button>
+            <div className="search-thumb-lightbox-content" onClick={(e) => e.stopPropagation()}>
+              {lightbox.title && (
+                <div className="search-thumb-lightbox-title">
+                  {lightbox.title}
+                </div>
+              )}
+              {lightbox.imageUrl && (
+                <img src={lightbox.imageUrl} alt="" />
+              )}
+            </div>
+            <div className="search-thumb-lightbox-footer" onClick={(e) => e.stopPropagation()}>
+              {Array.isArray(lightbox.imageUrls) &&
+                lightbox.imageUrls.map((imgUrl) => (
+                  <a
+                    key={imgUrl}
+                    href={imgUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="search-thumb-lightbox-thumb"
+                    aria-label="Open image"
+                  >
+                    <img src={imgUrl} alt="" />
+                  </a>
+                ))}
+              {Array.isArray(lightbox.pdfs) &&
+                lightbox.pdfs.map((url, idx) => (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                    {lightbox.pdfs.length > 1 ? `PDF ${idx + 1}` : 'PDF'}
+                  </a>
+                ))}
+              {Array.isArray(lightbox.ebooks) &&
+                lightbox.ebooks.map((url) => (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                    {(/\.epub(\?|$)/i.test(url) ? 'EPUB' : 'MOBI')}
+                  </a>
+                ))}
+              {Array.isArray(lightbox.videos) &&
+                lightbox.videos.map((url) => {
+                  const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'video'
+                  return (
+                    <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                      {ext.toUpperCase()}
+                    </a>
+                  )
+                })}
+              {Array.isArray(lightbox.audios) &&
+                lightbox.audios.map((url) => {
+                  const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'audio'
+                  return (
+                    <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                      {ext.toUpperCase()}
+                    </a>
+                  )
+                })}
+              {Array.isArray(lightbox.otherFiles) &&
+                lightbox.otherFiles.map((url) => {
+                  const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'file'
+                  return (
+                    <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                      {ext.toUpperCase()}
+                    </a>
+                  )
+                })}
+              {lightbox.itemUrl && (
+                <a href={lightbox.itemUrl} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
+                  URL
+                </a>
+              )}
+            </div>
           </div>
-          <div className="search-thumb-lightbox-footer" onClick={(e) => e.stopPropagation()}>
-            {Array.isArray(lightbox.imageUrls) &&
-              lightbox.imageUrls.map((imgUrl) => (
-                <a
-                  key={imgUrl}
-                  href={imgUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="search-thumb-lightbox-thumb"
-                  aria-label="Open image"
-                >
-                  <img src={imgUrl} alt="" />
-                </a>
-              ))}
-            {Array.isArray(lightbox.pdfs) &&
-              lightbox.pdfs.map((url, idx) => (
-                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                  {lightbox.pdfs.length > 1 ? `PDF ${idx + 1}` : 'PDF'}
-                </a>
-              ))}
-            {Array.isArray(lightbox.ebooks) &&
-              lightbox.ebooks.map((url) => (
-                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                  {(/\.epub(\?|$)/i.test(url) ? 'EPUB' : 'MOBI')}
-                </a>
-              ))}
-            {Array.isArray(lightbox.videos) &&
-              lightbox.videos.map((url) => {
-                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'video'
-                return (
-                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                    {ext.toUpperCase()}
-                  </a>
-                )
-              })}
-            {Array.isArray(lightbox.audios) &&
-              lightbox.audios.map((url) => {
-                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'audio'
-                return (
-                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                    {ext.toUpperCase()}
-                  </a>
-                )
-              })}
-            {Array.isArray(lightbox.otherFiles) &&
-              lightbox.otherFiles.map((url) => {
-                const ext = (url.match(/\.([a-z0-9]+)(\?|$)/i) || [])[1] || 'file'
-                return (
-                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                    {ext.toUpperCase()}
-                  </a>
-                )
-              })}
-            {lightbox.itemUrl && (
-              <a href={lightbox.itemUrl} target="_blank" rel="noopener noreferrer" className="search-thumb-file-link">
-                URL
-              </a>
-            )}
-          </div>
-        </div>
-      )}
+        )
+        return isMobile && typeof document !== 'undefined'
+          ? createPortal(lightboxContent, document.body)
+          : lightboxContent
+      })()}
       <div className="grid-toolbar">
         <div className="grid-filter-wrap">
           <input
