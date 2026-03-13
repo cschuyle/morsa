@@ -985,6 +985,7 @@
 }
 
 .search-filetype-trigger-wrap {
+  position: relative;
   display: flex;
   align-items: stretch;
   min-height: 2.6rem;
@@ -992,6 +993,10 @@
   border-radius: 6px;
   overflow: hidden;
   background: #fff;
+}
+
+.search-filetype-trigger-wrap--has-clear .search-filetype-dropdown-trigger {
+  padding-right: 2.25rem;
 }
 
 .search-filetype-trigger-wrap--filtered {
@@ -1031,27 +1036,31 @@
   background: #e0e0ff;
 }
 
-.search-filetype-divider {
-  width: 1px;
-  flex-shrink: 0;
-  align-self: stretch;
-  background: #ddd;
+.search-filetype-trigger-inline-icon {
+  width: 1.98em;
+  height: 1.98em;
+  object-fit: contain;
+  vertical-align: middle;
 }
 
 .search-filetype-clear {
-  width: 2rem;
-  min-width: 2rem;
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 1.75rem;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   line-height: 1;
   border: none;
   background: transparent;
-  color: #333;
+  color: #666;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: 4px;
 }
 
 .search-filetype-clear:hover {
@@ -1105,7 +1114,7 @@
   cursor: pointer;
 }
 
-.search-filetype-quick-btn:hover {
+.search-filetype-quick-btn:hover:not(.search-filetype-quick-btn--active) {
   background: #e0e0ff;
   border-color: #aaaaff;
 }
@@ -1120,6 +1129,11 @@
   border-color: #aaaaff;
 }
 
+.search-filetype-quick-btn--active:disabled:hover {
+  background: #ff8800 !important;
+  border-color: #ff8800 !important;
+}
+
 .search-filetype-quick-btn--active {
   background: #ff8800;
   border-color: #ff8800;
@@ -1127,8 +1141,8 @@
 }
 
 .search-filetype-quick-btn--active:hover {
-  background: #e67a00;
-  border-color: #e67a00;
+  background: #ff8800 !important;
+  border-color: #ff8800 !important;
 }
 
 .search-filetype-quick-btn--thumb {
@@ -1217,8 +1231,12 @@
 }
 
 .search-filetype-group-complement:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
+}
+
+.search-filetype-group-complement:disabled img {
+  filter: brightness(0.4);
+  opacity: 0.6;
 }
 
 .search-filetype-group-complement:disabled:hover {

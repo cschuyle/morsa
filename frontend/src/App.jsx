@@ -1319,7 +1319,7 @@ aria-label="Clear compare troves"
                   const hasThumbFilter = thumbnailOnly
                   return (
                   <div className="search-filetype-dropdown-wrap" ref={fileTypeDropdownRef}>
-                    <div className={`search-filetype-trigger-wrap${hasFileTypeFilter ? ' search-filetype-trigger-wrap--filtered' : ''}`}>
+                    <div className={`search-filetype-trigger-wrap${!(mehQuickSelected && !hasThumbFilter) ? ' search-filetype-trigger-wrap--filtered search-filetype-trigger-wrap--has-clear' : ''}`}>
                       <button
                         type="button"
                         className="search-filetype-dropdown-trigger"
@@ -1328,20 +1328,28 @@ aria-label="Clear compare troves"
                         aria-expanded={fileTypeDropdownOpen}
                         aria-label="Filter by file type"
                       >
-                        {fileTypesForLabel.size === 0
-                          ? 'Select media'
-                          : allSelected
-                            ? 'Any media'
-                            : (() => {
-                                const groupNames = getFullySelectedGroupNames(fileTypesForLabel, allAvailableFileTypes)
-                                const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
-                                return `Only ${label}`
-                              })()}
+                        {hasThumbFilter
+                          ? (anyQuickSelected || allSelected
+                              ? <>Any media + {' '}<img src="/thumb-thumbnail.png" alt="" className="search-filetype-trigger-inline-icon" aria-hidden="true" /></>
+                              : mehQuickSelected || fileTypesForLabel.size === 0
+                                ? <>Must have {' '}<img src="/thumb-thumbnail.png" alt="" className="search-filetype-trigger-inline-icon" aria-hidden="true" /></>
+                                : (() => {
+                                    const groupNames = getFullySelectedGroupNames(fileTypesForLabel, allAvailableFileTypes)
+                                    const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
+                                    return <>Only {label} + {' '}<img src="/thumb-thumbnail.png" alt="" className="search-filetype-trigger-inline-icon" aria-hidden="true" /></>
+                                  })())
+                          : (fileTypesForLabel.size === 0
+                              ? 'Select media'
+                              : allSelected
+                                ? 'Any media'
+                                : (() => {
+                                    const groupNames = getFullySelectedGroupNames(fileTypesForLabel, allAvailableFileTypes)
+                                    const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
+                                    return `Only ${label}`
+                                  })())}
                       </button>
-                      {fileTypesForLabel.size > 0 && (
-                        <>
-                          <span className="search-filetype-divider" aria-hidden="true" />
-                          <button
+                      {!(mehQuickSelected && !hasThumbFilter) && (
+                        <button
                           type="button"
                           className="search-filetype-clear"
                           title="Clear file type filter"
@@ -1349,16 +1357,16 @@ aria-label="Clear compare troves"
                             e.stopPropagation()
                             skipFileTypeSearchRef.current = true
                             lastFileTypeOrViewSearchRef.current = Date.now()
+                            setThumbnailOnly(false)
                             setFileTypeQuickMode('meh')
                             setFileTypeFilters(new Set())
-                            setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, new Set(), boostTroveId, searchResultsViewMode, undefined, 'meh'), { replace: true })
+                            setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, new Set(), boostTroveId, searchResultsViewMode, false, 'meh'), { replace: true })
                             fetchSearch(0, null, null, null, null, new Set())
                           }}
                           aria-label="Clear file type filter"
                         >
                           ×
                         </button>
-                        </>
                       )}
                     </div>
                     {fileTypeDropdownOpen && (
@@ -1377,8 +1385,8 @@ aria-label="Clear compare troves"
                               setThumbnailOnly(nextThumbs)
                               setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, null, boostTroveId, searchResultsViewMode, nextThumbs, fileTypeQuickMode), { replace: true })
                             }}
-                            title="Only items with thumbnails"
-                            aria-label="Only items with thumbnails"
+                            title="Must have a thumbnail image"
+                            aria-label="Must have a thumbnail image"
                           >
                             <img src="/thumb-thumbnail.png" alt="" className="search-filetype-quick-icon" />
                           </button>
@@ -1386,6 +1394,7 @@ aria-label="Clear compare troves"
                             type="button"
                             className={`search-filetype-quick-btn ${anyQuickSelected ? 'search-filetype-quick-btn--active' : ''}`}
                             disabled={allSelected}
+                            title="Must have additional media (thumbnails and cover art excluded)"
                             onClick={(e) => {
                               e.preventDefault()
                               skipFileTypeSearchRef.current = true
@@ -1403,6 +1412,7 @@ aria-label="Clear compare troves"
                             type="button"
                             className={`search-filetype-quick-btn ${mehQuickSelected ? 'search-filetype-quick-btn--active' : ''}`}
                             disabled={fileTypeFilters.size === 0}
+                            title="Additional media not required"
                             onClick={(e) => {
                               e.preventDefault()
                               skipFileTypeSearchRef.current = true
