@@ -352,7 +352,7 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
     <div className="search-results-grid" ref={gridRef}>
       {urlTooltipState && showGallery && (
         <div
-          className={`search-results-gallery-url-tooltip search-results-gallery-url-tooltip--centered${urlTooltipState.above ? ' search-results-gallery-url-tooltip--above' : ' search-results-gallery-url-tooltip--below'}`}
+          className={`search-results-gallery-url-tooltip search-results-gallery-url-tooltip--centered${urlTooltipState.above ? ' search-results-gallery-url-tooltip--above' : ' search-results-gallery-url-tooltip--below'}${isMobile ? ' search-results-gallery-url-tooltip--mobile' : ''}`}
           style={{
             '--tooltip-start-x': `${urlTooltipState.startX}px`,
             '--tooltip-start-y': `${urlTooltipState.startY}px`,
@@ -577,13 +577,14 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                 const cardEl = e.currentTarget
                 urlTooltipShowTimerRef.current = setTimeout(() => {
                   const cardRect = cardEl.getBoundingClientRect()
-                  const spaceAbove = cardRect.top
-                  const showAbove = spaceAbove > 120
                   const startX = cardRect.left + cardRect.width / 2
-                  const startY = cardRect.top
+                  const startY = cardRect.top + cardRect.height / 2
 
                   const gridEl = gridRef.current
                   let clampedEndX = startX
+                  let endY
+                  let above
+
                   if (gridEl) {
                     const gridRect = gridEl.getBoundingClientRect()
                     const relX = startX - gridRect.left
@@ -596,16 +597,43 @@ export function SearchResultsGrid({ data, sortBy = null, sortDir = 'asc', onSort
                       const maxCenter = gridRect.right - halfMaxWidth - edgeMargin
                       clampedEndX = Math.min(Math.max(startX, minCenter), maxCenter)
                     }
+
+                    if (isMobile) {
+                      const gap = 40
+                      const preferredAboveY = cardRect.top - gap
+                      const controlsBottom = gridRect.top + 8
+                      const viewportTopMargin = 8
+                      const canPlaceAbove = preferredAboveY > Math.max(controlsBottom, viewportTopMargin)
+                      if (canPlaceAbove) {
+                        endY = preferredAboveY
+                        above = true
+                      } else {
+                        endY = cardRect.bottom + gap
+                        above = false
+                      }
+                    } else {
+                      const spaceAbove = cardRect.top - gridRect.top
+                      const showAbove = spaceAbove > 120
+                      const gap = 40
+                      endY = showAbove ? (cardRect.top - gap) : (cardRect.bottom + gap)
+                      above = showAbove
+                    }
+                  } else {
+                    // Fallback if gridRef is missing
+                    const viewportTopMargin = 8
+                    const preferredAboveY = cardRect.top - 8
+                    const canPlaceAbove = preferredAboveY > viewportTopMargin
+                    endY = canPlaceAbove ? preferredAboveY : (cardRect.bottom + 8)
+                    above = canPlaceAbove
                   }
 
-                  const endY = showAbove ? cardRect.top - 8 : cardRect.bottom + 8
                   setUrlTooltipState({
                     url: payload.itemUrl,
                     startX,
                     startY,
                     endX: clampedEndX,
                     endY,
-                    above: showAbove,
+                    above,
                   })
                 }, 500)
               }

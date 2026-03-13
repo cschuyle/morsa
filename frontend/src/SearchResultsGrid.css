@@ -487,19 +487,29 @@
   animation-name: search-results-url-tooltip-emerge-below;
 }
 
+.search-results-gallery-url-tooltip--mobile {
+  animation-name: search-results-url-tooltip-emerge-mobile;
+}
+
 @keyframes search-results-url-tooltip-emerge {
-  /* fallback, same as below */
+  /* Fallback: simple arc-like path between start and end */
   from {
     left: var(--tooltip-start-x);
     top: var(--tooltip-start-y);
     opacity: 0;
     transform: translate(-50%, -50%) scale(0);
   }
+  50% {
+    left: calc((var(--tooltip-start-x) + var(--tooltip-end-x)) / 2);
+    top: calc((var(--tooltip-start-y) + var(--tooltip-end-y)) / 2);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
   to {
     left: var(--tooltip-end-x);
     top: var(--tooltip-end-y);
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -510,11 +520,17 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(0);
   }
+  50% {
+    left: calc((var(--tooltip-start-x) + var(--tooltip-end-x)) / 2);
+    top: calc((var(--tooltip-start-y) + var(--tooltip-end-y)) / 2);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
   to {
     left: var(--tooltip-end-x);
     top: var(--tooltip-end-y);
     opacity: 1;
-    transform: translate(-50%, -100%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
@@ -525,11 +541,32 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(0);
   }
+  50% {
+    left: calc((var(--tooltip-start-x) + var(--tooltip-end-x)) / 2);
+    top: calc((var(--tooltip-start-y) + var(--tooltip-end-y)) / 2);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
   to {
     left: var(--tooltip-end-x);
     top: var(--tooltip-end-y);
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes search-results-url-tooltip-emerge-mobile {
+  from {
+    left: var(--tooltip-end-x);
+    top: var(--tooltip-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  to {
+    left: var(--tooltip-end-x);
+    top: var(--tooltip-end-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
