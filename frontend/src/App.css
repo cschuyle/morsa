@@ -1329,35 +1329,10 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #666;
+  color: #000;
 }
 .card .grid-toolbar .gallery-sort-label {
-  color: #b8b8b8;
-}
-
-.card .grid-toolbar .gallery-sort-trigger-wrap {
-  border-color: #555;
-  background: #2a2a2a;
-}
-
-.card .grid-toolbar .gallery-sort-dir-btn {
-  color: #b8b8b8;
-}
-
-.card .grid-toolbar .gallery-sort-dir-btn:hover {
-  background: #3a3a3a;
-}
-
-.card .grid-toolbar .gallery-sort-divider {
-  background: #555;
-}
-
-.card .grid-toolbar .gallery-sort-select {
-  color: #b8b8b8;
-}
-
-.card .grid-toolbar .gallery-sort-select:hover {
-  background: #3a3a3a;
+  color: #252525;
 }
 
 .gallery-sort-wrap {
@@ -1368,7 +1343,8 @@
 .gallery-sort-trigger-wrap {
   display: inline-flex;
   align-items: stretch;
-  min-height: 2rem;
+  min-height: 2.25rem;
+  height: 2.25rem;
   box-sizing: border-box;
   border: 1px solid #ddd;
   border-radius: 6px;

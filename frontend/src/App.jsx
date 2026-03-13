@@ -707,16 +707,6 @@ function App() {
     ? (
       <div className="gallery-sort-wrap">
         <div className="gallery-sort-trigger-wrap">
-          <button
-            type="button"
-            className="gallery-sort-dir-btn"
-            onClick={toggleGallerySortDir}
-            aria-label={effectiveSortDir === 'asc' ? 'Sort ascending, click to sort descending' : 'Sort descending, click to sort ascending'}
-            title={effectiveSortDir === 'asc' ? 'Sort ascending (click to toggle)' : 'Sort descending (click to toggle)'}
-          >
-            {effectiveSortDir === 'asc' ? '↑' : '↓'}
-          </button>
-          <span className="gallery-sort-divider" aria-hidden="true" />
           <label className="gallery-sort-label">
             Sort by{' '}
             <select
@@ -730,6 +720,16 @@ function App() {
               <option value="trove">Trove</option>
             </select>
           </label>
+          <span className="gallery-sort-divider" aria-hidden="true" />
+          <button
+            type="button"
+            className="gallery-sort-dir-btn"
+            onClick={toggleGallerySortDir}
+            aria-label={effectiveSortDir === 'asc' ? 'Sort ascending, click to sort descending' : 'Sort descending, click to sort ascending'}
+            title={effectiveSortDir === 'asc' ? 'Sort ascending (click to toggle)' : 'Sort descending (click to toggle)'}
+          >
+            {effectiveSortDir === 'asc' ? '↑' : '↓'}
+          </button>
         </div>
       </div>
     )
