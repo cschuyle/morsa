@@ -681,35 +681,48 @@
 
 .trove-only-actions {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
+  display: flex;
+  align-self: stretch;
+  align-items: stretch;
 }
 
 .trove-only-actions .trove-only-link {
-  margin-right: 0;
-  padding-left: 0.15rem;
-  padding-right: 0.15rem;
+  margin: 0;
+  padding: 0;
   gap: 0;
+  width: 2rem;
+  min-width: 2rem;
+}
+
+.trove-only-actions .trove-only-link:first-of-type {
+  margin-right: -0.2rem;
+}
+.trove-only-actions .trove-only-link--boost {
+  margin-left: -0.2rem;
 }
 
 .trove-only-link {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.2rem;
-  padding: 0.25rem 0.4rem;
-  margin-right: 0.4rem;
+  padding: 0;
+  margin: 0;
   border: none;
   background: none;
   font-family: inherit;
   color: #6633cc;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 0;
+  align-self: stretch;
+  width: 2rem;
+  min-width: 2rem;
+  box-sizing: border-box;
 }
 
 .trove-only-link:hover {
-  opacity: 0.85;
+  background: #e0e0ff;
 }
 
 .trove-only-link .trove-only-icon {
