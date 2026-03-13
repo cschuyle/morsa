@@ -94,6 +94,7 @@ function MobileApp() {
   const skipPageNavSearchRef = useRef(false)
   const lastFileTypeOrViewSearchRef = useRef(0)
   const abortRef = useRef(null)
+  const searchRequestIdRef = useRef(0)
   const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
   const pageSizeDropdownRef = useRef(null)
@@ -391,6 +392,7 @@ function MobileApp() {
       params.set('sortDir', sortDir)
     }
     const url = `/api/search?${params}`
+    abortRef.current?.abort()
     const cached = queryCache.get(url)
     if (cached) {
       setSearchResult(cached)
@@ -403,13 +405,17 @@ function MobileApp() {
       }
       return
     }
+    const controller = new AbortController()
+    abortRef.current = controller
+    const requestId = ++searchRequestIdRef.current
     setSearching(true)
-    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() } })
+    fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
       .then((res) => {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
       })
       .then((data) => {
+        if (searchRequestIdRef.current !== requestId) return
         queryCache.set(url, data)
         setSearchResult(data)
         if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
@@ -421,8 +427,14 @@ function MobileApp() {
         }
         refreshStatusMessage()
       })
-      .catch(() => setSearchResult({ count: 0, results: [], page: 0, size }))
-      .finally(() => setSearching(false))
+      .catch((err) => {
+        if (err.name !== 'AbortError' && searchRequestIdRef.current === requestId) {
+          setSearchResult({ count: 0, results: [], page: 0, size })
+        }
+      })
+      .finally(() => {
+        if (searchRequestIdRef.current === requestId) setSearching(false)
+      })
   }
 
   async function readCompareStream(url, signal, onProgress, onDone) {

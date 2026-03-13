@@ -78,6 +78,7 @@ function App() {
   const skipPageNavSearchRef = useRef(false)
   const lastFileTypeOrViewSearchRef = useRef(0)
   const abortControllerRef = useRef(null)
+  const searchRequestIdRef = useRef(0)
   const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
   const PAGE_SIZE_OPTIONS = [10, 25, 100, 500, 1000, 5000, 10000]
@@ -136,6 +137,7 @@ function App() {
       params.set('sortDir', nextSortDir)
     }
     const url = `/api/search?${params}`
+    abortControllerRef.current?.abort()
     const cached = queryCache.get(url)
     if (cached) {
       setSearchResult(cached)
@@ -148,9 +150,9 @@ function App() {
       }
       return
     }
-    abortControllerRef.current?.abort()
     const controller = new AbortController()
     abortControllerRef.current = controller
+    const requestId = ++searchRequestIdRef.current
     setSearching(true)
     setSearchError(null)
     fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal: controller.signal })
@@ -160,6 +162,7 @@ function App() {
         return res.json()
       })
       .then((data) => {
+        if (searchRequestIdRef.current !== requestId) return
         queryCache.set(url, data)
         setSearchResult(data)
         if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
@@ -174,7 +177,9 @@ function App() {
       .catch((err) => {
         if (err.name !== 'AbortError') setSearchError(err.message)
       })
-      .finally(() => setSearching(false))
+      .finally(() => {
+        if (searchRequestIdRef.current === requestId) setSearching(false)
+      })
   }
 
   useEffect(() => {
