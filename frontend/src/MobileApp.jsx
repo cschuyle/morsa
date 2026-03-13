@@ -77,6 +77,7 @@ function MobileApp() {
   const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
   const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
+  const [pageSizeDropdownOpen, setPageSizeDropdownOpen] = useState(false)
   const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery'
   const [galleryDecorate, setGalleryDecorate] = useState(true)
   const [copiedUrlFlare, setCopiedUrlFlare] = useState(false)
@@ -95,6 +96,7 @@ function MobileApp() {
   const abortRef = useRef(null)
   const reloadAbortControllerRef = useRef(null)
   const fileTypeDropdownRef = useRef(null)
+  const pageSizeDropdownRef = useRef(null)
   const copyFlareTimeoutRef = useRef(null)
   const mobileMainRef = useRef(null)
   const [mobileMainGapTopOpen, setMobileMainGapTopOpen] = useState(true)
@@ -270,6 +272,17 @@ function MobileApp() {
   }, [fileTypeDropdownOpen])
 
   useEffect(() => {
+    if (!pageSizeDropdownOpen) return
+    function handleClickOutside(e) {
+      if (pageSizeDropdownRef.current && !pageSizeDropdownRef.current.contains(e.target)) {
+        setPageSizeDropdownOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [pageSizeDropdownOpen])
+
+  useEffect(() => {
     if (!fileTypeDropdownOpen) return
     function handleEscape(e) {
       if (e.key === 'Escape') setFileTypeDropdownOpen(false)
@@ -277,6 +290,15 @@ function MobileApp() {
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
   }, [fileTypeDropdownOpen])
+
+  useEffect(() => {
+    if (!pageSizeDropdownOpen) return
+    function handleEscape(e) {
+      if (e.key === 'Escape') setPageSizeDropdownOpen(false)
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [pageSizeDropdownOpen])
 
   function refreshStatusMessage() {
     fetch('/api/status', { credentials: 'include', headers: { ...getApiAuthHeaders() } })
@@ -724,8 +746,7 @@ function MobileApp() {
     setSearchParams(nextParams, { replace: true })
   }
 
-  function handlePageSizeChange(e) {
-    const newSize = Number(e.target.value)
+  function applyPageSizeChange(newSize) {
     setPageSize(newSize)
     if (searchResult != null && query.trim()) fetchSearch(0, null, null, undefined, newSize)
     const nextParams = buildSearchParams()
@@ -1611,22 +1632,41 @@ onClick={() => {
                         ›
                       </button>
                     </nav>
-                    <label className="mobile-page-size-label mobile-page-size-label--end">
+                    <div className="mobile-page-size-dropdown-wrap mobile-page-size-label mobile-page-size-label--end" ref={pageSizeDropdownRef}>
                       Size
-                      <select
-                        value={pageSize}
-                        onChange={handlePageSizeChange}
-                        className="mobile-page-size-select"
-                        disabled={searching}
-                        aria-label="Page size"
-                      >
-                        {MOBILE_PAGE_SIZE_OPTIONS.map((n) => (
-                          <option key={n} value={n}>
-                            {formatCount(n)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                      <div className="mobile-page-size-trigger-wrap">
+                        <button
+                          type="button"
+                          className="mobile-page-size-trigger"
+                          onClick={() => setPageSizeDropdownOpen((o) => !o)}
+                          disabled={searching}
+                          aria-expanded={pageSizeDropdownOpen}
+                          aria-haspopup="listbox"
+                          aria-label="Page size"
+                        >
+                          {formatCount(pageSize)}
+                        </button>
+                      </div>
+                      {pageSizeDropdownOpen && (
+                        <div className="mobile-page-size-panel" role="listbox" aria-label="Page size">
+                          {MOBILE_PAGE_SIZE_OPTIONS.map((n) => (
+                            <button
+                              key={n}
+                              type="button"
+                              role="option"
+                              aria-selected={pageSize === n}
+                              className="mobile-page-size-option"
+                              onClick={() => {
+                                applyPageSizeChange(n)
+                                setPageSizeDropdownOpen(false)
+                              }}
+                            >
+                              {formatCount(n)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 <SearchResultsGrid
