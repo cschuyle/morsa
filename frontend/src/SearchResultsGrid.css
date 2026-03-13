@@ -334,6 +334,65 @@
   padding: 0.75rem 0;
   width: 100%;
   max-width: 100%;
+  position: relative;
+}
+
+.search-thumb-lightbox-footer-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-thumb-lightbox-raw-wrap {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: auto; /* keep hit area active so hover can reveal */
+  min-width: 4rem;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Only visible when hovering directly over the RAW strip (right side of footer) */
+.search-thumb-lightbox-raw-wrap:hover {
+  opacity: 1;
+}
+
+.search-thumb-lightbox-raw-btn {
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: none;
+  background: #6633cc;
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.search-thumb-lightbox-raw-btn:hover {
+  background: #5522b3;
+}
+
+.search-thumb-lightbox-raw-btn--label {
+  cursor: default;
+}
+
+.search-raw-source-lightbox-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.75rem 0;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  min-height: 2.25rem;
 }
 
 .search-thumb-lightbox-thumb {
