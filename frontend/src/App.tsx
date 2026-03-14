@@ -912,6 +912,7 @@ function App() {
                 const compareToSelfVisible = primaryTroveId && (compareIds.size === 0 || (compareIds.size === 1 && compareIds.has(primaryTroveId)))
                 return (
                   <>
+                  <h2 className="trove-picker-heading">Troves</h2>
                   <div className="trove-picker-tabs" role="tablist" aria-label="Trove selection">
                     {(() => {
                       const primaryTabInvalid = searchMode === 'duplicates' ? !dupPrimaryTroveId : !uniqPrimaryTroveId
@@ -924,19 +925,21 @@ function App() {
                             type="button"
                             role="tab"
                             aria-selected={duplicatesTroveTab === 'primary'}
-                            className={`trove-picker-tab ${duplicatesTroveTab === 'primary' ? 'trove-picker-tab--active' : ''}${primaryTabInvalid ? ' trove-picker-tab--invalid' : ''}`}
+                            className={`trove-picker-tab ${duplicatesTroveTab === 'primary' ? 'trove-picker-tab--active' : ''}`}
                             onClick={() => setDuplicatesTroveTab('primary')}
                           >
-                            Primary
+                            <span>Primary</span>
+                            {primaryTabInvalid && <img src="/exclamation.png" alt="" className="trove-picker-tab-invalid-icon" aria-hidden="true" />}
                           </button>
                           <button
                             type="button"
                             role="tab"
                             aria-selected={duplicatesTroveTab === 'compare'}
-                            className={`trove-picker-tab ${duplicatesTroveTab === 'compare' ? 'trove-picker-tab--active' : ''}${compareTabInvalid ? ' trove-picker-tab--invalid' : ''}`}
+                            className={`trove-picker-tab ${duplicatesTroveTab === 'compare' ? 'trove-picker-tab--active' : ''}`}
                             onClick={() => setDuplicatesTroveTab('compare')}
                           >
-                            Compare
+                            <span>Compare</span>
+                            {compareTabInvalid && <img src="/exclamation.png" alt="" className="trove-picker-tab-invalid-icon" aria-hidden="true" />}
                           </button>
                         </>
                       )

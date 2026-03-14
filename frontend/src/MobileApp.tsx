@@ -1658,19 +1658,21 @@ onClick={() => {
                     type="button"
                     role="tab"
                     aria-selected={trovePickerSubTab === 'primary'}
-                    className={`mobile-primary-compare-tab ${trovePickerSubTab === 'primary' ? 'mobile-primary-compare-tab--active' : ''}${primaryTabInvalid ? ' mobile-primary-compare-tab--invalid' : ''}`}
+                    className={`mobile-primary-compare-tab ${trovePickerSubTab === 'primary' ? 'mobile-primary-compare-tab--active' : ''}`}
                     onClick={() => setTrovePickerSubTab('primary')}
                   >
-                    Primary
+                    <span>Primary</span>
+                    {primaryTabInvalid && <img src="/exclamation.png" alt="" className="mobile-primary-compare-tab-invalid-icon" aria-hidden="true" />}
                   </button>
                   <button
                     type="button"
                     role="tab"
                     aria-selected={trovePickerSubTab === 'compare'}
-                    className={`mobile-primary-compare-tab ${trovePickerSubTab === 'compare' ? 'mobile-primary-compare-tab--active' : ''}${compareTabInvalid ? ' mobile-primary-compare-tab--invalid' : ''}`}
+                    className={`mobile-primary-compare-tab ${trovePickerSubTab === 'compare' ? 'mobile-primary-compare-tab--active' : ''}`}
                     onClick={() => setTrovePickerSubTab('compare')}
                   >
-                    Compare
+                    <span>Compare</span>
+                    {compareTabInvalid && <img src="/exclamation.png" alt="" className="mobile-primary-compare-tab-invalid-icon" aria-hidden="true" />}
                   </button>
                 </div>
               )
