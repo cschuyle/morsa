@@ -1,0 +1,44 @@
+# Release notes
+
+## Unreleased
+
+*(Tag created when deploy runs.)*
+
+### Media picker
+- **Hit counts in media dropdown:** (e.g. PDF (45)) in deep purple, bold.
+
+### Deploy and tooling
+- **deploy-container-to-registry.sh:** After a successful image push, create an annotated git tag with the version and push it to origin.
+- **AGENTS.md:** Commit message preferences (bullet points for self-generated messages; file-touched lists rarely needed; spell-check blurbs); release process (“Do a release”) and this file (RELEASE_NOTES.md).
+- **Java:** Apply brace rule to if-else bodies (always use braces); codebase updated and documented in AGENTS.md.
+
+## release-v20260313-1854-4cb554c
+
+This is the last pushed Docker image prior to starting to track release notes. I created tha tag manually so that I can run the release process with a previous tag.
+
+Maybe if I get bored I'll backfill previous releases.
+
+These are the only ones that we can record easily. Prior these I was just pushing `:latest` and was not using tags.
+
+From earliest to latest:
+```
+20260310-4784-1191ff3
+20260310-7955-3e71a7f
+20260311-397-f9f129f
+20260311-560-04a7aa2
+20260311-775-ba8e0d0
+20260311-974-aaca399
+20260311-1138-b48825a
+20260311-1282-1a498d8
+20260311-1419-e48e50b
+20260311-1578-af5334c
+20260311-0436-d530f23
+20260312-1700-798e517
+20260312-1808-4f785b9
+20260312-2209-fbf18c5
+20260313-0110-f794a09
+20260313-0132-9555869
+20260313-0422-f528958
+20260313-1714-b3ac690
+20260313-1728-b3ac690
+```

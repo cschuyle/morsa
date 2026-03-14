@@ -30,6 +30,15 @@ Add your preferences below. For example:
     - Search requests from the UI
     - UI rendering in general
 
+- **Release process ("Do a release"):** When the user asks to do a release, follow this sequence:
+    1. Ensure the working tree is clean (everything committed). If not, stop and ask them to commit or stash.
+    2. Run the frontend test suite and the backend test suite. If either fails, stop and report; do not proceed to release.
+    3. Generate release notes: find the most recent tag (from the deploy script), and summarize commits since that tag into release notes. If there is no previous tag, use all commits since the first commit. Write the notes into **RELEASE_NOTES.md** (see below).
+    4. Let the user review and edit RELEASE_NOTES.md, then they commit it (e.g. "Release notes for \<version\>").
+    5. After the release-notes commit is done, run **./deploy-container-to-registry.sh**. It builds the image, pushes to the registry, and creates and pushes a git tag for this release.
+
+    Release notes live in a single file **RELEASE_NOTES.md** at the repo root. Each release has a section (e.g. `## YYYYMMDD-HHMM-abc1234` or `## Unreleased` for the next release). New notes are added for the release being cut; keep the file so it accumulates history (newest section at the top or bottom, per your preference).
+
 ## Known regressions and fixes
 
 Document regressions here (what broke, where, and how it was fixed) so agents can avoid reintroducing them.
