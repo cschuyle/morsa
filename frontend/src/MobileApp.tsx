@@ -2043,23 +2043,19 @@ onClick={() => {
                 ? `Reloading ${reloadTrovesProgress.total} troves`
                 : 'Reloading troves'}
             </p>
-            <div className={`reload-troves-progress-wrap ${reloadTrovesProgress.total === 0 ? 'reload-troves-progress-indeterminate-wrap' : ''}`}>
-              {reloadTrovesProgress.total > 0 ? (
-                <>
-                  <div className="reload-troves-progress-track">
-                    <div
-                      className="reload-troves-progress-fill"
-                      style={{ width: `${Math.round((reloadTrovesProgress.current / reloadTrovesProgress.total) * 100)}%` }}
-                    />
-                    <span className="reload-troves-progress-percent">
-                      {Math.round((reloadTrovesProgress.current / reloadTrovesProgress.total) * 100)}%
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="reload-troves-progress-bar reload-troves-progress-indeterminate" />
-              )}
-            </div>
+            {reloadTrovesProgress.total > 0 && (
+              <div className="reload-troves-progress-wrap">
+                <div className="reload-troves-progress-track">
+                  <div
+                    className="reload-troves-progress-fill"
+                    style={{ width: `${Math.round((reloadTrovesProgress.current / reloadTrovesProgress.total) * 100)}%` }}
+                  />
+                  <span className="reload-troves-progress-percent">
+                    {Math.round((reloadTrovesProgress.current / reloadTrovesProgress.total) * 100)}%
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="reload-troves-actions">
               <button
                 type="button"
