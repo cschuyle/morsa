@@ -1725,6 +1725,7 @@
 .duplicate-row-primary {
   background: #fff;
   font-weight: 500;
+  color: #6633cc;
 }
 
 .duplicate-row-primary td {
@@ -1939,7 +1940,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  color: #333;
+  color: #fff;
   pointer-events: none;
 }
 
