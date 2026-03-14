@@ -13,7 +13,9 @@ Add your preferences below. For example:
       - If I specify a :"blurb" or "purpose" followed by a phrase, I mean that phrase to be the first line in the commit message. Otherwise, feel free to generate your own first line.
         - Feel free to spell-check my blurbs and suggest corrections before committing!
 
-      - The second part of the commit, generate your own bried description that you normally would, including important implementation details. Try to limit it to a handful of lines (5 or so; use your discretion).
+      - The second part of the commit, generate your own brief description that you normally would, including important implementation details. Try to limit it to a handful of lines (5 or so; use your discretion). When you generate this part yourself (rather than using a blurb I gave), use bullet points (prefixed with -) instead of paragraph form when it makes sense.
+
+      - There is rarely a need to add a comment in the git commit which tells which files were touched in the commit, because that info is always available using `git log --raw`.
 
       - If I specify "with details", then after the first and second parts (above), I want you to paste in the summary (or summaries) you gave me for the actions you took on my behalf that are part of this commit.
 
@@ -23,7 +25,7 @@ Add your preferences below. For example:
 
     - Java
         - Always use braces for if-else bodies even if there is only one statement.
-        
+
 - **Other:** When changing code in an area listed below, read the "Known regressions and fixes" section so the same issues are not reintroduced.
     - Search requests from the UI
     - UI rendering in general
