@@ -21,6 +21,9 @@ Add your preferences below. For example:
 
 - **Code style:** Conventions to follow.
 
+    - Java
+        - Always use braces for if-else bodies even if there is only one statement.
+        
 - **Other:** When changing code in an area listed below, read the "Known regressions and fixes" section so the same issues are not reintroduced.
     - Search requests from the UI
     - UI rendering in general

@@ -30,7 +30,9 @@ final class SearchQueryBuilder {
      * True if the query is slash-delimited (e.g. {@code /pattern/}) for regex search.
      */
     static boolean isRegexDelimited(String queryTrimmed) {
-        if (queryTrimmed == null || queryTrimmed.length() < 2) return false;
+        if (queryTrimmed == null || queryTrimmed.length() < 2) {
+            return false;
+        }
         return queryTrimmed.startsWith("/") && queryTrimmed.endsWith("/");
     }
 
@@ -44,11 +46,15 @@ final class SearchQueryBuilder {
             return null;
         }
         List<QueryTerm> terms = parseQueryTerms(queryTrimmed);
-        if (terms.isEmpty()) return null;
+        if (terms.isEmpty()) {
+            return null;
+        }
         BooleanQuery.Builder bq = new BooleanQuery.Builder();
         boolean hasClauses = false;
         for (QueryTerm qt : terms) {
-            if (qt.text().isEmpty()) continue;
+            if (qt.text().isEmpty()) {
+                continue;
+            }
             if (qt.prefix()) {
                 String analyzedPrefix = analyzeToSingleToken(qt.text(), analyzer, contentField);
                 if (analyzedPrefix != null && !analyzedPrefix.isEmpty()) {
@@ -58,7 +64,9 @@ final class SearchQueryBuilder {
             } else {
                 List<String> tokens = tokenize(qt.text(), analyzer, contentField);
                 for (String term : tokens) {
-                    if (term.isEmpty()) continue;
+                    if (term.isEmpty()) {
+                        continue;
+                    }
                     int maxEdits = term.length() <= 3 ? 1 : FUZZY_MAX_EDITS;
                     FuzzyQuery fq = new FuzzyQuery(new Term(contentField, term), maxEdits, FUZZY_PREFIX_LENGTH);
                     bq.add(fq, BooleanClause.Occur.MUST);
@@ -73,12 +81,18 @@ final class SearchQueryBuilder {
 
     static List<QueryTerm> parseQueryTerms(String queryTrimmed) {
         List<QueryTerm> out = new ArrayList<>();
-        if (queryTrimmed == null || queryTrimmed.isEmpty()) return out;
+        if (queryTrimmed == null || queryTrimmed.isEmpty()) {
+            return out;
+        }
         String[] parts = queryTrimmed.trim().split("\\s+");
         for (String part : parts) {
-            if (part == null) continue;
+            if (part == null) {
+                continue;
+            }
             String p = part.trim();
-            if (p.isEmpty()) continue;
+            if (p.isEmpty()) {
+                continue;
+            }
             if (p.endsWith("*")) {
                 String prefix = p.substring(0, p.length() - 1).trim();
                 if (!prefix.isEmpty()) out.add(new QueryTerm(prefix, true));

@@ -64,10 +64,14 @@ public final class CollectionToSearchResultMapper {
         }
         int index = 0;
         for (JsonNode itemWrapper : items) {
-            if (!itemWrapper.isObject()) continue;
+            if (!itemWrapper.isObject()) {
+                continue;
+            }
             String rawSourceItem = toRawSourceItem(itemWrapper);
             JsonNode item = unwrapItem(itemWrapper);
-            if (item == null) continue;
+            if (item == null) {
+                continue;
+            }
             SearchResult r = mapItemToSearchResult(item, rawSourceItem, troveName, troveId, index);
             if (r != null) {
                 out.add(r);
@@ -90,7 +94,9 @@ public final class CollectionToSearchResultMapper {
     /** Each item is an object with one key (e.g. "littlePrinceItem") whose value is the actual item. */
     private static JsonNode unwrapItem(JsonNode itemWrapper) {
         var it = itemWrapper.fields();
-        if (!it.hasNext()) return null;
+        if (!it.hasNext()) {
+            return null;
+        }
         var entry = it.next();
         JsonNode value = entry.getValue();
         if (value != null && value.isObject()) {
@@ -105,8 +111,12 @@ public final class CollectionToSearchResultMapper {
      * Never returns null.
      */
     private static String toRawSourceItem(JsonNode node) {
-        if (node == null || node.isNull()) return "";
-        if (node.isTextual()) return node.asText();
+        if (node == null || node.isNull()) {
+            return "";
+        }
+        if (node.isTextual()) {
+            return node.asText();
+        }
         try {
             return PRETTY_MAPPER.writeValueAsString(node);
         } catch (JsonProcessingException e) {
@@ -143,7 +153,9 @@ public final class CollectionToSearchResultMapper {
     }
 
     private static boolean hasRealThumbnail(String thumbnailUrl) {
-        if (thumbnailUrl == null) return false;
+        if (thumbnailUrl == null) {
+            return false;
+        }
         String normalized = thumbnailUrl.trim();
         return !normalized.isEmpty()
                 && !AMAZON_PLACEHOLDER_THUMB.equals(normalized)
@@ -179,20 +191,32 @@ public final class CollectionToSearchResultMapper {
     }
 
     private static String text(JsonNode node, String field) {
-        if (node == null) return null;
+        if (node == null) {
+            return null;
+        }
         JsonNode v = node.get(field);
-        if (v == null || v.isNull()) return null;
-        if (!v.isTextual()) return v.toString();
+        if (v == null || v.isNull()) {
+            return null;
+        }
+        if (!v.isTextual()) {
+            return v.toString();
+        }
         return v.asText();
     }
 
     private static List<String> textArray(JsonNode node, String field) {
-        if (node == null) return List.of();
+        if (node == null) {
+            return List.of();
+        }
         JsonNode arr = node.get(field);
-        if (arr == null || !arr.isArray() || arr.isEmpty()) return List.of();
+        if (arr == null || !arr.isArray() || arr.isEmpty()) {
+            return List.of();
+        }
         List<String> out = new ArrayList<>(arr.size());
         for (JsonNode v : arr) {
-            if (v == null || v.isNull()) continue;
+            if (v == null || v.isNull()) {
+                continue;
+            }
             if (v.isTextual()) {
                 out.add(v.asText());
             } else {

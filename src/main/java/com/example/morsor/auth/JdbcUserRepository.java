@@ -59,7 +59,9 @@ public class JdbcUserRepository implements UserRepository {
         Map<String, Object> keys = keyHolder.getKeys();
         if (keys != null) {
             Object idObj = keys.get("ID");
-            if (idObj == null) idObj = keys.get("id");
+            if (idObj == null) {
+                idObj = keys.get("id");
+            }
             if (idObj instanceof Number num) {
                 user.setId(num.longValue());
             }

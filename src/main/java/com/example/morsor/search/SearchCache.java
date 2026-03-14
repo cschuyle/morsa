@@ -65,7 +65,9 @@ public class SearchCache {
     }
 
     private static long estimateSize(List<?> list) {
-        if (list == null) return 0;
+        if (list == null) {
+            return 0;
+        }
         return (long) list.size() * ESTIMATED_BYTES_PER_ITEM;
     }
 

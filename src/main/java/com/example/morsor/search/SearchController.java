@@ -74,7 +74,9 @@ public class SearchController {
                 out.write('\n');
                 out.flush();
             } catch (Exception e) {
-                if (e instanceof UncheckedIOException u) throw u;
+                if (e instanceof UncheckedIOException u) {
+                    throw u;
+                }
                 throw new RuntimeException(e);
             } finally {
                 SecurityContextHolder.clearContext();
@@ -130,7 +132,9 @@ public class SearchController {
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<SearchResultWithScore> cmp = comparatorForWithScore(sortBy);
             if (cmp != null) {
-                if (descending) cmp = cmp.reversed();
+                if (descending) {
+                    cmp = cmp.reversed();
+                }
                 all = all.stream().sorted(cmp).toList();
             }
         }
@@ -243,7 +247,9 @@ public class SearchController {
                 out.write('\n');
                 out.flush();
             } catch (Exception e) {
-                if (e instanceof UncheckedIOException u) throw u;
+                if (e instanceof UncheckedIOException u) {
+                    throw u;
+                }
                 throw new RuntimeException(e);
             } finally {
                 SecurityContextHolder.clearContext();
@@ -278,7 +284,9 @@ public class SearchController {
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);
             if (cmp != null) {
-                if (descending) cmp = cmp.reversed();
+                if (descending) {
+                    cmp = cmp.reversed();
+                }
                 all = all.stream().sorted(cmp).toList();
             }
         }
@@ -328,7 +336,9 @@ public class SearchController {
                 if (sortBy != null && !sortBy.isBlank()) {
                     Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);
                     if (cmp != null) {
-                        if (descending) cmp = cmp.reversed();
+                        if (descending) {
+                            cmp = cmp.reversed();
+                        }
                         all = all.stream().sorted(cmp).toList();
                     }
                 }
@@ -342,7 +352,9 @@ public class SearchController {
                 out.write('\n');
                 out.flush();
             } catch (Exception e) {
-                if (e instanceof UncheckedIOException u) throw u;
+                if (e instanceof UncheckedIOException u) {
+                    throw u;
+                }
                 throw new RuntimeException(e);
             } finally {
                 SecurityContextHolder.clearContext();

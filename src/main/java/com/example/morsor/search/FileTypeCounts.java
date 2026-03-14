@@ -40,20 +40,30 @@ public final class FileTypeCounts {
 
     /** Returns true if the result has at least one file with an extension in the set, or has itemUrl when "Link"/"URL" is requested. */
     public static boolean hasFileWithAnyExtension(SearchResult result, Set<String> extensions) {
-        if (extensions == null || extensions.isEmpty()) return false;
-        if ((extensions.contains("LINK") || extensions.contains("URL")) && result.itemUrl() != null && !result.itemUrl().isBlank()) return true;
-        if (result.files() == null) return false;
+        if (extensions == null || extensions.isEmpty()) {
+            return false;
+        }
+        if ((extensions.contains("LINK") || extensions.contains("URL")) && result.itemUrl() != null && !result.itemUrl().isBlank()) {
+            return true;
+        }
+        if (result.files() == null) {
+            return false;
+        }
         for (String url : result.files()) {
             if (url != null) {
                 String ext = extractExtension(url);
-                if (ext != null && extensions.contains(ext)) return true;
+                if (ext != null && extensions.contains(ext)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
     public static String extractExtension(String url) {
-        if (url == null) return null;
+        if (url == null) {
+            return null;
+        }
         int q = url.indexOf('?');
         String path = q >= 0 ? url.substring(0, q) : url;
         int lastDot = path.lastIndexOf('.');
@@ -66,11 +76,15 @@ public final class FileTypeCounts {
     public static List<String> collectFileTypes(List<SearchResultWithScore> results) {
         Set<String> types = new TreeSet<>();
         for (SearchResultWithScore r : results) {
-            if (r.result().itemUrl() != null && !r.result().itemUrl().isBlank()) types.add("Link");
+            if (r.result().itemUrl() != null && !r.result().itemUrl().isBlank()) {
+                types.add("Link");
+            }
             if (r.result().files() != null) {
                 for (String url : r.result().files()) {
                     String ext = extractExtension(url);
-                    if (ext != null && !ext.isEmpty()) types.add(ext);
+                    if (ext != null && !ext.isEmpty()) {
+                        types.add(ext);
+                    }
                 }
             }
         }

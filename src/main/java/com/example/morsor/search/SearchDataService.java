@@ -152,7 +152,9 @@ public class SearchDataService {
                     long ca = loadedItemCountsByTrove.getOrDefault(a, 0L);
                     long cb = loadedItemCountsByTrove.getOrDefault(b, 0L);
                     int byCount = Long.compare(cb, ca);
-                    if (byCount != 0) return byCount;
+                    if (byCount != 0) {
+                        return byCount;
+                    }
                     return String.CASE_INSENSITIVE_ORDER.compare(a, b);
                 })
                 .map(id -> id + "(" + loadedItemCountsByTrove.getOrDefault(id, 0L) + ")")
@@ -194,7 +196,9 @@ public class SearchDataService {
 
     private static boolean isInterruptedOrAborted(Throwable t) {
         for (Throwable x = t; x != null; x = x.getCause()) {
-            if (x.getMessage() != null && x.getMessage().contains("Thread was interrupted")) return true;
+            if (x.getMessage() != null && x.getMessage().contains("Thread was interrupted")) {
+                return true;
+            }
         }
         return false;
     }
@@ -282,8 +286,11 @@ public class SearchDataService {
                     troveId = textOrNull(entry, "trove_id");
                 }
                 String bucketPrefix = textOrNull(entry, "bucketPrefix");
-                if (bucketPrefix != null) bucketPrefix = bucketPrefix.trim();
-                else bucketPrefix = "";
+                if (bucketPrefix != null) {
+                    bucketPrefix = bucketPrefix.trim();
+                } else {
+                    bucketPrefix = "";
+                }
                 if (troveId == null || troveId.isEmpty()) {
                     log.warn("Skipping trove entry with no id (tried id, troveId, trove_id); entry: {}", entry);
                     continue;
@@ -362,12 +369,16 @@ public class SearchDataService {
                             : (resource.getFilename() != null ? resource.getFilename() : "unknown");
                     if (!onlyIds.isEmpty() && !onlyIds.contains(troveId)) {
                         log.debug("Skipping trove \"{}\" (not in moocho.only.trove.ids)", troveId);
-                        if (progress != null) progress.accept(i + 1, total);
+                        if (progress != null) {
+                            progress.accept(i + 1, total);
+                        }
                         continue;
                     }
                     if (excludeIds.contains(troveId)) {
                         log.debug("Skipping trove \"{}\" (in moocho.exclude.trove.ids)", troveId);
-                        if (progress != null) progress.accept(i + 1, total);
+                        if (progress != null) {
+                            progress.accept(i + 1, total);
+                        }
                         continue;
                     }
                     List<SearchResult> results = CollectionToSearchResultMapper.mapRootToSearchResults(root);
@@ -379,7 +390,9 @@ public class SearchDataService {
                     String source = resource.getFilename() != null ? resource.getFilename() : resource.getDescription();
                     loadErrors.add(source + ": " + e.getMessage());
                 }
-                if (progress != null) progress.accept(i + 1, total);
+                if (progress != null) {
+                    progress.accept(i + 1, total);
+                }
             }
         } catch (Exception e) {
             log.error("Failed to resolve trove data from {}: {}", dataLocation, e.getMessage(), e);
@@ -494,12 +507,16 @@ public class SearchDataService {
 
     /** Return a new list sorted so that results from the boosted trove come first (for no-text and regex paths). */
     private static List<ScoredSearchResult> sortWithBoostTroveFirst(List<ScoredSearchResult> list, String boostTroveId) {
-        if (list == null || boostTroveId == null) return list;
+        if (list == null || boostTroveId == null) {
+            return list;
+        }
         List<ScoredSearchResult> copy = new ArrayList<>(list);
         copy.sort((a, b) -> {
             boolean aBoost = boostTroveId.equals(a.result().troveId());
             boolean bBoost = boostTroveId.equals(b.result().troveId());
-            if (aBoost == bBoost) return 0;
+            if (aBoost == bBoost) {
+                return 0;
+            }
             return aBoost ? -1 : 1;
         });
         return copy;
@@ -534,17 +551,25 @@ public class SearchDataService {
     public List<DuplicateMatchRow> searchDuplicates(String primaryTroveId, Set<String> compareTroveIds,
                                                      String query, int maxMatchesPerPrimary,
                                                      BiConsumer<Integer, Integer> progress) {
-        if (primaryTroveId == null || primaryTroveId.isBlank()) return List.of();
+        if (primaryTroveId == null || primaryTroveId.isBlank()) {
+            return List.of();
+        }
         Set<String> compareSet = compareTroveIds == null ? Set.of() : compareTroveIds.stream()
                 .filter(t -> t != null && !t.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
-        if (compareSet.isEmpty()) return List.of();
+        if (compareSet.isEmpty()) {
+            return List.of();
+        }
 
         List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
-        if (primaryScored.isEmpty()) return List.of();
+        if (primaryScored.isEmpty()) {
+            return List.of();
+        }
 
         int total = primaryScored.size();
-        if (progress != null) progress.accept(0, total);
+        if (progress != null) {
+            progress.accept(0, total);
+        }
 
         int maxMatch = Math.max(1, Math.min(maxMatchesPerPrimary, 50));
         List<DuplicateMatchRow> rows = new ArrayList<>(primaryScored.size());
@@ -557,8 +582,12 @@ public class SearchDataService {
             if (!matches.isEmpty()) {
                 rows.add(new DuplicateMatchRow(primary, matches));
             }
-            if (progress != null && ((i + 1) % 31 == 0 || i + 1 == total)) progress.accept(i + 1, total);
-            if ((i + 1) % 500 == 0) log.info("Duplicates analysis: {}/{} items", i + 1, total);
+            if (progress != null && ((i + 1) % 31 == 0 || i + 1 == total)) {
+                progress.accept(i + 1, total);
+            }
+            if ((i + 1) % 500 == 0) {
+                log.info("Duplicates analysis: {}/{} items", i + 1, total);
+            }
         }
         List<DuplicateMatchRow> deduped = deduplicateDuplicateRowsByGroup(rows);
         deduped.sort((a, b) -> Double.compare(maxMatchScore(b), maxMatchScore(a)));
@@ -566,7 +595,9 @@ public class SearchDataService {
     }
 
     private static double maxMatchScore(DuplicateMatchRow row) {
-        if (row.matches() == null || row.matches().isEmpty()) return 0.0;
+        if (row.matches() == null || row.matches().isEmpty()) {
+            return 0.0;
+        }
         return row.matches().stream().mapToDouble(ScoredSearchResult::score).max().orElse(0.0);
     }
 
@@ -580,11 +611,17 @@ public class SearchDataService {
         Map<String, DuplicateMatchRow> byGroup = new HashMap<>();
         for (DuplicateMatchRow row : rows) {
             TreeSet<String> group = new TreeSet<>();
-            if (row.primary() != null && row.primary().id() != null) group.add(row.primary().id());
-            for (ScoredSearchResult m : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
-                if (m.result() != null && m.result().id() != null) group.add(m.result().id());
+            if (row.primary() != null && row.primary().id() != null) {
+                group.add(row.primary().id());
             }
-            if (group.isEmpty()) continue;
+            for (ScoredSearchResult m : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
+                if (m.result() != null && m.result().id() != null) {
+                    group.add(m.result().id());
+                }
+            }
+            if (group.isEmpty()) {
+                continue;
+            }
             String groupKey = String.join(",", group);
             String minId = group.iterator().next();
             if (!byGroup.containsKey(groupKey) || (row.primary() != null && minId.equals(row.primary().id()))) {
@@ -606,17 +643,25 @@ public class SearchDataService {
 
     public List<UniqueResult> searchUniques(String primaryTroveId, Set<String> compareTroveIds, String query,
                                             BiConsumer<Integer, Integer> progress) {
-        if (primaryTroveId == null || primaryTroveId.isBlank()) return List.of();
+        if (primaryTroveId == null || primaryTroveId.isBlank()) {
+            return List.of();
+        }
         Set<String> compareSet = compareTroveIds == null ? Set.of() : compareTroveIds.stream()
                 .filter(t -> t != null && !t.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
-        if (compareSet.isEmpty()) return List.of();
+        if (compareSet.isEmpty()) {
+            return List.of();
+        }
 
         List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
-        if (primaryScored.isEmpty()) return List.of();
+        if (primaryScored.isEmpty()) {
+            return List.of();
+        }
 
         int total = primaryScored.size();
-        if (progress != null) progress.accept(0, total);
+        if (progress != null) {
+            progress.accept(0, total);
+        }
 
         List<UniqueResult> uniquesWithScore = new ArrayList<>(primaryScored.size());
         for (int i = 0; i < primaryScored.size(); i++) {
@@ -635,8 +680,12 @@ public class SearchDataService {
                         .toList();
                 uniquesWithScore.add(new UniqueResult(primary, nearestMiss, topNearMisses));
             }
-            if (progress != null && ((i + 1) % 31 == 0 || i + 1 == total)) progress.accept(i + 1, total);
-            if ((i + 1) % 500 == 0) log.info("Uniques analysis: {}/{} items", i + 1, total);
+            if (progress != null && ((i + 1) % 31 == 0 || i + 1 == total)) {
+                progress.accept(i + 1, total);
+            }
+            if ((i + 1) % 500 == 0) {
+                log.info("Uniques analysis: {}/{} items", i + 1, total);
+            }
         }
         uniquesWithScore.sort(java.util.Comparator.comparingDouble(UniqueResult::score));
         return uniquesWithScore;
@@ -693,15 +742,21 @@ public class SearchDataService {
     private static boolean coreTextMatch(String a, String b) {
         String na = normalizeForComparison(a != null ? a : "");
         String nb = normalizeForComparison(b != null ? b : "");
-        if (na.isEmpty() || nb.isEmpty()) return false;
+        if (na.isEmpty() || nb.isEmpty()) {
+            return false;
+        }
         return na.equals(nb) || nb.contains(na) || na.contains(nb);
     }
 
     /** Lowercase, strip accents, and normalize punctuation so "Léon" vs "Leon" and "2001-" vs "2001:" compare equal. */
     private static String normalizeForComparison(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         String t = s.trim();
-        if (t.isEmpty()) return "";
+        if (t.isEmpty()) {
+            return "";
+        }
         String nfd = Normalizer.normalize(t, Normalizer.Form.NFD);
         String noAccents = nfd.replaceAll("\\p{M}", "");
         String noPunct = noAccents.replaceAll("\\p{P}", " ");
@@ -714,8 +769,12 @@ public class SearchDataService {
         String content = (similarTo.title() != null ? similarTo.title() : "") + " "
                 + (similarTo.snippet() != null ? similarTo.snippet() : "");
         String queryStr = content.trim();
-        if (queryStr.isEmpty()) return List.of();
-        if (luceneSearcher == null) return List.of();
+        if (queryStr.isEmpty()) {
+            return List.of();
+        }
+        if (luceneSearcher == null) {
+            return List.of();
+        }
 
         try {
             BooleanQuery.Builder bq = new BooleanQuery.Builder();
@@ -736,9 +795,11 @@ public class SearchDataService {
                 IndexableField idxField = hitDoc.getField("idx");
                 if (idxField != null && idxField.numericValue() != null) {
                     int idx = idxField.numericValue().intValue();
-                    if (idx >= 0 && idx < allResults.size()) {
+                        if (idx >= 0 && idx < allResults.size()) {
                         SearchResult r = allResults.get(idx);
-                        if (Objects.equals(r.id(), similarTo.id())) continue;
+                        if (Objects.equals(r.id(), similarTo.id())) {
+                            continue;
+                        }
                         out.add(new ScoredSearchResult(r, sd.score));
                     }
                 }

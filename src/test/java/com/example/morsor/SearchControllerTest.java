@@ -90,7 +90,9 @@ class SearchControllerTest {
 
         for (DuplicateMatchRow row : body.rows()) {
             String primaryId = row.primary() != null ? row.primary().id() : null;
-            if (primaryId == null) continue;
+            if (primaryId == null) {
+                continue;
+            }
             for (ScoredSearchResult match : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
                 String matchId = match.result() != null ? match.result().id() : null;
                 assertThat(matchId)
@@ -111,9 +113,13 @@ class SearchControllerTest {
         List<String> groupKeys = body.rows().stream()
                 .map(row -> {
                     TreeSet<String> group = new TreeSet<>();
-                    if (row.primary() != null && row.primary().id() != null) group.add(row.primary().id());
+                    if (row.primary() != null && row.primary().id() != null) {
+                        group.add(row.primary().id());
+                    }
                     for (ScoredSearchResult m : row.matches() != null ? row.matches() : List.<ScoredSearchResult>of()) {
-                        if (m.result() != null && m.result().id() != null) group.add(m.result().id());
+                        if (m.result() != null && m.result().id() != null) {
+                            group.add(m.result().id());
+                        }
                     }
                     return String.join(",", group);
                 })
