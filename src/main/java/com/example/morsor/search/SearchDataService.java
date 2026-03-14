@@ -692,6 +692,70 @@ public class SearchDataService {
     }
 
     /**
+     * One-pass computation of both duplicates and uniques for the same (primary, compare, query).
+     * Used so that a dups request populates the cache for the corresponding uniques request and vice versa.
+     * Duplicate rows are stored with up to 50 matches each; callers may trim to a smaller maxMatches when returning.
+     */
+    public DupUniqPair searchDuplicatesAndUniques(String primaryTroveId, Set<String> compareTroveIds, String query,
+                                                   BiConsumer<Integer, Integer> progress) {
+        if (primaryTroveId == null || primaryTroveId.isBlank()) {
+            return new DupUniqPair(List.of(), List.of());
+        }
+        Set<String> compareSet = compareTroveIds == null ? Set.of() : compareTroveIds.stream()
+                .filter(t -> t != null && !t.isBlank())
+                .collect(Collectors.toUnmodifiableSet());
+        if (compareSet.isEmpty()) {
+            return new DupUniqPair(List.of(), List.of());
+        }
+
+        List<ScoredSearchResult> primaryScored = search(List.of(primaryTroveId), query != null ? query.trim() : "");
+        if (primaryScored.isEmpty()) {
+            return new DupUniqPair(List.of(), List.of());
+        }
+
+        int total = primaryScored.size();
+        if (progress != null) {
+            progress.accept(0, total);
+        }
+
+        List<DuplicateMatchRow> dupRows = new ArrayList<>(primaryScored.size());
+        List<UniqueResult> uniquesWithScore = new ArrayList<>(primaryScored.size());
+        final int maxMatch = 50;
+
+        for (int i = 0; i < primaryScored.size(); i++) {
+            ScoredSearchResult ss = primaryScored.get(i);
+            SearchResult primary = ss.result();
+            List<ScoredSearchResult> rawMatches = findSimilarInTroves(primary, compareSet, maxMatch);
+            List<ScoredSearchResult> filtered = filterMatchesByYearHeuristic(primary, rawMatches);
+            if (!filtered.isEmpty()) {
+                List<ScoredSearchResult> matches = filtered.stream().limit(maxMatch).toList();
+                dupRows.add(new DuplicateMatchRow(primary, matches));
+            } else {
+                double nearestMiss = rawMatches.isEmpty() ? 0.0
+                        : rawMatches.stream().mapToDouble(ScoredSearchResult::score).max().orElse(0.0);
+                TitleWithYear primaryParsed = parseTitleWithYear(primary.title() != null ? primary.title() : "");
+                List<ScoredSearchResult> topNearMisses = rawMatches.stream()
+                        .sorted(java.util.Comparator.comparingDouble(ScoredSearchResult::score).reversed())
+                        .filter(m -> !isYearOnlyMatch(primaryParsed, m.result().title() != null ? m.result().title() : ""))
+                        .limit(5)
+                        .toList();
+                uniquesWithScore.add(new UniqueResult(primary, nearestMiss, topNearMisses));
+            }
+            if (progress != null && ((i + 1) % 31 == 0 || i + 1 == total)) {
+                progress.accept(i + 1, total);
+            }
+            if ((i + 1) % 500 == 0) {
+                log.info("Duplicates/uniques analysis: {}/{} items", i + 1, total);
+            }
+        }
+
+        List<DuplicateMatchRow> deduped = deduplicateDuplicateRowsByGroup(dupRows);
+        deduped.sort((a, b) -> Double.compare(maxMatchScore(b), maxMatchScore(a)));
+        uniquesWithScore.sort(java.util.Comparator.comparingDouble(UniqueResult::score));
+        return new DupUniqPair(deduped, uniquesWithScore);
+    }
+
+    /**
      * Heuristic: if a title ends with (YYYY), the year alone does not make a match.
      * - Both have years and they differ → reject.
      * - Primary has year: candidate core text must match primary core (one contains the other or equal).

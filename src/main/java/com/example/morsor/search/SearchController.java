@@ -188,12 +188,10 @@ public class SearchController {
                 .collect(Collectors.toUnmodifiableSet());
         final String primaryTrimmed = primaryTrove.trim();
         final String queryVal = query != null ? query : "*";
-        String cacheKey = "d:" + primaryTrimmed + ":"
-                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
-                + queryVal + ":" + maxMatchesVal;
-        SearchCache.CacheResult<DuplicateMatchRow> cacheResult = searchCache.getOrCompute(cacheKey,
-                () -> searchDataService.searchDuplicates(primaryTrimmed, compareSet, queryVal, maxMatchesVal));
-        List<DuplicateMatchRow> all = cacheResult.data();
+        String cacheKey = dupUniqCacheKey(primaryTrimmed, compareSet, queryVal);
+        SearchCache.DupUniqCacheResult cacheResult = searchCache.getOrComputeDupUniq(cacheKey,
+                () -> searchDataService.searchDuplicatesAndUniques(primaryTrimmed, compareSet, queryVal, null));
+        List<DuplicateMatchRow> all = trimDuplicateMatches(cacheResult.pair().duplicates(), maxMatchesVal);
         long total = all.size();
         int from = (int) Math.min((long) pageNum * pageSize, total);
         int to = (int) Math.min(from + pageSize, total);
@@ -218,16 +216,14 @@ public class SearchController {
                 .collect(Collectors.toUnmodifiableSet());
         final String primaryTrimmed = primaryTrove.trim();
         final String queryVal = query != null ? query : "*";
-        String cacheKey = "d:" + primaryTrimmed + ":"
-                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
-                + queryVal + ":" + maxMatchesVal;
+        String cacheKey = dupUniqCacheKey(primaryTrimmed, compareSet, queryVal);
         ObjectMapper om = this.objectMapper;
         SecurityContext securityContext = SecurityContextHolder.getContext();
         StreamingResponseBody stream = out -> {
             try {
                 SecurityContextHolder.setContext(securityContext);
-                SearchCache.CacheResult<DuplicateMatchRow> cacheResult = searchCache.getOrCompute(cacheKey, () ->
-                        searchDataService.searchDuplicates(primaryTrimmed, compareSet, queryVal, maxMatchesVal, (current, total) -> {
+                SearchCache.DupUniqCacheResult cacheResult = searchCache.getOrComputeDupUniq(cacheKey, () ->
+                        searchDataService.searchDuplicatesAndUniques(primaryTrimmed, compareSet, queryVal, (current, total) -> {
                             try {
                                 out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
                                 out.write('\n');
@@ -236,7 +232,7 @@ public class SearchController {
                                 throw new UncheckedIOException(e);
                             }
                         }));
-                List<DuplicateMatchRow> all = cacheResult.data();
+                List<DuplicateMatchRow> all = trimDuplicateMatches(cacheResult.pair().duplicates(), maxMatchesVal);
                 long total = all.size();
                 int from = (int) Math.min((long) pageNum * pageSize, total);
                 int to = (int) Math.min(from + pageSize, total);
@@ -274,12 +270,12 @@ public class SearchController {
         Set<String> compareSet = compareTrove == null ? Set.of() : compareTrove.stream()
                 .filter(t -> t != null && !t.isBlank())
                 .collect(Collectors.toUnmodifiableSet());
-        String cacheKey = "u:" + primaryTrove.trim() + ":"
-                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":"
-                + (query != null ? query : "*");
-        SearchCache.CacheResult<UniqueResult> cacheResult = searchCache.getOrCompute(cacheKey,
-                () -> searchDataService.searchUniques(primaryTrove.trim(), compareSet, query));
-        List<UniqueResult> all = cacheResult.data();
+        final String primaryTrimmed = primaryTrove.trim();
+        final String queryVal = query != null ? query : "*";
+        String cacheKey = dupUniqCacheKey(primaryTrimmed, compareSet, queryVal);
+        SearchCache.DupUniqCacheResult cacheResult = searchCache.getOrComputeDupUniq(cacheKey,
+                () -> searchDataService.searchDuplicatesAndUniques(primaryTrimmed, compareSet, queryVal, null));
+        List<UniqueResult> all = cacheResult.pair().uniques();
         boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
         if (sortBy != null && !sortBy.isBlank()) {
             Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);
@@ -314,15 +310,14 @@ public class SearchController {
                 .collect(Collectors.toUnmodifiableSet());
         final String primaryTrimmed = primaryTrove.trim();
         final String queryVal = query != null ? query : "*";
-        String cacheKey = "u:" + primaryTrimmed + ":"
-                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":" + queryVal;
+        String cacheKey = dupUniqCacheKey(primaryTrimmed, compareSet, queryVal);
         ObjectMapper om = this.objectMapper;
         SecurityContext securityContext = SecurityContextHolder.getContext();
         StreamingResponseBody stream = out -> {
             try {
                 SecurityContextHolder.setContext(securityContext);
-                SearchCache.CacheResult<UniqueResult> cacheResult = searchCache.getOrCompute(cacheKey, () ->
-                        searchDataService.searchUniques(primaryTrimmed, compareSet, queryVal, (current, total) -> {
+                SearchCache.DupUniqCacheResult cacheResult = searchCache.getOrComputeDupUniq(cacheKey, () ->
+                        searchDataService.searchDuplicatesAndUniques(primaryTrimmed, compareSet, queryVal, (current, total) -> {
                             try {
                                 out.write(om.writeValueAsBytes(Map.of("type", "progress", "current", current, "total", total)));
                                 out.write('\n');
@@ -331,7 +326,7 @@ public class SearchController {
                                 throw new UncheckedIOException(e);
                             }
                         }));
-                List<UniqueResult> all = cacheResult.data();
+                List<UniqueResult> all = cacheResult.pair().uniques();
                 boolean descending = "desc".equalsIgnoreCase(sortDir != null ? sortDir : "asc");
                 if (sortBy != null && !sortBy.isBlank()) {
                     Comparator<UniqueResult> cmp = uniquesComparatorFor(sortBy);
@@ -363,6 +358,21 @@ public class SearchController {
         return org.springframework.http.ResponseEntity.ok()
                 .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "application/x-ndjson; charset=utf-8")
                 .body(stream);
+    }
+
+    private static String dupUniqCacheKey(String primaryTrimmed, Set<String> compareSet, String queryVal) {
+        return "dupuniq:" + primaryTrimmed + ":"
+                + compareSet.stream().sorted().collect(Collectors.joining(",")) + ":" + queryVal;
+    }
+
+    private static List<DuplicateMatchRow> trimDuplicateMatches(List<DuplicateMatchRow> rows, int maxMatches) {
+        if (maxMatches >= 50) {
+            return rows;
+        }
+        return rows.stream()
+                .map(row -> new DuplicateMatchRow(row.primary(),
+                        row.matches().size() <= maxMatches ? row.matches() : row.matches().stream().limit(maxMatches).toList()))
+                .toList();
     }
 
     private static Comparator<UniqueResult> uniquesComparatorFor(String sortBy) {

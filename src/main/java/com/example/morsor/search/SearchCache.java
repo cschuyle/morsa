@@ -19,7 +19,7 @@ public class SearchCache {
 
     private final long ttlMs;
     private final long maxBytes;
-    private final ConcurrentHashMap<String, Entry<?>> cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Entry> cache = new ConcurrentHashMap<>();
     private long totalBytes;
 
     public SearchCache(
@@ -34,7 +34,7 @@ public class SearchCache {
      */
     public <T> CacheResult<T> getOrCompute(String key, java.util.function.Supplier<List<T>> supplier) {
         long now = System.currentTimeMillis();
-        Entry<?> entry = cache.get(key);
+        Entry entry = cache.get(key);
         if (entry != null && now < entry.expiryAt) {
             @SuppressWarnings("unchecked")
             List<T> data = (List<T>) entry.data;
@@ -47,15 +47,40 @@ public class SearchCache {
             if (totalBytes + estimatedBytes > this.maxBytes) {
                 return new CacheResult<>(data, false);
             }
-            cache.put(key, new Entry<>(data, now + ttlMs, estimatedBytes));
+            cache.put(key, new Entry(data, now + ttlMs, estimatedBytes));
             totalBytes += estimatedBytes;
         }
         return new CacheResult<>(data, true);
     }
 
+    /**
+     * Get or compute a dup+uniques pair under one key so that dups and uniques requests share the same computation.
+     *
+     * @return result with the pair and whether it was cached
+     */
+    public DupUniqCacheResult getOrComputeDupUniq(String key, java.util.function.Supplier<DupUniqPair> supplier) {
+        long now = System.currentTimeMillis();
+        Entry entry = cache.get(key);
+        if (entry != null && now < entry.expiryAt) {
+            DupUniqPair data = (DupUniqPair) entry.data;
+            return new DupUniqCacheResult(data, true);
+        }
+        DupUniqPair data = supplier.get();
+        long estimatedBytes = estimateSize(data.duplicates()) + estimateSize(data.uniques());
+        synchronized (this) {
+            evictExpired(now);
+            if (totalBytes + estimatedBytes > this.maxBytes) {
+                return new DupUniqCacheResult(data, false);
+            }
+            cache.put(key, new Entry(data, now + ttlMs, estimatedBytes));
+            totalBytes += estimatedBytes;
+        }
+        return new DupUniqCacheResult(data, true);
+    }
+
     private void evictExpired(long now) {
         cache.entrySet().removeIf(e -> {
-            Entry<?> ent = e.getValue();
+            Entry ent = e.getValue();
             if (now >= ent.expiryAt) {
                 totalBytes -= ent.estimatedBytes;
                 return true;
@@ -90,12 +115,15 @@ public class SearchCache {
 
     public record CacheResult<T>(List<T> data, boolean cached) {}
 
-    private static class Entry<T> {
-        final List<T> data;
+    /** Result for getOrComputeDupUniq; pair is the cached or freshly computed dup+uniques. */
+    public record DupUniqCacheResult(DupUniqPair pair, boolean cached) {}
+
+    private static class Entry {
+        final Object data;
         final long expiryAt;
         final long estimatedBytes;
 
-        Entry(List<T> data, long expiryAt, long estimatedBytes) {
+        Entry(Object data, long expiryAt, long estimatedBytes) {
             this.data = data;
             this.expiryAt = expiryAt;
             this.estimatedBytes = estimatedBytes;
