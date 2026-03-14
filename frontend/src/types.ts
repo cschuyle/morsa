@@ -44,6 +44,24 @@ export interface UniqueResultRow {
   nearMisses?: Array<{ result?: SearchResultRow; score?: number }>
 }
 
+/** Duplicates API response */
+export interface DuplicatesResultData {
+  total: number
+  page: number
+  size: number
+  rows: DuplicateRow[]
+  warning?: string
+}
+
+/** Uniques API response */
+export interface UniquesResultData {
+  total: number
+  page: number
+  size: number
+  results: UniqueResultRow[]
+  warning?: string
+}
+
 /** Lightbox payload for SearchResultsGrid thumbnail click */
 export interface LightboxPayload {
   imageUrl?: string | null

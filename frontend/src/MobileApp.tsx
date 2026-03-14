@@ -1,6 +1,7 @@
-// @ts-nocheck - TODO: add explicit state/ref types (searchResult, troves, sort, abort refs, etc.)
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
+import type { SearchResultData, SearchResultRow, Trove, DuplicatesResultData, UniquesResultData } from './types'
+import type { FileTypeQuickModeValue } from './fileTypeQuickMode'
 import { getApiAuthHeaders } from './apiAuth'
 import { getCsrfToken } from './getCsrfToken'
 import { performLogout } from './performLogout'
@@ -18,7 +19,13 @@ const MOBILE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 250, 500]
 const DUP_UNIQUES_PAGE_SIZE = 50
 const AMAZON_PLACEHOLDER_THUMB = 'https://m.media-amazon.com/images/I/01RmK+J4pJL._SS135_.gif'
 
-function hasUsableThumbnail(row) {
+interface FileTypePanelRect {
+  top: number
+  left: number
+  width: number
+}
+
+function hasUsableThumbnail(row: SearchResultRow | undefined | null): boolean {
   if (row?.hasThumbnail === true) return true
   const thumbnailUrl = row?.thumbnailUrl
   if (!thumbnailUrl || !String(thumbnailUrl).trim()) return false
@@ -27,40 +34,40 @@ function hasUsableThumbnail(row) {
 }
 
 function MobileApp() {
-  const [troves, setTroves] = useState([])
-  const [searchMode, setSearchMode] = useState('search') // 'search' | 'duplicates' | 'uniques'
-  const [selectedTroveIds, setSelectedTroveIds] = useState(() => new Set())
+  const [troves, setTroves] = useState<Trove[]>([])
+  const [searchMode, setSearchMode] = useState<'search' | 'duplicates' | 'uniques'>('search')
+  const [selectedTroveIds, setSelectedTroveIds] = useState<Set<string>>(() => new Set())
   const [dupPrimaryTroveId, setDupPrimaryTroveId] = useState('')
-  const [dupCompareTroveIds, setDupCompareTroveIds] = useState(() => new Set())
+  const [dupCompareTroveIds, setDupCompareTroveIds] = useState<Set<string>>(() => new Set())
   const [uniqPrimaryTroveId, setUniqPrimaryTroveId] = useState('')
-  const [uniqCompareTroveIds, setUniqCompareTroveIds] = useState(() => new Set())
-  const [trovePickerSubTab, setTrovePickerSubTab] = useState('primary') // 'primary' | 'compare' when dup/uniques
+  const [uniqCompareTroveIds, setUniqCompareTroveIds] = useState<Set<string>>(() => new Set())
+  const [trovePickerSubTab, setTrovePickerSubTab] = useState<'primary' | 'compare'>('primary')
   const [freezeTroveListOrder, setFreezeTroveListOrder] = useState(false)
-  const [boostTroveId, setBoostTroveId] = useState(null)
+  const [boostTroveId, setBoostTroveId] = useState<string | null>(null)
   const primaryTroveId = searchMode === 'duplicates' ? dupPrimaryTroveId : uniqPrimaryTroveId
   const compareTroveIds = searchMode === 'duplicates' ? dupCompareTroveIds : uniqCompareTroveIds
   const setPrimaryTroveId = searchMode === 'duplicates' ? setDupPrimaryTroveId : setUniqPrimaryTroveId
   const setCompareTroveIds = searchMode === 'duplicates' ? setDupCompareTroveIds : setUniqCompareTroveIds
   const [query, setQuery] = useState('')
-  const [searchResult, setSearchResult] = useState(null)
-  const [starSortBy, setStarSortBy] = useState(null)
-  const [starSortDir, setStarSortDir] = useState(null)
-  const [otherSortBy, setOtherSortBy] = useState(null)
-  const [otherSortDir, setOtherSortDir] = useState(null)
+  const [searchResult, setSearchResult] = useState<SearchResultData | null>(null)
+  const [starSortBy, setStarSortBy] = useState<string | null>(null)
+  const [starSortDir, setStarSortDir] = useState<'asc' | 'desc' | null>(null)
+  const [otherSortBy, setOtherSortBy] = useState<string | null>(null)
+  const [otherSortDir, setOtherSortDir] = useState<'asc' | 'desc' | null>(null)
   const [searching, setSearching] = useState(false)
   const [page, setPage] = useState(0)
-  const [duplicatesResult, setDuplicatesResult] = useState(null)
-  const [duplicatesSortBy, setDuplicatesSortBy] = useState(null)
-  const [duplicatesSortDir, setDuplicatesSortDir] = useState('asc')
+  const [duplicatesResult, setDuplicatesResult] = useState<DuplicatesResultData | null>(null)
+  const [duplicatesSortBy, setDuplicatesSortBy] = useState<string | null>(null)
+  const [duplicatesSortDir, setDuplicatesSortDir] = useState<'asc' | 'desc'>('asc')
   const [duplicatesPage, setDuplicatesPage] = useState(0)
-  const [uniquesResult, setUniquesResult] = useState(null)
+  const [uniquesResult, setUniquesResult] = useState<UniquesResultData | null>(null)
   const [uniquesPage, setUniquesPage] = useState(0)
-  const [uniquesSortBy, setUniquesSortBy] = useState(null)
-  const [uniquesSortDir, setUniquesSortDir] = useState('asc')
+  const [uniquesSortBy, setUniquesSortBy] = useState<string | null>(null)
+  const [uniquesSortDir, setUniquesSortDir] = useState<'asc' | 'desc'>('asc')
   const [mobileSearchPageInput, setMobileSearchPageInput] = useState('')
   const [showTrovePicker, setShowTrovePicker] = useState(false)
   const [trovePickerFilter, setTrovePickerFilter] = useState('')
-  const [searchError, setSearchError] = useState(null)
+  const [searchError, setSearchError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState('')
   const [statusTooltip, setStatusTooltip] = useState('')
   const [cacheEntries, setCacheEntries] = useState(0)
@@ -68,18 +75,18 @@ function MobileApp() {
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
   const [reloadTrovesProgress, setReloadTrovesProgress] = useState({ current: 0, total: 0 })
-  const [fileTypeFilters, setFileTypeFilters] = useState(() => {
+  const [fileTypeFilters, setFileTypeFilters] = useState<Set<string>>(() => {
     const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
     return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
   })
-  const [fileTypeQuickMode, setFileTypeQuickMode] = useState(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq'))) // Any | Meh only, default Meh
+  const [fileTypeQuickMode, setFileTypeQuickMode] = useState<FileTypeQuickModeValue>(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq')))
   const [thumbnailOnly, setThumbnailOnly] = useState(() => new URLSearchParams(window.location.search).get('thumbs') === '1')
-  const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
+  const [allAvailableFileTypes, setAllAvailableFileTypes] = useState<string[]>([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
-  const [fileTypePanelRect, setFileTypePanelRect] = useState(null)
+  const [fileTypePanelRect, setFileTypePanelRect] = useState<FileTypePanelRect | null>(null)
   const [pageSizeDropdownOpen, setPageSizeDropdownOpen] = useState(false)
   const [gallerySortDropdownOpen, setGallerySortDropdownOpen] = useState(false)
-  const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery'
+  const [searchResultsViewMode, setSearchResultsViewMode] = useState<'list' | 'gallery'>('list')
   const [galleryDecorate, setGalleryDecorate] = useState(true)
   const [copiedUrlFlare, setCopiedUrlFlare] = useState(false)
   const [shareIconFlash, setShareIconFlash] = useState(false)
@@ -94,14 +101,14 @@ function MobileApp() {
   const skipViewModeSearchRef = useRef(false)
   const skipPageNavSearchRef = useRef(false)
   const lastFileTypeOrViewSearchRef = useRef(0)
-  const abortRef = useRef(null)
+  const abortRef = useRef<AbortController | null>(null)
   const searchRequestIdRef = useRef(0)
-  const reloadAbortControllerRef = useRef(null)
-  const fileTypeDropdownRef = useRef(null)
-  const pageSizeDropdownRef = useRef(null)
-  const gallerySortDropdownRef = useRef(null)
-  const copyFlareTimeoutRef = useRef(null)
-  const mobileMainRef = useRef(null)
+  const reloadAbortControllerRef = useRef<AbortController | null>(null)
+  const fileTypeDropdownRef = useRef<HTMLDivElement | null>(null)
+  const pageSizeDropdownRef = useRef<HTMLDivElement | null>(null)
+  const gallerySortDropdownRef = useRef<HTMLDivElement | null>(null)
+  const copyFlareTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const mobileMainRef = useRef<HTMLElement | null>(null)
   const [mobileMainGapTopOpen, setMobileMainGapTopOpen] = useState(true)
   const [mobileMainGapBottomOpen, setMobileMainGapBottomOpen] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -133,7 +140,7 @@ function MobileApp() {
     setFileTypePanelRect({ top: rect.bottom + 4, left, width: panelWidth })
   }, [fileTypeDropdownOpen])
 
-  function urlTroveId(value, troveList) {
+  function urlTroveId(value: string | null | undefined, troveList: Trove[] | undefined | null): string | null {
     if (!value || !troveList?.length) return value || null
     const t = troveList.find((x) => x.id === value || (x.name && x.name === value))
     return t ? t.id : value
@@ -186,7 +193,13 @@ function MobileApp() {
     }
   }, [searchParams, troves])
 
-  function buildSearchParams(fileTypesSet = null, searchTrovesOverride = null, boostOverride = undefined, thumbnailOnlyOverride = undefined, quickModeOverride = undefined) {
+  function buildSearchParams(
+    fileTypesSet: Set<string> | null = null,
+    searchTrovesOverride: Set<string> | null = null,
+    boostOverride: string | null | undefined = undefined,
+    thumbnailOnlyOverride?: boolean,
+    quickModeOverride?: FileTypeQuickModeValue
+  ): URLSearchParams {
     const next = new URLSearchParams()
     if (searchMode !== 'search') next.set('mode', searchMode)
     const qTrim = (query ?? '').trim()
@@ -219,7 +232,7 @@ function MobileApp() {
     return next
   }
 
-  function buildSearchParamsForMode(mode, primary, compare) {
+  function buildSearchParamsForMode(mode: 'search' | 'duplicates' | 'uniques', primary: string, compare: Set<string>): URLSearchParams {
     const next = new URLSearchParams()
     if (mode !== 'search') next.set('mode', mode)
     const qTrim = (query ?? '').trim()
@@ -274,8 +287,8 @@ function MobileApp() {
 
   useEffect(() => {
     if (!fileTypeDropdownOpen) return
-    function handleClickOutside(e) {
-      if (fileTypeDropdownRef.current && !fileTypeDropdownRef.current.contains(e.target)) {
+    function handleClickOutside(e: MouseEvent) {
+      if (fileTypeDropdownRef.current && !fileTypeDropdownRef.current.contains(e.target as Node)) {
         setFileTypeDropdownOpen(false)
       }
     }
@@ -285,8 +298,8 @@ function MobileApp() {
 
   useEffect(() => {
     if (!pageSizeDropdownOpen) return
-    function handleClickOutside(e) {
-      if (pageSizeDropdownRef.current && !pageSizeDropdownRef.current.contains(e.target)) {
+    function handleClickOutside(e: MouseEvent) {
+      if (pageSizeDropdownRef.current && !pageSizeDropdownRef.current.contains(e.target as Node)) {
         setPageSizeDropdownOpen(false)
       }
     }
@@ -296,7 +309,7 @@ function MobileApp() {
 
   useEffect(() => {
     if (!fileTypeDropdownOpen) return
-    function handleEscape(e) {
+    function handleEscape(e: KeyboardEvent) {
       if (e.key === 'Escape') setFileTypeDropdownOpen(false)
     }
     window.addEventListener('keydown', handleEscape)
@@ -305,7 +318,7 @@ function MobileApp() {
 
   useEffect(() => {
     if (!pageSizeDropdownOpen) return
-    function handleEscape(e) {
+    function handleEscape(e: KeyboardEvent) {
       if (e.key === 'Escape') setPageSizeDropdownOpen(false)
     }
     window.addEventListener('keydown', handleEscape)
@@ -314,8 +327,8 @@ function MobileApp() {
 
   useEffect(() => {
     if (!gallerySortDropdownOpen) return
-    function handleClickOutside(e) {
-      if (gallerySortDropdownRef.current && !gallerySortDropdownRef.current.contains(e.target)) {
+    function handleClickOutside(e: MouseEvent) {
+      if (gallerySortDropdownRef.current && !gallerySortDropdownRef.current.contains(e.target as Node)) {
         setGallerySortDropdownOpen(false)
       }
     }
@@ -325,7 +338,7 @@ function MobileApp() {
 
   useEffect(() => {
     if (!gallerySortDropdownOpen) return
-    function handleEscape(e) {
+    function handleEscape(e: KeyboardEvent) {
       if (e.key === 'Escape') setGallerySortDropdownOpen(false)
     }
     window.addEventListener('keydown', handleEscape)
@@ -360,7 +373,13 @@ function MobileApp() {
       })
   }
 
-  function fetchSearch(pageNum, sortByOverride = null, sortDirOverride = null, fileTypesOverride = undefined, sizeOverride = undefined) {
+  function fetchSearch(
+    pageNum: number,
+    sortByOverride: string | null = null,
+    sortDirOverride: 'asc' | 'desc' | null = null,
+    fileTypesOverride?: Set<string> | null,
+    sizeOverride?: number | null
+  ): void {
     const size = sizeOverride ?? pageSize
     const q = queryRef.current.trim()
     if (!q) {
@@ -394,13 +413,13 @@ function MobileApp() {
     }
     const url = `/api/search?${params}`
     abortRef.current?.abort()
-    const cached = queryCache.get(url)
+    const cached = queryCache.get(url) as SearchResultData | null | undefined
     if (cached) {
       setSearchResult(cached)
       if (Array.isArray(cached?.availableFileTypes) && cached.availableFileTypes.length > 0) {
         setAllAvailableFileTypes((prev) => {
-          const next = new Set(prev)
-          cached.availableFileTypes.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
+          const next = new Set<string>(prev)
+          cached.availableFileTypes!.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
           return [...next].sort()
         })
       }
@@ -415,20 +434,20 @@ function MobileApp() {
         if (res.status === 401) { window.location.href = '/login'; return Promise.reject() }
         return res.ok ? res.json() : Promise.reject(new Error(res.statusText))
       })
-      .then((data) => {
+      .then((data: SearchResultData) => {
         if (searchRequestIdRef.current !== requestId) return
         queryCache.set(url, data)
         setSearchResult(data)
         if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
           setAllAvailableFileTypes((prev) => {
-            const next = new Set(prev)
-            data.availableFileTypes.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
+            const next = new Set<string>(prev)
+            data.availableFileTypes!.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
             return [...next].sort()
           })
         }
         refreshStatusMessage()
       })
-      .catch((err) => {
+      .catch((err: { name?: string }) => {
         if (err.name !== 'AbortError' && searchRequestIdRef.current === requestId) {
           setSearchResult({ count: 0, results: [], page: 0, size })
         }
@@ -438,10 +457,16 @@ function MobileApp() {
       })
   }
 
-  async function readCompareStream(url, signal, onProgress, onDone) {
+  async function readCompareStream(
+    url: string,
+    signal: AbortSignal,
+    onProgress: (current: number, total: number) => void,
+    onDone: (result: unknown) => void
+  ): Promise<void> {
     const res = await fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal })
     if (res.status === 401) { window.location.href = '/login'; throw new Error('Unauthorized') }
     if (!res.ok) throw new Error(res.statusText)
+    if (!res.body) throw new Error('No response body')
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
@@ -469,7 +494,7 @@ function MobileApp() {
     }
   }
 
-  function fetchDuplicates(pageNum) {
+  function fetchDuplicates(pageNum: number): void {
     const q = queryRef.current.trim() || '*'
     if (!primaryTroveId.trim()) {
       setDuplicatesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, rows: [] })
@@ -489,7 +514,7 @@ function MobileApp() {
     compareTroveIds.forEach((id) => params.append('compareTrove', id))
     const streamUrl = `/api/search/duplicates/stream?${params}`
     const restUrl = `/api/search/duplicates?${params}`
-    const cached = queryCache.get(restUrl)
+    const cached = queryCache.get(restUrl) as DuplicatesResultData | null | undefined
     if (cached) {
       setDuplicatesResult(cached)
       setDuplicatesPage(pageNum)
@@ -501,7 +526,8 @@ function MobileApp() {
     setSearching(true)
     setSearchError(null)
     setCompareProgress({ current: 0, total: 0 })
-    readCompareStream(streamUrl, controller.signal, (current, total) => setCompareProgress({ current, total }), (data) => {
+    readCompareStream(streamUrl, controller.signal, (current, total) => setCompareProgress({ current, total }), (result) => {
+      const data = result as DuplicatesResultData
       queryCache.set(restUrl, data)
       setDuplicatesResult(data)
       setDuplicatesPage(pageNum)
@@ -510,7 +536,7 @@ function MobileApp() {
     }).catch((err) => { if (err.name !== 'AbortError') setSearchError(err.message) }).finally(() => { setSearching(false); setCompareProgress({ current: 0, total: 0 }) })
   }
 
-  function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null) {
+  function fetchUniques(pageNum: number, sortByOverride: string | null = null, sortDirOverride: 'asc' | 'desc' | null = null): void {
     const q = queryRef.current.trim() || '*'
     if (!primaryTroveId.trim()) {
       setUniquesResult({ total: 0, page: 0, size: DUP_UNIQUES_PAGE_SIZE, results: [] })
@@ -539,7 +565,7 @@ function MobileApp() {
     compareTroveIds.forEach((id) => params.append('compareTrove', id))
     const streamUrl = `/api/search/uniques/stream?${params}`
     const restUrl = `/api/search/uniques?${params}`
-    const cached = queryCache.get(restUrl)
+    const cached = queryCache.get(restUrl) as UniquesResultData | null | undefined
     if (cached) {
       setUniquesResult(cached)
       setUniquesPage(pageNum)
@@ -551,7 +577,8 @@ function MobileApp() {
     setSearching(true)
     setSearchError(null)
     setCompareProgress({ current: 0, total: 0 })
-    readCompareStream(streamUrl, controller.signal, (current, total) => setCompareProgress({ current, total }), (data) => {
+    readCompareStream(streamUrl, controller.signal, (current, total) => setCompareProgress({ current, total }), (result) => {
+      const data = result as UniquesResultData
       queryCache.set(restUrl, data)
       setUniquesResult(data)
       setUniquesPage(pageNum)
@@ -570,7 +597,7 @@ function MobileApp() {
     }
   }, [])
   useEffect(() => {
-    if (searchResult?.results?.length > 0) {
+    if ((searchResult?.results?.length ?? 0) > 0) {
       setShareIconFlash(true)
       const t = setTimeout(() => setShareIconFlash(false), 280)
       return () => clearTimeout(t)
@@ -630,7 +657,7 @@ function MobileApp() {
     setFreezeTroveListOrder(false)
   }, [searchMode])
 
-  const prevBoostTroveIdRef = useRef(undefined)
+  const prevBoostTroveIdRef = useRef<string | null | undefined>(undefined)
 
   function updateMobileMainGapState() {
     const el = mobileMainRef.current
@@ -659,9 +686,9 @@ function MobileApp() {
     page,
     duplicatesPage,
     uniquesPage,
-    searchResult?.count,
-    duplicatesResult?.count,
-    uniquesResult?.count,
+    searchResult?.results?.length ?? 0,
+    duplicatesResult?.total,
+    uniquesResult?.total,
   ])
   useEffect(() => {
     if (searchMode !== 'search') return
@@ -1308,7 +1335,7 @@ onClick={() => {
                         if (anyQuickSelected) return
                         skipFileTypeSearchRef.current = true
                         lastFileTypeOrViewSearchRef.current = Date.now()
-                        const next = new Set(displayFileTypes)
+                        const next = new Set<string>(displayFileTypes)
                         setFileTypeQuickMode(FileTypeQuickMode.Any)
                         setFileTypeFilters(next)
                         setSearchParams(buildSearchParams(next, null, undefined, undefined, FileTypeQuickMode.Any), { replace: true })
@@ -1325,7 +1352,7 @@ onClick={() => {
                         if (mehQuickSelected) return
                         skipFileTypeSearchRef.current = true
                         lastFileTypeOrViewSearchRef.current = Date.now()
-                        const next = new Set()
+                        const next = new Set<string>()
                         setFileTypeQuickMode(FileTypeQuickMode.Meh)
                         setFileTypeFilters(next)
                         setSearchParams(buildSearchParams(next, null, undefined, undefined, FileTypeQuickMode.Meh), { replace: true })

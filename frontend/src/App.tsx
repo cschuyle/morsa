@@ -1,6 +1,7 @@
-// @ts-nocheck - TODO: add explicit state/ref types (searchResult, troves, sort, abort refs, etc.)
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams, useLocation } from 'react-router-dom'
+import type { SearchResultData, Trove, DuplicatesResultData, UniquesResultData } from './types'
+import type { FileTypeQuickModeValue } from './fileTypeQuickMode'
 import { SearchResultsGrid } from './SearchResultsGrid'
 import { DuplicateResultsView } from './DuplicateResultsView'
 import { UniquesResultsView } from './UniquesResultsView'
@@ -16,24 +17,24 @@ import './App.css'
 function App() {
   const [message, setMessage] = useState('')
   const [cacheEntries, setCacheEntries] = useState(0)
-  const [troves, setTroves] = useState([])
-  const [searchSelectedTroveIds, setSearchSelectedTroveIds] = useState(() => new Set())
-  const [dupCompareTroveIds, setDupCompareTroveIds] = useState(() => new Set())
-  const [uniqCompareTroveIds, setUniqCompareTroveIds] = useState(() => new Set())
+  const [troves, setTroves] = useState<Trove[]>([])
+  const [searchSelectedTroveIds, setSearchSelectedTroveIds] = useState<Set<string>>(() => new Set())
+  const [dupCompareTroveIds, setDupCompareTroveIds] = useState<Set<string>>(() => new Set())
+  const [uniqCompareTroveIds, setUniqCompareTroveIds] = useState<Set<string>>(() => new Set())
   const [query, setQuery] = useState('')
-  const [searchResult, setSearchResult] = useState(null)
-  const [searchError, setSearchError] = useState(null)
+  const [searchResult, setSearchResult] = useState<SearchResultData | null>(null)
+  const [searchError, setSearchError] = useState<string | null>(null)
   const [searching, setSearching] = useState(false)
   const [pageSize, setPageSize] = useState(500)
   const [troveFilter, setTroveFilter] = useState('')
   const [showFilter, setShowFilter] = useState('all')
   const [freezeTroveListOrder, setFreezeTroveListOrder] = useState(false)
-  const [boostTroveId, setBoostTroveId] = useState(null)
+  const [boostTroveId, setBoostTroveId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [starSortBy, setStarSortBy] = useState(null)
-  const [starSortDir, setStarSortDir] = useState(null)
-  const [otherSortBy, setOtherSortBy] = useState(null)
-  const [otherSortDir, setOtherSortDir] = useState(null)
+  const [starSortBy, setStarSortBy] = useState<string | null>(null)
+  const [starSortDir, setStarSortDir] = useState<'asc' | 'desc' | null>(null)
+  const [otherSortBy, setOtherSortBy] = useState<string | null>(null)
+  const [otherSortDir, setOtherSortDir] = useState<'asc' | 'desc' | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
   const searchMode = (() => {
@@ -48,26 +49,26 @@ function App() {
   const primaryTroveId = searchMode === 'duplicates' ? dupPrimaryTroveId : uniqPrimaryTroveId
   const setPrimaryTroveId = searchMode === 'duplicates' ? setDupPrimaryTroveId : setUniqPrimaryTroveId
   const [duplicatesTroveTab, setDuplicatesTroveTab] = useState('primary')
-  const [duplicatesResult, setDuplicatesResult] = useState(null)
+  const [duplicatesResult, setDuplicatesResult] = useState<DuplicatesResultData | null>(null)
   const [duplicatesPage, setDuplicatesPage] = useState(0)
   const [dupPageSize, setDupPageSize] = useState(50)
-  const [duplicatesSortBy, setDuplicatesSortBy] = useState(null)
-  const [duplicatesSortDir, setDuplicatesSortDir] = useState('asc')
-  const [uniquesResult, setUniquesResult] = useState(null)
+  const [duplicatesSortBy, setDuplicatesSortBy] = useState<string | null>(null)
+  const [duplicatesSortDir, setDuplicatesSortDir] = useState<'asc' | 'desc'>('asc')
+  const [uniquesResult, setUniquesResult] = useState<UniquesResultData | null>(null)
   const [uniquesPage, setUniquesPage] = useState(0)
   const [uniqPageSize, setUniqPageSize] = useState(50)
-  const [uniquesSortBy, setUniquesSortBy] = useState(null)
-  const [uniquesSortDir, setUniquesSortDir] = useState('asc')
+  const [uniquesSortBy, setUniquesSortBy] = useState<string | null>(null)
+  const [uniquesSortDir, setUniquesSortDir] = useState<'asc' | 'desc'>('asc')
   const [searchPageInput, setSearchPageInput] = useState('')
-  const [fileTypeFilters, setFileTypeFilters] = useState(() => {
+  const [fileTypeFilters, setFileTypeFilters] = useState<Set<string>>(() => {
     const ftAll = new URLSearchParams(window.location.search).getAll('fileTypes')
     return new Set(ftAll.filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
   })
-  const [fileTypeQuickMode, setFileTypeQuickMode] = useState(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq'))) // Any | Meh only, default Meh
+  const [fileTypeQuickMode, setFileTypeQuickMode] = useState<FileTypeQuickModeValue>(() => normalizeFileTypeQuickMode(new URLSearchParams(window.location.search).get('ftq')))
   const [thumbnailOnly, setThumbnailOnly] = useState(() => new URLSearchParams(window.location.search).get('thumbs') === '1')
-  const [allAvailableFileTypes, setAllAvailableFileTypes] = useState([])
+  const [allAvailableFileTypes, setAllAvailableFileTypes] = useState<string[]>([])
   const [fileTypeDropdownOpen, setFileTypeDropdownOpen] = useState(false)
-  const [searchResultsViewMode, setSearchResultsViewMode] = useState('list') // 'list' | 'gallery' (desktop only)
+  const [searchResultsViewMode, setSearchResultsViewMode] = useState<'list' | 'gallery'>('list')
   const [galleryDecorate, setGalleryDecorate] = useState(true)
   const [compareProgress, setCompareProgress] = useState({ current: 0, total: 0 })
   const [reloadTrovesInProgress, setReloadTrovesInProgress] = useState(false)
@@ -78,10 +79,10 @@ function App() {
   const skipViewModeSearchRef = useRef(false)
   const skipPageNavSearchRef = useRef(false)
   const lastFileTypeOrViewSearchRef = useRef(0)
-  const abortControllerRef = useRef(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const searchRequestIdRef = useRef(0)
-  const reloadAbortControllerRef = useRef(null)
-  const fileTypeDropdownRef = useRef(null)
+  const reloadAbortControllerRef = useRef<AbortController | null>(null)
+  const fileTypeDropdownRef = useRef<HTMLDivElement | null>(null)
   const PAGE_SIZE_OPTIONS = [10, 25, 100, 500, 1000, 5000, 10000]
   queryRef.current = query
   const isStarQuery = (query ?? '').trim() === '*'
@@ -104,7 +105,14 @@ function App() {
       .catch(() => setMessage('Status: Backend unreachable'))
   }
 
-  function fetchSearch(pageNum, sizeOverride = null, troveIdsOverride = null, sortByOverride = null, sortDirOverride = null, fileTypesOverride = undefined) {
+  function fetchSearch(
+    pageNum: number,
+    sizeOverride: number | null = null,
+    troveIdsOverride: Set<string> | null = null,
+    sortByOverride: string | null = null,
+    sortDirOverride: 'asc' | 'desc' | null = null,
+    fileTypesOverride?: Set<string>
+  ) {
     const size = sizeOverride ?? pageSize
     const q = queryRef.current
     if (!q.trim()) {
@@ -139,13 +147,13 @@ function App() {
     }
     const url = `/api/search?${params}`
     abortControllerRef.current?.abort()
-    const cached = queryCache.get(url)
+    const cached = queryCache.get(url) as SearchResultData | null | undefined
     if (cached) {
       setSearchResult(cached)
-      if (Array.isArray(cached?.availableFileTypes) && cached.availableFileTypes.length > 0) {
+      if (Array.isArray(cached.availableFileTypes) && cached.availableFileTypes.length > 0) {
         setAllAvailableFileTypes((prev) => {
           const next = new Set(prev)
-          cached.availableFileTypes.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
+          cached.availableFileTypes!.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
           return [...next].sort()
         })
       }
@@ -162,14 +170,14 @@ function App() {
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
       })
-      .then((data) => {
+      .then((data: SearchResultData) => {
         if (searchRequestIdRef.current !== requestId) return
         queryCache.set(url, data)
         setSearchResult(data)
-        if (Array.isArray(data?.availableFileTypes) && data.availableFileTypes.length > 0) {
+        if (Array.isArray(data.availableFileTypes) && data.availableFileTypes.length > 0) {
           setAllAvailableFileTypes((prev) => {
             const next = new Set(prev)
-            data.availableFileTypes.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
+            data.availableFileTypes!.forEach((t) => next.add(t === 'URL' ? 'Link' : t))
             return [...next].sort()
           })
         }
@@ -266,7 +274,20 @@ function App() {
     }
   }, [searchParams, troves])
 
-  function buildSearchParams(mode, q, searchTroves, dupPrimary, dupCompare, uniqPrimary, uniqCompare, fileTypesSet = null, boostTrove = null, view = null, thumbnailOnlyOverride = undefined, quickModeOverride = undefined) {
+  function buildSearchParams(
+    mode: string,
+    q: string,
+    searchTroves: Set<string>,
+    dupPrimary: string,
+    dupCompare: Set<string>,
+    uniqPrimary: string,
+    uniqCompare: Set<string>,
+    fileTypesSet: Set<string> | null = null,
+    boostTrove: string | null = null,
+    view: string | null = null,
+    thumbnailOnlyOverride?: boolean,
+    quickModeOverride?: FileTypeQuickModeValue
+  ): URLSearchParams {
     const next = new URLSearchParams()
     if (mode !== 'search') next.set('mode', mode)
     const qTrim = (q ?? '').trim()
@@ -378,7 +399,7 @@ function App() {
     setFreezeTroveListOrder(false)
   }, [searchMode])
 
-  const prevBoostTroveIdRef = useRef(undefined)
+  const prevBoostTroveIdRef = useRef<string | null | undefined>(undefined)
   useEffect(() => {
     if (searchMode !== 'search') return
     if (prevBoostTroveIdRef.current === undefined) {
@@ -450,10 +471,16 @@ function App() {
     abortControllerRef.current?.abort()
   }
 
-  async function readCompareStream(url, signal, onProgress, onDone) {
+  async function readCompareStream(
+    url: string,
+    signal: AbortSignal,
+    onProgress: (current: number, total: number) => void,
+    onDone: (result: unknown) => void
+  ) {
     const res = await fetch(url, { credentials: 'include', headers: { ...getApiAuthHeaders() }, signal })
     if (res.status === 401) { window.location.href = '/login'; throw new Error('Unauthorized') }
     if (!res.ok) throw new Error(res.statusText)
+    if (!res.body) throw new Error('No response body')
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
@@ -481,7 +508,7 @@ function App() {
     }
   }
 
-  function fetchDuplicates(pageNum, sizeOverride = null) {
+  function fetchDuplicates(pageNum: number, sizeOverride: number | null = null) {
     const q = queryRef.current.trim() || '*'
     const size = sizeOverride ?? dupPageSize
     if (!primaryTroveId.trim()) {
@@ -502,7 +529,7 @@ function App() {
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
     const streamUrl = `/api/search/duplicates/stream?${params}`
     const restUrl = `/api/search/duplicates?${params}`
-    const cached = queryCache.get(restUrl)
+    const cached = queryCache.get(restUrl) as DuplicatesResultData | null | undefined
     if (cached) {
       setDuplicatesResult(cached)
       setDuplicatesPage(pageNum)
@@ -519,8 +546,9 @@ function App() {
       controller.signal,
       (current, total) => setCompareProgress({ current, total }),
       (data) => {
-        queryCache.set(restUrl, data)
-        setDuplicatesResult(data)
+        const dup = data as DuplicatesResultData
+        queryCache.set(restUrl, dup)
+        setDuplicatesResult(dup)
         setDuplicatesPage(pageNum)
         setCompareProgress({ current: 0, total: 0 })
         refreshStatusMessage()
@@ -533,7 +561,12 @@ function App() {
     })
   }
 
-  function fetchUniques(pageNum, sortByOverride = null, sortDirOverride = null, sizeOverride = null) {
+  function fetchUniques(
+    pageNum: number,
+    sortByOverride: string | null = null,
+    sortDirOverride: 'asc' | 'desc' | null = null,
+    sizeOverride: number | null = null
+  ) {
     const q = queryRef.current.trim() || '*'
     const size = sizeOverride ?? uniqPageSize
     if (!primaryTroveId.trim()) {
@@ -563,7 +596,7 @@ function App() {
     selectedTroveIds.forEach((id) => params.append('compareTrove', id))
     const streamUrl = `/api/search/uniques/stream?${params}`
     const restUrl = `/api/search/uniques?${params}`
-    const cached = queryCache.get(restUrl)
+    const cached = queryCache.get(restUrl) as UniquesResultData | null | undefined
     if (cached) {
       setUniquesResult(cached)
       setUniquesPage(pageNum)
@@ -580,8 +613,9 @@ function App() {
       controller.signal,
       (current, total) => setCompareProgress({ current, total }),
       (data) => {
-        queryCache.set(restUrl, data)
-        setUniquesResult(data)
+        const uniq = data as UniquesResultData
+        queryCache.set(restUrl, uniq)
+        setUniquesResult(uniq)
         setUniquesPage(pageNum)
         setCompareProgress({ current: 0, total: 0 })
         refreshStatusMessage()
@@ -1112,9 +1146,9 @@ aria-label="Clear compare troves"
               value={troveFilter}
               onChange={(e) => setTroveFilter(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setTroveFilter('') } }}
-              placeholder={searchMode === 'duplicates' ? 'Filter compare troves…' : 'Filter troves…'}
+              placeholder={(searchMode as string) === 'duplicates' ? 'Filter compare troves…' : 'Filter troves…'}
               className="sidebar-trove-filter-input"
-              aria-label={searchMode === 'duplicates' ? 'Filter compare troves by name' : 'Filter troves by name'}
+              aria-label={(searchMode as string) === 'duplicates' ? 'Filter compare troves by name' : 'Filter troves by name'}
             />
             {troveFilter && (
               <button
@@ -1384,7 +1418,7 @@ aria-label="Clear compare troves"
                                 ? <>Must have {' '}<img src="/thumb-thumbnail.png" alt="" className="search-filetype-trigger-inline-icon" aria-hidden="true" /></>
                                 : (() => {
                                     const groupNames = getFullySelectedGroupNames(fileTypesForLabel, allAvailableFileTypes)
-                                    const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
+                                    const label = (groupNames != null && groupNames.length > 0) ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
                                     return <>Only {label} + {' '}<img src="/thumb-thumbnail.png" alt="" className="search-filetype-trigger-inline-icon" aria-hidden="true" /></>
                                   })())
                           : (fileTypesForLabel.size === 0
@@ -1393,7 +1427,7 @@ aria-label="Clear compare troves"
                                 ? 'Any media'
                                 : (() => {
                                     const groupNames = getFullySelectedGroupNames(fileTypesForLabel, allAvailableFileTypes)
-                                    const label = groupNames?.length > 0 ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
+                                    const label = (groupNames != null && groupNames.length > 0) ? groupNames.join(', ') : (getGroupNameIfFullySelected(fileTypesForLabel, allAvailableFileTypes) ?? [...fileTypesForLabel].sort().join(', '))
                                     return `Only ${label}`
                                   })())}
                       </button>
@@ -1466,7 +1500,7 @@ aria-label="Clear compare troves"
                               if (mehQuickSelected) return
                               skipFileTypeSearchRef.current = true
                               lastFileTypeOrViewSearchRef.current = Date.now()
-                              const next = new Set()
+                              const next = new Set<string>()
                               setFileTypeQuickMode(FileTypeQuickMode.Meh)
                               setFileTypeFilters(next)
                               setSearchParams(buildSearchParams('search', query, searchSelectedTroveIds, dupPrimaryTroveId, dupCompareTroveIds, uniqPrimaryTroveId, uniqCompareTroveIds, next, boostTroveId, searchResultsViewMode, undefined, FileTypeQuickMode.Meh), { replace: true })
@@ -1650,7 +1684,7 @@ aria-label="Clear compare troves"
                     let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
                     let end = Math.min(totalPages, start + maxShow)
                     if (end - start < maxShow) start = Math.max(0, end - maxShow)
-                    const pageNumbers = []
+                    const pageNumbers: number[] = []
                     for (let i = start; i < end; i++) pageNumbers.push(i)
                     return (
                       <nav className="pagination" aria-label="Duplicate results pages">
@@ -1775,7 +1809,7 @@ aria-label="Clear compare troves"
                     let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
                     let end = Math.min(totalPages, start + maxShow)
                     if (end - start < maxShow) start = Math.max(0, end - maxShow)
-                    const pageNumbers = []
+                    const pageNumbers: number[] = []
                     for (let i = start; i < end; i++) pageNumbers.push(i)
                     return (
                       <nav className="pagination" aria-label="Uniques results pages">
@@ -1967,7 +2001,7 @@ aria-label="Clear compare troves"
                       let start = Math.max(0, pageNum - Math.floor(maxShow / 2))
                       let end = Math.min(totalPages, start + maxShow)
                       if (end - start < maxShow) start = Math.max(0, end - maxShow)
-                      const pageNumbers = []
+                      const pageNumbers: number[] = []
                       for (let i = start; i < end; i++) pageNumbers.push(i)
                       return (
                         <nav className="pagination" aria-label="Search results pages">
