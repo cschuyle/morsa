@@ -888,6 +888,11 @@
   cursor: default;
 }
 
+.mobile-compare-to-self-text {
+  font-size: 0.9rem;
+  color: #6633cc;
+}
+
 .mobile-compare-to-self--invisible {
   visibility: hidden;
 }
@@ -913,6 +918,16 @@
 
 .mobile-trove-item.mobile-trove-item--selected {
   background: #e8eeff;
+}
+
+.mobile-trove-item--disabled .mobile-trove-label,
+.mobile-trove-item--disabled .mobile-trove-label span {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mobile-trove-item--disabled .mobile-trove-label input:disabled {
+  cursor: not-allowed;
 }
 
 .mobile-trove-item--has-results .mobile-trove-label {

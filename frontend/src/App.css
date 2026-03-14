@@ -677,6 +677,16 @@
   background: #e8eeff;
 }
 
+.trove-item--disabled .trove-checkbox,
+.trove-item--disabled .trove-name {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.trove-item--disabled .trove-checkbox input:disabled {
+  cursor: not-allowed;
+}
+
 .trove-checkbox {
   display: flex;
   align-items: center;

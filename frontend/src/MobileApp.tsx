@@ -1718,14 +1718,12 @@ onClick={() => {
             <div className="mobile-trove-clear-row">
               <button type="button" onClick={clearTroves} className="mobile-trove-clear">Clear all</button>
               {searchMode === 'duplicates' && primaryTroveId && (
-                <button
-                  type="button"
-                  className={`mobile-trove-clear ${isCompareToSelfVisible(primaryTroveId, compareTroveIds) ? '' : 'mobile-compare-to-self--invisible'}`}
-                  onClick={() => setCompareTroveIds(new Set([primaryTroveId]))}
-                  aria-label="Comparing to self"
+                <span
+                  className={`mobile-compare-to-self-text ${isCompareToSelfVisible(primaryTroveId, compareTroveIds) ? '' : 'mobile-compare-to-self--invisible'}`}
+                  aria-hidden="true"
                 >
                   Comparing to self
-                </button>
+                </span>
               )}
             </div>
             <ul className="mobile-trove-list">
@@ -1745,18 +1743,22 @@ onClick={() => {
                     </li>
                   ))
                 : isDupOrUniques && trovePickerSubTab === 'compare'
-                  ? (searchMode === 'uniques' ? filteredTroves.filter((t) => t.id !== primaryTroveId) : filteredTroves).map((t) => (
-                      <li key={t.id} className="mobile-trove-item">
-                        <label className="mobile-trove-label">
-                          <input
-                            type="checkbox"
-                            checked={compareTroveIds.has(t.id)}
-                            onChange={() => toggleCompare(t.id)}
-                          />
-                          <span>{t.name}</span>
-                        </label>
-                      </li>
-                    ))
+                  ? filteredTroves.map((t) => {
+                      const isPrimaryDisabled = t.id === primaryTroveId
+                      return (
+                        <li key={t.id} className={`mobile-trove-item ${isPrimaryDisabled ? 'mobile-trove-item--disabled' : ''}`}>
+                          <label className="mobile-trove-label">
+                            <input
+                              type="checkbox"
+                              checked={compareTroveIds.has(t.id)}
+                              disabled={isPrimaryDisabled}
+                              onChange={() => !isPrimaryDisabled && toggleCompare(t.id)}
+                            />
+                            <span>{t.name}</span>
+                          </label>
+                        </li>
+                      )
+                    })
                   : (() => {
                       const { selected, notSelected } = mobileSearchTrovesWithResults
                       const renderTrove = (t) => {

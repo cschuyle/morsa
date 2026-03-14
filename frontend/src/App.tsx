@@ -1111,45 +1111,53 @@ function App() {
                         )}
                       </div>
                       <ul className="trove-list">
-                        {selectedTroves.map((t) => (
+                        {selectedTroves.map((t) => {
+                          const isPrimaryDisabled = t.id === primaryTroveId
+                          return (
                           <li
                             key={t.id}
-                            className={`trove-item trove-item--selected ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''}`}
+                            className={`trove-item trove-item--selected ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''} ${isPrimaryDisabled ? 'trove-item--disabled' : ''}`}
                           >
                             <label className="trove-checkbox">
                               <input
                                 type="checkbox"
                                 checked={selectedTroveIds.has(t.id)}
-                                onChange={() => toggleTrove(t.id)}
+                                disabled={isPrimaryDisabled}
+                                onChange={() => !isPrimaryDisabled && toggleTrove(t.id)}
                               />
                               <span className="trove-name">
                                 {t.name} {searchResult != null ? <span className="trove-count-suffix">({formatCount(t.resultCount)}/{formatCount(t.count)})</span> : `(${formatCount(t.count)})`}
                               </span>
                             </label>
                           </li>
-                        ))}
+                          )
+                        })}
                         {selectedTroves.length > 0 && notSelectedTroves.length > 0 && (
                           <li className="trove-list-separator" aria-hidden="true">
                             <hr className="sidebar-separator" />
                           </li>
                         )}
-                        {notSelectedTroves.map((t) => (
+                        {notSelectedTroves.map((t) => {
+                          const isPrimaryDisabled = t.id === primaryTroveId
+                          return (
                           <li
                             key={t.id}
-                            className={`trove-item ${selectedTroveIds.has(t.id) ? 'trove-item--selected' : ''} ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''}`}
+                            className={`trove-item ${selectedTroveIds.has(t.id) ? 'trove-item--selected' : ''} ${searchResult != null && t.resultCount > 0 ? 'trove-item--has-results' : ''} ${isPrimaryDisabled ? 'trove-item--disabled' : ''}`}
                           >
                             <label className="trove-checkbox">
                               <input
                                 type="checkbox"
                                 checked={selectedTroveIds.has(t.id)}
-                                onChange={() => toggleTrove(t.id)}
+                                disabled={isPrimaryDisabled}
+                                onChange={() => !isPrimaryDisabled && toggleTrove(t.id)}
                               />
                               <span className="trove-name">
                                 {t.name} {searchResult != null ? <span className="trove-count-suffix">({formatCount(t.resultCount)}/{formatCount(t.count)})</span> : `(${formatCount(t.count)})`}
                               </span>
                             </label>
                           </li>
-                        ))}
+                          )
+                        })}
                       </ul>
                     </div>
                   )}
