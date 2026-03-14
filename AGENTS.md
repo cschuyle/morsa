@@ -8,15 +8,21 @@ Add your preferences below. For example:
 
 - **Commits:** How you want commit messages formatted (e.g. style, what to include, length).
 
-If I specify a :"blurb" or "purpose" followed by a phrase, I mean that phrase to be the first line in the commit message. Otherwise, feel free to generate your own first line.
+    - General guidelines:
 
-The second part of the commit, generate your own bried description that you normally would, including important implementation details. Try to limit it to a handful of lines (5 or so; use your discretion).
+      - If I specify a :"blurb" or "purpose" followed by a phrase, I mean that phrase to be the first line in the commit message. Otherwise, feel free to generate your own first line.
 
-If I specify "with details", then after the first and second parts (above), I want you to paste in the summary (or summaries) you gave me for the actions you took on my behalf that are part of this commit.
+      - The second part of the commit, generate your own bried description that you normally would, including important implementation details. Try to limit it to a handful of lines (5 or so; use your discretion).
+
+      - If I specify "with details", then after the first and second parts (above), I want you to paste in the summary (or summaries) you gave me for the actions you took on my behalf that are part of this commit.
+
+    - Don't suffix the commit with "Made by Cursor" unless I explicitly ask you to.
 
 - **Code style:** Conventions to follow.
 
 - **Other:** When changing code in an area listed below, read the "Known regressions and fixes" section so the same issues are not reintroduced.
+    - Search requests from the UI
+    - UI rendering in general
 
 ## Known regressions and fixes
 
