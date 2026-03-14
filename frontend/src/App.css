@@ -1315,13 +1315,13 @@
 .search-cancel {
   background: none;
   border: none;
-  color: #666;
+  color: #8855ff;
   cursor: pointer;
   font-size: 0.95rem;
   padding: 0;
 }
 .search-cancel:hover {
-  color: #c00;
+  color: #9966ff;
   text-decoration: underline;
 }
 .search-error {
@@ -1908,20 +1908,25 @@
 .search-compare-progress-wrap {
   flex: 1;
   min-width: 0;
-  max-width: 20rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .search-compare-progress-track {
-  flex: 1;
-  min-width: 0;
+  flex: 4 1 0;
+  min-width: 8rem;
   height: 1.25rem;
   background: #e8e8e8;
   border-radius: 4px;
   overflow: hidden;
   position: relative;
+}
+
+/* Desktop: wider bar (higher specificity so it wins when both App and MobileApp CSS load) */
+.duplicates-search-loading .search-compare-progress-track {
+  flex: 4 1 0;
+  min-width: 8rem;
 }
 
 .search-compare-progress-bar {
@@ -1941,6 +1946,22 @@
   100% { transform: translateX(350%); }
 }
 
+.search-compare-progress-stats {
+  flex: 1;
+  min-width: 9em;
+  height: 1.25rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  background: #e0d0ee;
+  color: #000;
+  padding: 0 0.5em;
+  border-radius: 4px;
+}
+
 .search-compare-progress-percent {
   position: absolute;
   inset: 0;
@@ -1948,20 +1969,32 @@
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
+  font-weight: 500;
   color: #fff;
   pointer-events: none;
 }
 
 .search-compare-progress-count {
+  color: #000;
+  width: 9em;
   flex-shrink: 0;
-  font-size: 0.75rem;
-  color: #333;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.duplicates-search-loading .search-compare-progress-count {
+  margin-left: auto;
+}
+
+.search-compare-progress-stats-sep {
+  color: #000;
+  opacity: 0.8;
 }
 
 .search-compare-progress-timer {
+  color: #000;
+  min-width: 3.5em;
   flex-shrink: 0;
-  font-size: 0.75rem;
-  color: #666;
 }
 
 .search-mode-toggle {

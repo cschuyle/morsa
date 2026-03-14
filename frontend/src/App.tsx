@@ -1423,7 +1423,7 @@ aria-label="Clear compare troves"
                   </span>
                 </div>
                 <button type="submit" disabled={searching} className="search-submit-btn" aria-label="Search" title="Search">
-                  {searching ? 'Searching…' : 'Go!'}
+                  {searching ? 'Searching\u2026' : 'Go!'}
                 </button>
                 {searchMode === 'search' && (allAvailableFileTypes.length >= 1 || fileTypeFilters.size > 0) && (() => {
                   const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
@@ -1678,11 +1678,14 @@ aria-label="Clear compare troves"
                       <span className="search-compare-progress-percent">{Math.round((compareProgress.current / compareProgress.total) * 100)}%</span>
                     )}
                   </div>
-                  {compareProgress.total > 0 && (
-                    <span className="search-compare-progress-count">{compareProgress.current} / {compareProgress.total}</span>
-                  )}
+                  <span className="search-compare-progress-stats">
+                    <span className="search-compare-progress-timer" aria-label="Elapsed time">{compareElapsedSec}s</span>
+                    {compareProgress.total > 0 && <span className="search-compare-progress-stats-sep" aria-hidden="true">·</span>}
+                    {compareProgress.total > 0 && (
+                      <span className="search-compare-progress-count">{compareProgress.current}/{compareProgress.total}</span>
+                    )}
+                  </span>
                 </div>
-                <span className="search-compare-progress-timer" aria-label="Elapsed time">{compareElapsedSec}s</span>
               </div>
             )}
             {searchMode === 'duplicates' && duplicatesResult != null && !searching && (() => {

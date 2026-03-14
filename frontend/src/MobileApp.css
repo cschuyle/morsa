@@ -1423,6 +1423,21 @@
   gap: 0.5rem;
 }
 
+.mobile-search-cancel {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #5522aa;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.35rem 0.5rem;
+}
+.mobile-search-cancel:hover,
+.mobile-search-cancel:active {
+  color: #6633cc;
+  text-decoration: underline;
+}
+
 .mobile-search-spinner {
   display: inline-block;
   width: 1.25rem;
@@ -1445,12 +1460,12 @@
   max-width: 20rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
 .search-compare-progress-track {
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
+  width: 7rem;
   height: 1.25rem;
   background: #e8e8e8;
   border-radius: 4px;
@@ -1475,6 +1490,43 @@
   100% { transform: translateX(350%); }
 }
 
+.search-compare-progress-stats {
+  flex: 0 0 auto;
+  width: 14em;
+  min-width: 14em;
+  height: 1.25rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  background: #e0d0ee;
+  color: #000;
+  padding: 0 0.5em;
+  border-radius: 4px;
+}
+
+/* Mobile: light purple 20% narrower and inner sections scaled down */
+.mobile-search-loading .search-compare-progress-stats {
+  width: 11.2em;
+  min-width: 11.2em;
+  gap: 0.35rem;
+  padding: 0 0.4em;
+}
+.mobile-search-loading .search-compare-progress-count {
+  width: 7.2em;
+}
+.mobile-search-loading .search-compare-progress-timer {
+  min-width: 2.8em;
+}
+
+.search-compare-progress-spacer {
+  flex: 0.185;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
 .search-compare-progress-percent {
   position: absolute;
   inset: 0;
@@ -1482,20 +1534,28 @@
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  color: #333;
+  font-weight: 500;
+  color: #fff;
   pointer-events: none;
 }
 
 .search-compare-progress-count {
+  color: #000;
+  width: 9em;
   flex-shrink: 0;
-  font-size: 0.75rem;
-  color: #333;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.search-compare-progress-stats-sep {
+  color: #000;
+  opacity: 0.8;
 }
 
 .search-compare-progress-timer {
+  color: #000;
+  min-width: 3.5em;
   flex-shrink: 0;
-  font-size: 0.75rem;
-  color: #666;
 }
 
 /* Duplicate / Uniques results (base styles; mobile doesn't load App.css) */

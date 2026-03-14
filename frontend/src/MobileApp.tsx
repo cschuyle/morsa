@@ -629,6 +629,10 @@ function MobileApp() {
     })
   }
 
+  function cancelSearch() {
+    abortRef.current?.abort()
+  }
+
   useEffect(() => {
     refreshStatusMessage()
   }, [])
@@ -1304,12 +1308,10 @@ onClick={() => {
             </span>
           </div>
           <button type="submit" className="mobile-search-btn" disabled={searching} aria-label="Search">
-            {searching ? '…' : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-            )}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
           </button>
           {searchMode === 'search' && showMobileFileTypePicker && (displayFileTypes.length >= 1 || fileTypeFilters.size > 0) && (() => {
             const urlFileTypes = new Set(searchParams.getAll('fileTypes').filter((f) => f != null && f.trim()).map((f) => (f.trim() === 'URL' ? 'Link' : f.trim())))
@@ -1512,7 +1514,7 @@ onClick={() => {
         )}
         {isDupOrUniques && searching && (
           <div className="mobile-search-loading" aria-live="polite" aria-busy="true">
-            <span>{searchMode === 'duplicates' ? 'Finding duplicates…' : 'Finding uniques…'}</span>
+            <span>Searching{"\u2026"}</span>
             <div
               className="search-compare-progress-wrap"
               role="progressbar"
@@ -1530,11 +1532,18 @@ onClick={() => {
                   <span className="search-compare-progress-percent">{Math.round((compareProgress.current / compareProgress.total) * 100)}%</span>
                 )}
               </div>
-              {compareProgress.total > 0 && (
-                <span className="search-compare-progress-count">{compareProgress.current} / {compareProgress.total}</span>
-              )}
+              <span className="search-compare-progress-stats">
+                <span className="search-compare-progress-timer" aria-label="Elapsed time">{compareElapsedSec}s</span>
+                {compareProgress.total > 0 && <span className="search-compare-progress-stats-sep" aria-hidden="true">·</span>}
+                {compareProgress.total > 0 && (
+                  <span className="search-compare-progress-count">{compareProgress.current}/{compareProgress.total}</span>
+                )}
+              </span>
+            <button type="button" className="mobile-search-cancel" onClick={cancelSearch} aria-label="Cancel search">
+              Cancel
+            </button>
+              <span className="search-compare-progress-spacer" aria-hidden="true" />
             </div>
-            <span className="search-compare-progress-timer" aria-label="Elapsed time">{compareElapsedSec}s</span>
           </div>
         )}
 
