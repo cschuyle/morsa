@@ -11,6 +11,7 @@ Add your preferences below. For example:
     - General guidelines:
 
       - If I specify a :"blurb" or "purpose" followed by a phrase, I mean that phrase to be the first line in the commit message. Otherwise, feel free to generate your own first line.
+        - Feel free to spell-check my blurbs and suggest corrections before committing!
 
       - The second part of the commit, generate your own bried description that you normally would, including important implementation details. Try to limit it to a handful of lines (5 or so; use your discretion).
 
