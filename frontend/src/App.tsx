@@ -1133,6 +1133,20 @@ function App() {
                                 {t.name} {searchResult != null ? <span className="trove-count-suffix">({formatCount(t.resultCount)}/{formatCount(t.count)})</span> : `(${formatCount(t.count)})`}
                               </span>
                             </label>
+                            {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
+                              <span className="trove-only-actions">
+                                <button
+                                  type="button"
+                                  className="trove-only-link"
+                                  disabled={isPrimaryDisabled}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }}
+                                  aria-label={`Compare only ${t.name}`}
+                                  title="Only this trove"
+                                >
+                                  <img src="/target.png" alt="" className="trove-only-icon" />
+                                </button>
+                              </span>
+                            )}
                           </li>
                           )
                         })}
@@ -1159,6 +1173,20 @@ function App() {
                                 {t.name} {searchResult != null ? <span className="trove-count-suffix">({formatCount(t.resultCount)}/{formatCount(t.count)})</span> : `(${formatCount(t.count)})`}
                               </span>
                             </label>
+                            {(selectedTroveIds.size !== 1 || !selectedTroveIds.has(t.id)) && (
+                              <span className="trove-only-actions">
+                                <button
+                                  type="button"
+                                  className="trove-only-link"
+                                  disabled={isPrimaryDisabled}
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }}
+                                  aria-label={`Compare only ${t.name}`}
+                                  title="Only this trove"
+                                >
+                                  <img src="/target.png" alt="" className="trove-only-icon" />
+                                </button>
+                              </span>
+                            )}
                           </li>
                           )
                         })}
@@ -1246,6 +1274,7 @@ function App() {
                     <button
                       type="button"
                       className="trove-only-link"
+                      disabled={selectedTroveIds.size === 1 && !selectedTroveIds.has(t.id)}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }}
                       aria-label={`Search only ${t.name}`}
                       title="Only this trove"
@@ -1292,6 +1321,7 @@ function App() {
                     <button
                       type="button"
                       className="trove-only-link"
+                      disabled={selectedTroveIds.size === 1 && !selectedTroveIds.has(t.id)}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleTargetClick(t.id) }}
                       aria-label={`Search only ${t.name}`}
                       title="Only this trove"

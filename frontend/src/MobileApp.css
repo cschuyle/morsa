@@ -1012,6 +1012,15 @@
   background: #ede5f5;
 }
 
+.mobile-trove-only-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mobile-trove-only-link:disabled:hover {
+  background: transparent;
+}
+
 .mobile-trove-only-link .mobile-trove-only-icon {
   display: block;
   width: 1.5rem;

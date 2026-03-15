@@ -753,6 +753,15 @@
   background: #e0e0ff;
 }
 
+.trove-only-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trove-only-link:disabled:hover {
+  background: transparent;
+}
+
 .trove-only-link .trove-only-icon {
   display: block;
   width: 1.5rem;
