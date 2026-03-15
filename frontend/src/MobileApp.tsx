@@ -1691,9 +1691,11 @@ onClick={() => {
                 <>
                   {totalDupPages > 1 && (
                     <nav className="mobile-pagination mobile-troves-row-right" aria-label="Duplicate pages">
+                      <button type="button" className="mobile-page-btn" disabled={duplicatesPage <= 0 || searching} onClick={() => fetchDuplicates(0)} aria-label="First page">«</button>
                       <button type="button" className="mobile-page-btn" disabled={duplicatesPage <= 0 || searching} onClick={() => fetchDuplicates(duplicatesPage - 1)} aria-label="Previous">‹</button>
                       <span className="mobile-page-info">{formatCount(duplicatesPage + 1)} / {formatCount(totalDupPages)}</span>
                       <button type="button" className="mobile-page-btn" disabled={duplicatesPage >= totalDupPages - 1 || searching} onClick={() => fetchDuplicates(duplicatesPage + 1)} aria-label="Next">›</button>
+                      <button type="button" className="mobile-page-btn" disabled={duplicatesPage >= totalDupPages - 1 || searching} onClick={() => fetchDuplicates(totalDupPages - 1)} aria-label="Last page">»</button>
                     </nav>
                   )}
                   <div className="mobile-page-size-dropdown-wrap mobile-page-size-label mobile-page-size-label--end" ref={comparePageSizeDropdownRef}>
@@ -1746,9 +1748,11 @@ onClick={() => {
                 <>
                   {totalUniqPages > 1 && (
                     <nav className="mobile-pagination mobile-troves-row-right" aria-label="Uniques pages">
+                      <button type="button" className="mobile-page-btn" disabled={uniquesPage <= 0 || searching} onClick={() => fetchUniques(0)} aria-label="First page">«</button>
                       <button type="button" className="mobile-page-btn" disabled={uniquesPage <= 0 || searching} onClick={() => fetchUniques(uniquesPage - 1)} aria-label="Previous">‹</button>
                       <span className="mobile-page-info">{formatCount(uniquesPage + 1)} / {formatCount(totalUniqPages)}</span>
                       <button type="button" className="mobile-page-btn" disabled={uniquesPage >= totalUniqPages - 1 || searching} onClick={() => fetchUniques(uniquesPage + 1)} aria-label="Next">›</button>
+                      <button type="button" className="mobile-page-btn" disabled={uniquesPage >= totalUniqPages - 1 || searching} onClick={() => fetchUniques(totalUniqPages - 1)} aria-label="Last page">»</button>
                     </nav>
                   )}
                   <div className="mobile-page-size-dropdown-wrap mobile-page-size-label mobile-page-size-label--end" ref={comparePageSizeDropdownRef}>
@@ -1993,6 +1997,15 @@ onClick={() => {
                         type="button"
                         className="mobile-page-btn"
                         disabled={page <= 0 || searching}
+                        onClick={() => goToPage(0)}
+                        aria-label="First page"
+                      >
+                        «
+                      </button>
+                      <button
+                        type="button"
+                        className="mobile-page-btn"
+                        disabled={page <= 0 || searching}
                         onClick={() => goToPage(page - 1)}
                         aria-label="Previous page"
                       >
@@ -2018,6 +2031,15 @@ onClick={() => {
                         aria-label="Next page"
                       >
                         ›
+                      </button>
+                      <button
+                        type="button"
+                        className="mobile-page-btn"
+                        disabled={page >= totalPages - 1 || searching}
+                        onClick={() => goToPage(totalPages - 1)}
+                        aria-label="Last page"
+                      >
+                        »
                       </button>
                     </nav>
                     <div className="mobile-page-size-dropdown-wrap mobile-page-size-label mobile-page-size-label--end" ref={pageSizeDropdownRef}>
