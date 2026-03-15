@@ -91,6 +91,10 @@ function App() {
   const compareTimerStartRef = useRef<number | null>(null)
   const compareIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const fileTypeDropdownRef = useRef<HTMLDivElement | null>(null)
+  const dupPageSizeRef = useRef(dupPageSize)
+  const uniqPageSizeRef = useRef(uniqPageSize)
+  dupPageSizeRef.current = dupPageSize
+  uniqPageSizeRef.current = uniqPageSize
   const PAGE_SIZE_OPTIONS = [10, 25, 100, 500, 1000, 5000, 10000]
   queryRef.current = query
   const isStarQuery = (query ?? '').trim() === '*'
@@ -531,7 +535,7 @@ function App() {
 
   function fetchDuplicates(pageNum: number, sizeOverride: number | null = null) {
     const q = queryRef.current.trim() || '*'
-    const size = sizeOverride ?? dupPageSize
+    const size = sizeOverride ?? dupPageSizeRef.current
     if (!primaryTroveId.trim()) {
       setDuplicatesResult({ total: 0, page: 0, size, rows: [] })
       return
@@ -601,7 +605,7 @@ function App() {
     sizeOverride: number | null = null
   ) {
     const q = queryRef.current.trim() || '*'
-    const size = sizeOverride ?? uniqPageSize
+    const size = sizeOverride ?? uniqPageSizeRef.current
     if (!primaryTroveId.trim()) {
       setUniquesResult({ total: 0, page: 0, size, results: [] })
       return
