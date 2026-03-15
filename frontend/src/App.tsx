@@ -2232,8 +2232,8 @@ function App() {
                     showScoreColumn={query.trim() !== '*'}
                     viewMode={searchResultsViewMode}
                     afterFilterSlot={gallerySortAfterFilterSlot}
-                    hideTroveInGallery={selectedTroveIds.size <= 1}
-                    hideTroveInList={selectedTroveIds.size <= 1}
+                    hideTroveInGallery={selectedTroveIds.size === 1}
+                    hideTroveInList={selectedTroveIds.size === 1}
                     showPdfSashInGallery
                     showGalleryDecorations={galleryDecorate}
                   />
